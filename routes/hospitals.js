@@ -141,6 +141,80 @@ async function upsertHospitals(records) {
   return saved;
 }
 
+// Straight-line distance in km between two coordinates.
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// ============================================================
+// GET /api/hospitals?lat=..&lng=..
+// Used by the "Use my location" button: the browser already
+// knows the coordinates, so this skips the geocoding step and
+// goes straight to Mongo + live OpenStreetMap lookup around
+// that exact point. No typing required.
+// ============================================================
+async function getHospitalsByCoords(req, res, lat, lng) {
+  const radiusKm = 20;
+
+  // 1. Anything already cached in Mongo with coordinates, close enough.
+  const candidates = await Hospital.find({
+    lat: { $ne: null }, lng: { $ne: null }
+  }).limit(500);
+
+  let nearby = candidates
+    .map(doc => {
+      const d = haversineKm(lat, lng, doc.lat, doc.lng);
+      return { doc, d };
+    })
+    .filter(x => x.d <= radiusKm)
+    .sort((a, b) => a.d - b.d)
+    .slice(0, 30);
+
+  let externalNote;
+
+  // 2. If that's thin, pull real hospitals from OpenStreetMap around
+  //    this exact point and cache them for next time.
+  if (nearby.length < 6) {
+    try {
+      let osm = await fetchOSMHospitals(lat, lng, radiusKm * 1000);
+      if (osm.length === 0) osm = await fetchOSMHospitals(lat, lng, 50000); // widen for rural areas
+      const savedDocs = await upsertHospitals(osm);
+      const known = new Set(nearby.map(x => String(x.doc._id)));
+      for (const doc of savedDocs) {
+        if (doc.lat == null || doc.lng == null || known.has(String(doc._id))) continue;
+        const d = haversineKm(lat, lng, doc.lat, doc.lng);
+        if (d <= 50) {
+          nearby.push({ doc, d });
+          known.add(String(doc._id));
+        }
+      }
+      nearby.sort((a, b) => a.d - b.d);
+      nearby = nearby.slice(0, 30);
+    } catch (e) {
+      console.error("Live OSM lookup (by coords) failed:", e.message);
+      externalNote = "Live lookup temporarily unavailable; showing saved results only.";
+    }
+  }
+
+  const data = nearby.map(x => {
+    const obj = x.doc.toObject ? x.doc.toObject() : x.doc;
+    return { ...obj, distanceKm: Math.round(x.d * 10) / 10 };
+  });
+
+  res.json({
+    success: true,
+    count: data.length,
+    data,
+    ...(externalNote ? { note: externalNote } : {})
+  });
+}
+
 // ============================================================
 // GET /api/hospitals?search=xyz
 // 1. Look inside Mongo first (fast, works offline of OSM too).
@@ -152,6 +226,14 @@ async function upsertHospitals(records) {
 // ============================================================
 async function getHospitalsHandler(req, res) {
   try {
+    // "Use my location" comes in as lat/lng instead of typed text —
+    // handle that path separately, no geocoding needed.
+    const rawLat = parseFloat(req.query.lat);
+    const rawLng = parseFloat(req.query.lng);
+    if (Number.isFinite(rawLat) && Number.isFinite(rawLng)) {
+      return await getHospitalsByCoords(req, res, rawLat, rawLng);
+    }
+
     const search = (req.query.search || "").toString().trim().slice(0, 100);
     let localResults = [];
 
