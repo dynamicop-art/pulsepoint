@@ -16,7 +16,7 @@ const hospitalSchema = new mongoose.Schema({
 
 const Hospital = mongoose.models.Hospital || mongoose.model("Hospital", hospitalSchema);
 
-// Initial Sample Data (ডেটাবেস ফাঁকা থাকলে স্বয়ংক্রিয়ভাবে ইনসার্ট হবে)
+// Initial Sample Data (ডেটাবেস খালি থাকলে নিজে থেকেই ডাটাবেসে সেভ হবে)
 const defaultHospitals = [
   {
     name: "Apollo Multispeciality Hospital",
@@ -56,8 +56,8 @@ const defaultHospitals = [
   }
 ];
 
-// ১. GET: ডেটাবেস থেকে সব হাসপাতাল লোড করা (সার্চ ও ফিল্টার সহ)
-router.get("/", async (req, res) => {
+// ডেটা ফেচ করার কমন ফাংশন
+async function getHospitalsHandler(req, res) {
   try {
     const { search } = req.query;
     let query = {};
@@ -86,9 +86,13 @@ router.get("/", async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-});
+}
 
-// ২. POST: নতুন হাসপাতাল যুক্ত করা (Checkpoint 4: Viable প্রমাণ করতে)
+// ১. GET Route (যাতে "/" অথবা "/hospitals" যেকোনোটিতেই ডেটা পায়)
+router.get("/", getHospitalsHandler);
+router.get("/hospitals", getHospitalsHandler);
+
+// ২. POST: নতুন হাসপাতাল যুক্ত করা (Viable ফিচার)
 router.post("/", async (req, res) => {
   try {
     const { name, location, totalBeds, availableBeds, icuBeds, contact, bloodAvailable } = req.body;
