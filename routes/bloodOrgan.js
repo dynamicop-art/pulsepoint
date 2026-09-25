@@ -1,63 +1,39 @@
 const express = require("express");
 const router = express.Router();
-const { hospitals, requisitions } = require("../data/db");
+const mongoose = require("mongoose");
 
-// GET /api/blood-matrix
-router.get("/blood-matrix", (req, res) => {
-  const totalStock = { "O-": 0, "O+": 0, "A+": 0, "B+": 0, "AB+": 0 };
-  
-  const facilities = hospitals.slice(0, 100).map(h => {
-    Object.keys(totalStock).forEach(type => {
-      totalStock[type] += (h.bloodStock && h.bloodStock[type]) || 0;
-    });
-    return {
-      hospitalId: h.id,
-      hospitalName: h.name,
-      phone: h.phone,
-      bloodStock: h.bloodStock
-    };
-  });
-
-  res.json({ success: true, totalStock, facilities });
+const requestSchema = new mongoose.Schema({
+  patientName: { type: String, required: true },
+  bloodGroup: { type: String, required: true },
+  unitsRequired: { type: Number, default: 1 },
+  hospital: { type: String, required: true },
+  contactNumber: { type: String, required: true },
+  urgency: { type: String, enum: ["Critical", "Urgent", "Standard"], default: "Urgent" },
+  status: { type: String, default: "Pending" },
+  createdAt: { type: Date, default: Date.now }
 });
 
-// GET /api/organs
-router.get("/organs", (req, res) => {
-  const organRegistry = [];
-  hospitals.forEach(h => {
-    (h.organs || []).forEach(o => {
-      organRegistry.push({
-        ...o,
-        hospitalId: h.id,
-        hospitalName: h.name,
-        emergencyPhone: h.phone
-      });
-    });
-  });
-  res.json({ success: true, count: organRegistry.length, data: organRegistry.slice(0, 100) });
-});
+const BloodRequest = mongoose.models.BloodRequest || mongoose.model("BloodRequest", requestSchema);
 
-// POST /api/requisitions (Urgent Blood/Organ Requisition)
-router.post("/requisitions", (req, res) => {
-  const { patientName, item, units, receivingHospital, contactPhone } = req.body;
-  
-  if (!patientName || !item || !receivingHospital || !contactPhone) {
-    return res.status(400).json({ success: false, message: "Missing required parameters" });
+// GET: সব ব্লাড রিকোয়েস্ট দেখা
+router.get("/requests", async (req, res) => {
+  try {
+    const requests = await BloodRequest.find().sort({ createdAt: -1 });
+    res.json({ success: true, count: requests.length, data: requests });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
+});
 
-  const newRequisition = {
-    id: "req_" + Date.now(),
-    patientName,
-    item,
-    units: parseInt(units || 1, 10),
-    receivingHospital,
-    contactPhone,
-    status: "DISPATCH_BROADCASTED",
-    createdAt: new Date().toISOString()
-  };
-
-  requisitions.unshift(newRequisition);
-  res.status(201).json({ success: true, message: "Requisition broadcasted", data: newRequisition });
+// POST: নতুন এমার্জেন্সি ব্লাড রিকোয়েস্ট তৈরি করা
+router.post("/requests", async (req, res) => {
+  try {
+    const newReq = new BloodRequest(req.body);
+    const saved = await newReq.save();
+    res.status(201).json({ success: true, data: saved });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
 });
 
 module.exports = router;
