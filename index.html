@@ -278,6 +278,24 @@
             <span class="badge badge-green" id="activeRoleTag">Role: Citizen</span>
           </div>
 
+          <div class="profile-photo-panel">
+            <div class="profile-photo-wrap">
+              <img id="profilePhotoPreview" class="profile-photo" alt="Profile photo preview" hidden>
+              <div id="profilePhotoFallback" class="profile-photo-fallback"><i class="fa-solid fa-user"></i></div>
+              <label class="profile-photo-camera" for="profilePhotoInput" title="Choose profile photo" aria-label="Choose profile photo">
+                <i class="fa-solid fa-camera"></i>
+              </label>
+              <input type="file" id="profilePhotoInput" class="visually-hidden-input" accept="image/*">
+            </div>
+            <div class="profile-photo-copy">
+              <strong id="profilePhotoTitle">Citizen / Patient profile</strong>
+              <span id="profilePhotoHint">Add a profile photo. It is saved only on this device in this demo.</span>
+              <button type="button" class="btn btn-sm btn-blue-outline" id="btnRemoveProfilePhoto">
+                <i class="fa-solid fa-trash-can"></i> Remove photo
+              </button>
+            </div>
+          </div>
+
           <div class="quick-credentials">
             <p><strong>Demo 1-Click Fast Login:</strong></p>
             <div class="btn-group">

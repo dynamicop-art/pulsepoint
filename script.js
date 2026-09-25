@@ -132,7 +132,12 @@
     ],
     audioContext: null,
     sirenOscillator: null,
-    isSirenPlaying: false
+    isSirenPlaying: false,
+    profilePhotos: {
+      citizen: '',
+      staff: '',
+      doctors: {}
+    }
   };
 
   // Helper Functions
@@ -477,10 +482,22 @@
       filtered = allDoctors.filter(d => d.spec === selectedSpec);
     }
 
-    grid.innerHTML = filtered.map(d => `
+    grid.innerHTML = filtered.map((d, index) => {
+      const photoKey = encodeURIComponent(d.name);
+      const photo = STATE.profilePhotos.doctors[d.name] || '';
+      const photoMarkup = photo
+        ? `<img src="${photo}" alt="${d.name} profile photo">`
+        : `<i class="fa-solid fa-user-doctor"></i>`;
+      return `
       <div class="doctor-card">
         <div class="doctor-info-top">
-          <div class="doctor-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+          <div class="doctor-avatar doctor-avatar-photo">
+            ${photoMarkup}
+            <label class="doctor-photo-edit" for="doctorPhoto-${index}" title="Add or change doctor photo" aria-label="Add or change doctor photo">
+              <i class="fa-solid fa-camera"></i>
+            </label>
+            <input type="file" id="doctorPhoto-${index}" class="visually-hidden-input doctor-photo-input" accept="image/*" data-doctor="${photoKey}">
+          </div>
           <div class="doctor-name-title">
             <h4>${d.name}</h4>
             <span>${d.designation}</span>
@@ -496,7 +513,130 @@
           <i class="fa-solid fa-phone"></i> Casualty Ext: ${d.hospitalPhone}
         </a>
       </div>
-    `).join('');
+    `;
+    }).join('');
+
+    grid.querySelectorAll('.doctor-photo-input').forEach(input => {
+      input.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        const doctorName = decodeURIComponent(e.target.getAttribute('data-doctor') || '');
+        if (!file || !doctorName) return;
+        try {
+          STATE.profilePhotos.doctors[doctorName] = await resizeImageToDataUrl(file, 360, 0.82);
+          persistProfilePhotos();
+          renderDoctors(selectedSpec);
+          showToast(`Profile photo saved for ${doctorName}.`);
+        } catch (err) {
+          showToast('Could not process that image. Please choose another photo.');
+        }
+      });
+    });
+  }
+
+  function loadProfilePhotos() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('pulsepointProfilePhotos') || '{}');
+      STATE.profilePhotos = {
+        citizen: saved.citizen || '',
+        staff: saved.staff || '',
+        doctors: saved.doctors || {}
+      };
+    } catch (err) {
+      STATE.profilePhotos = { citizen: '', staff: '', doctors: {} };
+    }
+  }
+
+  function persistProfilePhotos() {
+    try {
+      localStorage.setItem('pulsepointProfilePhotos', JSON.stringify(STATE.profilePhotos));
+    } catch (err) {
+      showToast('Photo saved for this session, but browser storage is full.');
+    }
+  }
+
+  function resizeImageToDataUrl(file, maxSize = 420, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+      if (!file.type || !file.type.startsWith('image/')) {
+        reject(new Error('Not an image'));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onerror = () => reject(reader.error || new Error('File read failed'));
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Image decode failed'));
+        img.onload = () => {
+          const scale = Math.min(1, maxSize / Math.max(img.naturalWidth, img.naturalHeight));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function applyUserProfilePhoto() {
+    const role = STATE.user.role === 'staff' ? 'staff' : 'citizen';
+    const photo = STATE.profilePhotos[role] || '';
+    const preview = document.getElementById('profilePhotoPreview');
+    const fallback = document.getElementById('profilePhotoFallback');
+    const title = document.getElementById('profilePhotoTitle');
+    const hint = document.getElementById('profilePhotoHint');
+    const status = document.getElementById('userStatusText');
+
+    title.textContent = role === 'staff' ? 'Hospital Staff / EMT profile' : 'Citizen / Patient profile';
+    hint.textContent = photo
+      ? 'Your profile photo is active on this device.'
+      : 'Add a profile photo. It is saved only on this device in this demo.';
+
+    if (photo) {
+      preview.src = photo;
+      preview.hidden = false;
+      fallback.hidden = true;
+      if (status) status.classList.add('has-profile-photo');
+      if (status) status.style.setProperty('--profile-image', `url("${photo}")`);
+    } else {
+      preview.removeAttribute('src');
+      preview.hidden = true;
+      fallback.hidden = false;
+      if (status) status.classList.remove('has-profile-photo');
+      if (status) status.style.removeProperty('--profile-image');
+    }
+  }
+
+  function setupProfilePhotoControls() {
+    const input = document.getElementById('profilePhotoInput');
+    const remove = document.getElementById('btnRemoveProfilePhoto');
+    if (!input || !remove) return;
+
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      try {
+        const role = STATE.user.role === 'staff' ? 'staff' : 'citizen';
+        STATE.profilePhotos[role] = await resizeImageToDataUrl(file, 420, 0.82);
+        persistProfilePhotos();
+        applyUserProfilePhoto();
+        showToast('Profile photo updated.');
+      } catch (err) {
+        showToast('Could not process that image. Please choose another photo.');
+      } finally {
+        input.value = '';
+      }
+    });
+
+    remove.addEventListener('click', () => {
+      const role = STATE.user.role === 'staff' ? 'staff' : 'citizen';
+      STATE.profilePhotos[role] = '';
+      persistProfilePhotos();
+      applyUserProfilePhoto();
+      showToast('Profile photo removed.');
+    });
   }
 
   // Populate Staff Hospital Dropdown
@@ -617,15 +757,25 @@
       e.target.reset();
     });
 
+    // Keep profile-photo label synced with the selected portal role.
+    document.getElementById('authRole').addEventListener('change', (e) => {
+      STATE.user.role = e.target.value;
+      applyUserProfilePhoto();
+    });
+
     // Auth Demo Fill Buttons
     document.getElementById('btnFillPatient').addEventListener('click', () => {
       document.getElementById('authEmail').value = 'citizen.kolaghat@gmail.com';
       document.getElementById('authRole').value = 'citizen';
+      STATE.user.role = 'citizen';
+      applyUserProfilePhoto();
     });
 
     document.getElementById('btnFillStaff').addEventListener('click', () => {
       document.getElementById('authEmail').value = 'emt.officer@wbhealth.gov.in';
       document.getElementById('authRole').value = 'staff';
+      STATE.user.role = 'staff';
+      applyUserProfilePhoto();
     });
 
     // Auth Form Submit
@@ -641,6 +791,7 @@
 
       document.getElementById('userStatusText').textContent = `${STATE.user.name} (${role === 'staff' ? 'Hospital EMT' : 'Citizen'})`;
       document.getElementById('activeRoleTag').textContent = `Role: ${role.toUpperCase()}`;
+      applyUserProfilePhoto();
 
       if (role === 'staff') {
         document.getElementById('staffLockBadge').className = 'badge badge-green';
@@ -719,6 +870,8 @@
 
   // Initialization
   function init() {
+    loadProfilePhotos();
+    setupProfilePhotoControls();
     renderMapControls();
     updateMapView();
     renderHospitals();

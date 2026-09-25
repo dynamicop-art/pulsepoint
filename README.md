@@ -35,3 +35,12 @@ No API keys, build step or backend are required for this design. A real service 
 - Mobile refinement: fixed-width-safe layout, compact hotline grid, scrollable nav/filter pills, stacked forms, readable map cards and touch-sized controls.
 
 - Final visual adjustment: original emerald top bar restored; only hotline pills use the jelly/glass treatment.
+
+
+## Revision 6 — button interaction + profile photos
+- Added a polished neon-glass/shine interaction to buttons, hotline controls and filter pills, inspired by the supplied reference video.
+- Added Citizen/Patient and Hospital Staff/EMT profile-photo upload controls.
+- Added doctor profile-photo controls directly on each doctor card.
+- Photos are resized in the browser and stored in localStorage for this demo, so no image is uploaded to a server.
+- Added remove-photo controls and persistent photo previews after refresh on the same browser/device.
+- The demo remains a static frontend; production profile photos should use authenticated backend storage and access rules.

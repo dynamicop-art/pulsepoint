@@ -1239,3 +1239,224 @@ body { background:linear-gradient(180deg,#f2fbf7 0 390px,#ffffff 820px,#f8fcfa);
 .sos-hotlines .hotline-btn::before { display:none; }
 .sos-hotlines .hotline-btn:hover { filter:brightness(.94); }
 .sos-hotlines .hotline-btn:active { filter:brightness(.86); }
+
+
+/* === PulsePoint interaction polish: neon-glass button effect === */
+.btn,
+.hotline-btn,
+.pill {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn::before,
+.hotline-btn::before,
+.pill::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  background: linear-gradient(115deg, transparent 18%, rgba(255,255,255,.34) 45%, transparent 68%);
+  transform: translateX(-130%);
+  transition: transform .65s ease;
+  pointer-events: none;
+}
+
+.btn:hover::before,
+.hotline-btn:hover::before,
+.pill:hover::before {
+  transform: translateX(130%);
+}
+
+.btn:hover,
+.hotline-btn:hover,
+.pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(22,128,74,.24), 0 0 0 1px rgba(120,255,184,.16), 0 0 18px rgba(54,211,112,.14);
+}
+
+.btn:active,
+.hotline-btn:active,
+.pill:active {
+  transform: translateY(0) scale(.97);
+  box-shadow: 0 3px 10px rgba(22,128,74,.18);
+}
+
+.btn-green,
+.btn-blue {
+  background: linear-gradient(135deg, var(--primary-green), #0f6d42);
+  border: 1px solid rgba(112,255,167,.18);
+  box-shadow: 0 4px 14px rgba(22,128,74,.18);
+}
+
+.btn-green:hover,
+.btn-blue:hover {
+  background: linear-gradient(135deg, #199b58, var(--dark-green));
+}
+
+.btn-blue-outline:hover {
+  box-shadow: 0 8px 22px rgba(22,128,74,.20), 0 0 16px rgba(54,211,112,.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .hotline-btn,
+  .pill {
+    transition: none !important;
+  }
+  .btn::before,
+  .hotline-btn::before,
+  .pill::before {
+    display: none;
+  }
+}
+
+/* === Profile photos === */
+.profile-photo-panel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 16px;
+  padding: 12px;
+  border: 1px solid var(--slate-200);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f7fcf8, #edf7f5);
+}
+
+.profile-photo-wrap {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+}
+
+.profile-photo,
+.profile-photo-fallback {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+}
+
+.profile-photo-fallback {
+  background: linear-gradient(135deg, #dff5e7, #c9ead7);
+  color: var(--dark-green);
+  font-size: 25px;
+  border: 2px solid rgba(22,128,74,.18);
+}
+
+.profile-photo-camera,
+.doctor-photo-edit {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: var(--dark-green);
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 3px 9px rgba(0,0,0,.16);
+  font-size: 11px;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.profile-photo-camera:hover,
+.doctor-photo-edit:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 4px rgba(54,211,112,.12), 0 4px 12px rgba(0,0,0,.18);
+}
+
+.profile-photo-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.profile-photo-copy strong {
+  font-size: 13px;
+  color: var(--slate-900);
+}
+
+.profile-photo-copy span {
+  font-size: 11px;
+  color: var(--slate-600);
+  margin-bottom: 5px;
+}
+
+.visually-hidden-input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0,0,0,0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.nav-user-badge.has-profile-photo {
+  padding-left: 7px;
+}
+
+.nav-user-badge.has-profile-photo::before {
+  content: "";
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  border-radius: 50%;
+  background-image: var(--profile-image);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(22,128,74,.25);
+}
+
+.doctor-avatar-photo {
+  position: relative;
+  overflow: visible;
+  flex: 0 0 44px;
+}
+
+.doctor-avatar-photo img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.doctor-photo-edit {
+  width: 21px;
+  height: 21px;
+  right: -4px;
+  bottom: -3px;
+  font-size: 9px;
+}
+
+.doctor-card {
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.doctor-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(22,128,74,.35);
+  box-shadow: 0 12px 28px rgba(23,61,40,.10), 0 0 20px rgba(54,211,112,.08);
+}
+
+@media (max-width: 600px) {
+  .profile-photo-panel {
+    align-items: flex-start;
+  }
+  .profile-photo-copy .btn {
+    align-self: flex-start;
+  }
+}
