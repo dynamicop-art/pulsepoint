@@ -294,6 +294,9 @@ function setupLocationButton() {
   const btn = document.getElementById("btnGpsCalc");
   if (!btn) return;
 
+  const statusEl = document.getElementById("gpsStatusMessage");
+  const setStatus = (msg) => { if (statusEl) statusEl.textContent = msg; };
+
   btn.addEventListener("click", () => {
     if (!navigator.geolocation) {
       alert("Your browser does not support location access.");
@@ -303,51 +306,51 @@ function setupLocationButton() {
     const originalLabel = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Locating…`;
+    setStatus("📍 Getting your location…");
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
 
+        // No typing needed: send the coordinates straight to the backend,
+        // which checks Mongo first and, if that's thin, pulls real
+        // hospitals near this exact point live from OpenStreetMap.
+        setStatus("🔎 Finding real hospitals near you…");
+        const searchInput = document.getElementById("hospitalSearch") || document.querySelector("input[type='text']");
+        if (searchInput) searchInput.value = ""; // this is a location lookup, not a text search
+
         try {
-          // Ask the backend for real hospitals near this exact coordinate,
-          // anywhere in India (live OpenStreetMap lookup), sorted nearest-first.
-          const res = await fetch(
-            `${API_BASE_URL}/api/hospitals/nearby?lat=${latitude}&lng=${longitude}&radius=20000`
-          );
-          const json = await res.json();
+          const response = await fetch(`${API_BASE_URL}/api/hospitals?lat=${latitude}&lng=${longitude}`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const result = await response.json();
+          const raw = result.data || [];
 
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            const nearby = json.data.map(normalizeHospital);
-            renderFacilityCards(nearby, document.getElementById("hospitalsGrid"));
-          } else {
-            // Fallback: sort whatever's already loaded client-side.
-            allHospitals.forEach(h => {
-              if (h.lat != null && h.lng != null) {
-                h.distanceKm = haversineKm(latitude, longitude, h.lat, h.lng);
-              }
-            });
-            allHospitals.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
-            renderFacilityCards(allHospitals, document.getElementById("hospitalsGrid"));
-          }
-        } catch (e) {
-          console.error("Nearby lookup failed:", e);
-          allHospitals.forEach(h => {
-            if (h.lat != null && h.lng != null) {
-              h.distanceKm = haversineKm(latitude, longitude, h.lat, h.lng);
-            }
-          });
+          allHospitals = raw.map(normalizeHospital);
+          // backend already sorts by distance, but re-sort defensively
           allHospitals.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
-          renderFacilityCards(allHospitals, document.getElementById("hospitalsGrid"));
-        }
 
-        btn.disabled = false;
-        btn.innerHTML = originalLabel;
-        document.getElementById("section-hospitals")?.scrollIntoView({ behavior: "smooth" });
+          renderFacilityCards(allHospitals, document.getElementById("hospitalsGrid"));
+          renderBloodMatrix(allHospitals);
+
+          setStatus(
+            allHospitals.length
+              ? `✅ Found ${allHospitals.length} hospital(s) near your current location.`
+              : "🔍 No hospitals found near your current location."
+          );
+        } catch (error) {
+          console.error("Location-based fetch error:", error);
+          setStatus("⚠️ Could not fetch nearby hospitals. Please try again.");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalLabel;
+          document.getElementById("section-hospitals")?.scrollIntoView({ behavior: "smooth" });
+        }
       },
       (err) => {
         console.error("Geolocation error:", err);
         btn.disabled = false;
         btn.innerHTML = originalLabel;
+        setStatus("⚠️ Could not get your location. Please allow location access and try again.");
         alert("Could not get your location. Please allow location access in your browser and try again.");
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
