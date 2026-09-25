@@ -3,18 +3,15 @@
 // ==========================================
 
 const API_BASE_URL = "https://pulsepoint-api-x7fp.onrender.com";
-const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
-const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 
 // গ্লোবাল ভ্যারিয়েবল যাতে সার্চ করার সময় বারবার API কল না করতে হয়
 let allHospitals = [];
-let indiaSearchDebounceTimer = null;
-let indiaSearchToken = 0; // race-condition guard for overlapping async searches
 
 // --- হাসপাতালের ডেটা দুই রকম ব্যাকএন্ড থেকে আসতে পারে (Mongo বনাম লোকাল JSON) ---
+// এই ফাংশন দুই ফরম্যাটকেই একই কমন শেপে নরমালাইজ করে, যাতে ব্যাকএন্ড যেটাই থাকুক UI ভাঙবে না।
 function normalizeHospital(h) {
-  const bloodStock = h.bloodStock || null;
-  const bloodAvailable = Array.isArray(h.bloodAvailable) ? h.bloodAvailable : null;
+  const bloodStock = h.bloodStock || null; // { 'O+': 18, ... }
+  const bloodAvailable = Array.isArray(h.bloodAvailable) ? h.bloodAvailable : null; // ['A+','O+']
   const bloodTypes = bloodStock
     ? Object.keys(bloodStock).filter(k => bloodStock[k] > 0)
     : (bloodAvailable || []);
@@ -53,7 +50,7 @@ async function checkBackendHealth() {
   }
 }
 
-// ১. ব্যাকএন্ড থেকে স্যাম্পল ডেটা ফেচ করা (আপনার ৫টি ডেমো হাসপাতাল)
+// ১. ব্যাকএন্ড থেকে ডেটা ফেচ করা
 async function fetchAndRenderHospitals() {
   const detailsContainer = document.getElementById("hospitalsGrid");
 
@@ -72,6 +69,7 @@ async function fetchAndRenderHospitals() {
 
     const raw = result.data || result || [];
     allHospitals = raw.map(normalizeHospital);
+    defaultHospitalsCache = allHospitals; // সার্চ বক্স খালি করলে এই তালিকায় ফিরে যাবে
 
     renderFacilityCards(allHospitals, detailsContainer);
     renderBloodMatrix(allHospitals);
@@ -89,7 +87,7 @@ async function fetchAndRenderHospitals() {
   }
 }
 
-// ২. Facility কার্ডগুলো রেন্ডার করা (ডেমো ডেটাবেস)
+// ২. Facility কার্ডগুলো রেন্ডার করা
 function renderFacilityCards(hospitals, container) {
   if (!container) return;
   container.innerHTML = "";
@@ -97,7 +95,7 @@ function renderFacilityCards(hospitals, container) {
   if (!hospitals || hospitals.length === 0) {
     container.innerHTML = `
       <div style="text-align:center; padding:24px; color:#64748b; background:#f8fafc; border-radius:12px;">
-        🔍 No matching hospitals in the sample database. Try the "Hospitals across India" results below.
+        🔍 No matching hospitals or facilities found.
       </div>
     `;
     return;
@@ -193,48 +191,82 @@ function renderBloodMatrix(hospitals) {
   });
 }
 
-// ৪. সার্চ এবং ফিল্টার — লোকাল ডেমো ডেটাবেস + ভারতজুড়ে OpenStreetMap সার্চ ট্রিগার করে
+// ৪. সার্চ এবং ফিল্টার সিস্টেম
+// আগে এটা শুধু প্রথমে লোড হওয়া কয়েকটা হাসপাতালের মধ্যেই খুঁজত, তাই
+// "howrah" এর মতো নতুন জায়গা লিখলে কিছু পাওয়া যেত না। এখন সার্চ বক্সে
+// কিছু টাইপ করলে সেটা সরাসরি ব্যাকএন্ডে পাঠানো হয়, ব্যাকএন্ড সেই জায়গার
+// আশেপাশের real হাসপাতাল OpenStreetMap থেকে খুঁজে Mongo-তে সেভ করে
+// ফেরত দেয় — ফলে ভারতের যেকোনো জায়গা সার্চ করা যায়।
+let defaultHospitalsCache = [];   // প্রথমবার লোড হওয়া তালিকা (সার্চ খালি করলে এটায় ফিরে যাবে)
+let searchDebounceTimer = null;
+
+async function searchHospitalsOnServer(query) {
+  const detailsContainer = document.getElementById("hospitalsGrid");
+  if (detailsContainer) {
+    detailsContainer.innerHTML = `
+      <div style="text-align:center; padding:24px; font-weight:600; color:#0284c7; background:#f0f9ff; border-radius:12px; border:1px solid #bae6fd;">
+        🔎 Searching hospitals near "${query}" across India…
+      </div>
+    `;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/hospitals?search=${encodeURIComponent(query)}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const result = await response.json();
+    const raw = result.data || [];
+    allHospitals = raw.map(normalizeHospital);
+    applyLocalFilter();
+  } catch (error) {
+    console.error("Search fetch error:", error);
+    if (detailsContainer) {
+      detailsContainer.innerHTML = `
+        <div style="text-align:center; padding:20px; color:#dc2626; background:#fef2f2; border-radius:12px;">
+          ❌ Could not search right now. Please try again in a few seconds.
+        </div>
+      `;
+    }
+  }
+}
+
+function applyLocalFilter() {
+  const filterSelect = document.getElementById("filterType") || document.querySelector("select");
+  const filterVal = filterSelect ? filterSelect.value : "all";
+
+  const filtered = allHospitals.filter(h => {
+    const category = (h.category || "").toLowerCase();
+    const address = (h.address || "").toLowerCase();
+    let matchesCare = true;
+    if (filterVal === "icu") matchesCare = (h.icuBeds || 0) > 0;
+    else if (filterVal === "vent") matchesCare = (h.ventilators || 0) > 0;
+    else if (filterVal === "govt") matchesCare = category.includes("government") || address.includes("government");
+    return matchesCare;
+  });
+
+  renderFacilityCards(filtered, document.getElementById("hospitalsGrid"));
+}
+
 function setupSearchAndFilters() {
   const searchInput = document.getElementById("hospitalSearch") || document.querySelector("input[type='text']");
   const filterSelect = document.getElementById("filterType") || document.querySelector("select");
 
-  function applyLocalFilters() {
-    const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
-    const filterVal = filterSelect ? filterSelect.value : "all";
-
-    const filtered = allHospitals.filter(h => {
-      const name = h.name.toLowerCase();
-      const address = h.address.toLowerCase();
-      const category = h.category.toLowerCase();
-      const matchesSearch = !query || name.includes(query) || address.includes(query);
-
-      let matchesCare = true;
-      if (filterVal === "icu") matchesCare = (h.icuBeds || 0) > 0;
-      else if (filterVal === "vent") matchesCare = (h.ventilators || 0) > 0;
-      else if (filterVal === "govt") matchesCare = category.includes("government") || address.includes("government");
-
-      return matchesSearch && matchesCare;
-    });
-
-    renderFacilityCards(filtered, document.getElementById("hospitalsGrid"));
-  }
-
   if (searchInput) {
     searchInput.addEventListener("input", () => {
-      applyLocalFilters();
+      const query = searchInput.value.trim();
+      clearTimeout(searchDebounceTimer);
 
-      const q = searchInput.value.trim();
-      clearTimeout(indiaSearchDebounceTimer);
-      if (q.length < 3) {
-        const el = document.getElementById("indiaWideResults");
-        if (el) el.innerHTML = "";
-        return;
-      }
-      // ৩ অক্ষরের বেশি টাইপ করলে, ৭০০ms পরে সারা ভারতে সার্চ চালানো হয় (rate-limit বাঁচাতে debounce)
-      indiaSearchDebounceTimer = setTimeout(() => searchAcrossIndia(q), 700);
+      searchDebounceTimer = setTimeout(() => {
+        if (query.length === 0) {
+          allHospitals = defaultHospitalsCache;
+          applyLocalFilter();
+        } else if (query.length >= 2) {
+          searchHospitalsOnServer(query);
+        }
+      }, 500); // ইউজার টাইপ করা থামলে তবেই সার্চ হবে, প্রতি key press এ না
     });
   }
-  if (filterSelect) filterSelect.addEventListener("change", applyLocalFilters);
+
+  if (filterSelect) filterSelect.addEventListener("change", applyLocalFilter);
 }
 
 // ৫. Refresh বাটন
@@ -247,7 +279,7 @@ function setupRefreshButton() {
   });
 }
 
-// ৬. দূরত্ব হিসাব (haversine)
+// ৬. "Use my location" — বাস্তব জিওলোকেশন দিয়ে সবচেয়ে কাছের হাসপাতাল খুঁজে বের করা
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -258,123 +290,6 @@ function haversineKm(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// ৭. সারা ভারতে হাসপাতাল খোঁজা — OpenStreetMap (Nominatim + Overpass), কোনো API key লাগে না
-function ensureIndiaResultsContainer() {
-  let el = document.getElementById("indiaWideResults");
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "indiaWideResults";
-    el.style = "margin-top:28px;";
-    const grid = document.getElementById("hospitalsGrid");
-    (grid?.parentElement || document.getElementById("section-hospitals"))?.appendChild(el);
-  }
-  return el;
-}
-
-function osmHospitalCardHtml(h) {
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${h.lat},${h.lng}`;
-  return `
-    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.06);">
-      <div style="display:flex; justify-content:space-between; gap:8px; align-items:start;">
-        <h4 style="margin:0; font-size:1.05rem; color:#0f172a;">${h.name}</h4>
-        ${h.distanceKm != null ? `<span style="background:#e0f2fe;color:#0369a1;font-size:0.7rem;font-weight:700;padding:3px 7px;border-radius:999px; white-space:nowrap;">${h.distanceKm.toFixed(1)} km</span>` : ""}
-      </div>
-      <p style="color:#64748b; font-size:0.85rem; margin:6px 0;">📍 ${h.address || "Address not tagged on OpenStreetMap"}</p>
-      <div style="display:flex; gap:8px; margin-top:10px;">
-        ${h.phone ? `<a href="tel:${h.phone}" style="flex:1; text-align:center; background:#ef4444; color:#fff; padding:8px; border-radius:8px; text-decoration:none; font-size:0.85rem; font-weight:700;">📞 Call</a>` : ""}
-        <a href="${mapsUrl}" target="_blank" rel="noopener" style="flex:1; text-align:center; background:#0284c7; color:#fff; padding:8px; border-radius:8px; text-decoration:none; font-size:0.85rem; font-weight:700;">🧭 Directions</a>
-      </div>
-    </div>
-  `;
-}
-
-function renderIndiaResults(hospitals, headingText) {
-  const container = ensureIndiaResultsContainer();
-  const headingBar = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px; flex-wrap:wrap; gap:6px;">
-      <h3 style="font-size:1rem;color:#0f172a;margin:0;">${headingText}</h3>
-      <span style="font-size:0.75rem;color:#94a3b8;">Source: OpenStreetMap contributors</span>
-    </div>
-  `;
-
-  if (!hospitals.length) {
-    container.innerHTML = `
-      ${headingBar}
-      <div style="text-align:center;padding:20px;color:#64748b;background:#f8fafc;border-radius:12px;">
-        No hospitals tagged on OpenStreetMap were found for this area.
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = `
-    ${headingBar}
-    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px;">
-      ${hospitals.map(osmHospitalCardHtml).join("")}
-    </div>
-  `;
-}
-
-async function fetchOverpassHospitals(lat, lon, radiusM = 15000) {
-  const query = `[out:json][timeout:25];(node["amenity"="hospital"](around:${radiusM},${lat},${lon});way["amenity"="hospital"](around:${radiusM},${lat},${lon}););out center 40;`;
-  const res = await fetch(OVERPASS_URL, { method: "POST", body: query });
-  if (!res.ok) throw new Error("Overpass request failed");
-  const data = await res.json();
-
-  return (data.elements || [])
-    .map(el => {
-      const tags = el.tags || {};
-      const elLat = el.lat ?? el.center?.lat;
-      const elLon = el.lon ?? el.center?.lon;
-      const addressParts = [
-        tags["addr:housenumber"], tags["addr:street"], tags["addr:suburb"],
-        tags["addr:city"], tags["addr:state"]
-      ].filter(Boolean);
-      return {
-        name: tags.name || "Unnamed hospital",
-        address: tags["addr:full"] || addressParts.join(", "),
-        phone: tags.phone || tags["contact:phone"] || "",
-        lat: elLat,
-        lng: elLon,
-        distanceKm: (elLat != null && elLon != null) ? haversineKm(lat, lon, elLat, elLon) : null
-      };
-    })
-    .filter(h => h.lat != null && h.lng != null)
-    .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
-}
-
-async function geocodeIndia(query) {
-  const url = `${NOMINATIM_URL}?format=json&limit=1&countrycodes=in&q=${encodeURIComponent(query)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Geocoding failed");
-  const data = await res.json();
-  if (!data.length) return null;
-  return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), label: data[0].display_name };
-}
-
-async function searchAcrossIndia(query) {
-  const myToken = ++indiaSearchToken;
-  const container = ensureIndiaResultsContainer();
-  container.innerHTML = `<div style="text-align:center;padding:16px;color:#0284c7;">🔎 Searching hospitals across India for "${query}"...</div>`;
-
-  try {
-    const place = await geocodeIndia(query);
-    if (myToken !== indiaSearchToken) return; // a newer search started meanwhile
-    if (!place) {
-      container.innerHTML = `<div style="text-align:center;padding:16px;color:#64748b;">No location in India matched "${query}".</div>`;
-      return;
-    }
-    const results = await fetchOverpassHospitals(place.lat, place.lon, 20000);
-    if (myToken !== indiaSearchToken) return;
-    renderIndiaResults(results, `Hospitals near ${place.label.split(",")[0]}`);
-  } catch (err) {
-    console.error("India-wide search failed", err);
-    if (myToken !== indiaSearchToken) return;
-    container.innerHTML = `<div style="text-align:center;padding:16px;color:#dc2626;">Could not search nationwide hospital data right now. Please try again.</div>`;
-  }
-}
-
-// ৮. "Use my location" — GPS + OpenStreetMap দিয়ে বাস্তব কাছের হাসপাতাল
 function setupLocationButton() {
   const btn = document.getElementById("btnGpsCalc");
   if (!btn) return;
@@ -390,35 +305,26 @@ function setupLocationButton() {
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Locating…`;
 
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+      (pos) => {
         const { latitude, longitude } = pos.coords;
 
-        // ডেমো ডেটাবেসের ৫টি হাসপাতালের দূরত্ব রিক্যালকুলেট করা
         allHospitals.forEach(h => {
           if (h.lat != null && h.lng != null) {
             h.distanceKm = haversineKm(latitude, longitude, h.lat, h.lng);
           }
         });
-        allHospitals.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+
+        allHospitals.sort((a, b) => {
+          const da = a.distanceKm ?? Infinity;
+          const db = b.distanceKm ?? Infinity;
+          return da - db;
+        });
+
         renderFacilityCards(allHospitals, document.getElementById("hospitalsGrid"));
 
         btn.disabled = false;
         btn.innerHTML = originalLabel;
         document.getElementById("section-hospitals")?.scrollIntoView({ behavior: "smooth" });
-
-        // সেই একই GPS পয়েন্ট দিয়ে OpenStreetMap থেকে আসল আশেপাশের হাসপাতাল খোঁজা
-        const myToken = ++indiaSearchToken;
-        const container = ensureIndiaResultsContainer();
-        container.innerHTML = `<div style="text-align:center;padding:16px;color:#0284c7;">🔎 Finding real hospitals near your location...</div>`;
-        try {
-          const results = await fetchOverpassHospitals(latitude, longitude, 15000);
-          if (myToken !== indiaSearchToken) return;
-          renderIndiaResults(results, "Hospitals near your current location");
-        } catch (err) {
-          console.error("Nearby OSM search failed", err);
-          if (myToken !== indiaSearchToken) return;
-          container.innerHTML = `<div style="text-align:center;padding:16px;color:#dc2626;">Could not fetch nearby hospitals right now. Please try again.</div>`;
-        }
       },
       (err) => {
         console.error("Geolocation error:", err);

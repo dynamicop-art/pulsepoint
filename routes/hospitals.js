@@ -2,101 +2,223 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 
+// ============================================================
 // Mongoose Hospital Schema
+// (address/lat/lng/city/state/source added so hospitals pulled
+//  in live from OpenStreetMap can be stored the same way as
+//  hand-entered ones, and so the map / "use my location" button
+//  on the frontend has coordinates to work with.)
+// ============================================================
 const hospitalSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  location: { type: String, required: true },
-  totalBeds: { type: Number, default: 50 },
-  availableBeds: { type: Number, default: 10 },
-  icuBeds: { type: Number, default: 5 },
+  location: { type: String, required: true }, // city / area, shown as "Location"
+  address: { type: String, default: "" },      // fuller street address if known
+  city: { type: String, default: "" },
+  state: { type: String, default: "" },
+  lat: { type: Number, default: null },
+  lng: { type: Number, default: null },
+  totalBeds: { type: Number, default: null },
+  availableBeds: { type: Number, default: null },
+  icuBeds: { type: Number, default: null },
   contact: { type: String, required: true },
-  bloodAvailable: { type: [String], default: ["A+", "B+", "O+"] },
+  bloodAvailable: { type: [String], default: [] },
+  source: { type: String, default: "manual" }, // 'manual' | 'openstreetmap'
   updatedAt: { type: Date, default: Date.now }
 });
 
 const Hospital = mongoose.models.Hospital || mongoose.model("Hospital", hospitalSchema);
 
-// Initial Sample Data (ডেটাবেস খালি থাকলে নিজে থেকেই ডাটাবেসে সেভ হবে)
+// ============================================================
+// Starter sample data (used only the very first time the
+// collection is empty, so the homepage isn't blank before any
+// search has been made). This is NOT the all-India dataset —
+// that comes live from OpenStreetMap below.
+// ============================================================
 const defaultHospitals = [
-  {
-    name: "Apollo Multispeciality Hospital",
-    location: "Kolkata",
-    totalBeds: 250,
-    availableBeds: 42,
-    icuBeds: 14,
-    contact: "+91 33 2320 3040",
-    bloodAvailable: ["A+", "B+", "O+", "AB+"]
-  },
-  {
-    name: "Fortis Hospital",
-    location: "Anandapur, Kolkata",
-    totalBeds: 180,
-    availableBeds: 25,
-    icuBeds: 9,
-    contact: "+91 33 6628 4444",
-    bloodAvailable: ["O+", "O-", "A+", "B-"]
-  },
-  {
-    name: "Medica Superspecialty Hospital",
-    location: "Mukundapur, Kolkata",
-    totalBeds: 220,
-    availableBeds: 38,
-    icuBeds: 11,
-    contact: "+91 33 6652 0000",
-    bloodAvailable: ["A+", "B+", "AB-", "O+"]
-  },
-  {
-    name: "AMRI Hospital",
-    location: "Dhakuria, Kolkata",
-    totalBeds: 160,
-    availableBeds: 19,
-    icuBeds: 6,
-    contact: "+91 33 6606 3800",
-    bloodAvailable: ["B+", "O+", "A-"]
-  }
+  { name: "Apollo Multispeciality Hospital", location: "Kolkata", city: "Kolkata", state: "West Bengal", lat: 22.5354, lng: 88.3521, totalBeds: 250, availableBeds: 42, icuBeds: 14, contact: "+91 33 2320 3040", bloodAvailable: ["A+", "B+", "O+", "AB+"], source: "manual" },
+  { name: "Fortis Hospital, Anandapur", location: "Kolkata", city: "Kolkata", state: "West Bengal", lat: 22.5049, lng: 88.3968, totalBeds: 180, availableBeds: 25, icuBeds: 9, contact: "+91 33 6628 4444", bloodAvailable: ["O+", "O-", "A+", "B-"], source: "manual" },
+  { name: "Medica Superspecialty Hospital", location: "Mukundapur, Kolkata", city: "Kolkata", state: "West Bengal", lat: 22.4966, lng: 88.3927, totalBeds: 220, availableBeds: 38, icuBeds: 11, contact: "+91 33 6652 0000", bloodAvailable: ["A+", "B+", "AB-", "O+"], source: "manual" },
+  { name: "AMRI Hospital, Dhakuria", location: "Kolkata", city: "Kolkata", state: "West Bengal", lat: 22.5109, lng: 88.3651, totalBeds: 160, availableBeds: 19, icuBeds: 6, contact: "+91 33 6606 3800", bloodAvailable: ["B+", "O+", "A-"], source: "manual" },
+  { name: "AIIMS New Delhi", location: "New Delhi", city: "New Delhi", state: "Delhi", lat: 28.5672, lng: 77.2100, totalBeds: 2478, availableBeds: null, icuBeds: null, contact: "+91 11 2658 8500", bloodAvailable: [], source: "manual" },
+  { name: "Kokilaben Dhirubhai Ambani Hospital", location: "Mumbai", city: "Mumbai", state: "Maharashtra", lat: 19.1324, lng: 72.8264, totalBeds: 750, availableBeds: null, icuBeds: null, contact: "+91 22 4269 6969", bloodAvailable: [], source: "manual" }
 ];
 
-// ডেটা ফেচ করার কমন ফাংশন
+// ============================================================
+// Small helpers for the live, all-India lookup
+// ============================================================
+
+// prevents user input from breaking the Mongo $regex query
+function escapeRegex(str) {
+  return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+async function fetchWithTimeout(url, options = {}, ms = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Turns a place name typed by the user ("Howrah", "Salem", "Indore") into
+// coordinates, restricted to India. Uses OpenStreetMap's free Nominatim
+// geocoder — no API key required.
+async function geocodePlace(place) {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in&q=${encodeURIComponent(place)}`;
+  const res = await fetchWithTimeout(url, {
+    headers: { "User-Agent": "PulsePoint-EmergencyLocator/1.0 (demo project)" }
+  }, 8000);
+  if (!res.ok) return null;
+  const rows = await res.json();
+  if (!rows || !rows.length) return null;
+  return { lat: parseFloat(rows[0].lat), lon: parseFloat(rows[0].lon), display: rows[0].display_name };
+}
+
+// Pulls real hospitals near a coordinate from OpenStreetMap (Overpass API),
+// which has crowdsourced hospital data covering all of India, not just a
+// handful of seeded cities.
+async function fetchOSMHospitals(lat, lon, radiusMeters) {
+  const query = `[out:json][timeout:20];(node["amenity"="hospital"](around:${radiusMeters},${lat},${lon});way["amenity"="hospital"](around:${radiusMeters},${lat},${lon});relation["amenity"="hospital"](around:${radiusMeters},${lat},${lon}););out center tags 40;`;
+  const res = await fetchWithTimeout("https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: "data=" + encodeURIComponent(query)
+  }, 18000);
+  if (!res.ok) return [];
+  const json = await res.json();
+  const elements = Array.isArray(json.elements) ? json.elements : [];
+
+  return elements
+    .map(el => {
+      const tags = el.tags || {};
+      const name = tags.name || tags["name:en"];
+      if (!name) return null; // skip unnamed hospital nodes, they're not useful to show
+      const elLat = el.lat ?? el.center?.lat;
+      const elLon = el.lon ?? el.center?.lon;
+      const city = tags["addr:city"] || tags["addr:town"] || tags["addr:village"] || "";
+      const state = tags["addr:state"] || "";
+      const addressParts = [
+        tags["addr:housenumber"], tags["addr:street"], tags["addr:suburb"],
+        city, state, tags["addr:postcode"]
+      ].filter(Boolean);
+      return {
+        name,
+        location: city || state || name,
+        address: addressParts.join(", "),
+        city, state,
+        lat: elLat ?? null,
+        lng: elLon ?? null,
+        contact: tags.phone || tags["contact:phone"] || tags["contact:mobile"] || "Not listed",
+        totalBeds: null,
+        availableBeds: null,
+        icuBeds: null,
+        bloodAvailable: [],
+        source: "openstreetmap"
+      };
+    })
+    .filter(Boolean);
+}
+
+// Saves OSM results into Mongo (upsert, so re-searching the same place
+// doesn't create duplicates) and returns the saved/updated documents.
+async function upsertHospitals(records) {
+  const saved = [];
+  for (const rec of records) {
+    try {
+      const doc = await Hospital.findOneAndUpdate(
+        { name: rec.name, location: rec.location },
+        { $set: { ...rec, updatedAt: new Date() } },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+      saved.push(doc);
+    } catch (e) {
+      // a single bad record shouldn't fail the whole search
+      console.error("upsert skipped:", e.message);
+    }
+  }
+  return saved;
+}
+
+// ============================================================
+// GET /api/hospitals?search=xyz
+// 1. Look inside Mongo first (fast, works offline of OSM too).
+// 2. If that comes up thin, geocode the search text and pull
+//    real nearby hospitals from OpenStreetMap, cache them into
+//    Mongo, and merge them into the results.
+// This is what makes search work for ANY place in India, not
+// just the handful of cities in defaultHospitals.
+// ============================================================
 async function getHospitalsHandler(req, res) {
   try {
-    const { search } = req.query;
-    let query = {};
+    const search = (req.query.search || "").toString().trim().slice(0, 100);
+    let localResults = [];
 
     if (search) {
-      query = {
+      const safe = escapeRegex(search);
+      localResults = await Hospital.find({
         $or: [
-          { name: { $regex: search, $options: "i" } },
-          { location: { $regex: search, $options: "i" } }
+          { name: { $regex: safe, $options: "i" } },
+          { location: { $regex: safe, $options: "i" } },
+          { address: { $regex: safe, $options: "i" } },
+          { city: { $regex: safe, $options: "i" } },
+          { state: { $regex: safe, $options: "i" } }
         ]
-      };
+      }).sort({ updatedAt: -1 }).limit(60);
+    } else {
+      localResults = await Hospital.find({}).sort({ updatedAt: -1 }).limit(60);
+      if (localResults.length === 0) {
+        localResults = await Hospital.insertMany(defaultHospitals);
+      }
+      return res.json({ success: true, count: localResults.length, data: localResults });
     }
 
-    let hospitals = await Hospital.find(query).sort({ updatedAt: -1 });
-
-    // ডেটাবেস সম্পূর্ণ ফাঁকা থাকলে অটো-সিড হবে
-    if (hospitals.length === 0 && !search) {
-      hospitals = await Hospital.insertMany(defaultHospitals);
+    let externalNote;
+    if (localResults.length < 6) {
+      try {
+        const place = await geocodePlace(search + ", India");
+        if (place) {
+          let osm = await fetchOSMHospitals(place.lat, place.lon, 20000);
+          if (osm.length === 0) osm = await fetchOSMHospitals(place.lat, place.lon, 50000); // widen once for smaller towns
+          const savedDocs = await upsertHospitals(osm);
+          const known = new Set(localResults.map(h => `${h.name}|${h.location}`));
+          for (const doc of savedDocs) {
+            const key = `${doc.name}|${doc.location}`;
+            if (!known.has(key)) {
+              localResults.push(doc);
+              known.add(key);
+            }
+          }
+        } else {
+          externalNote = "Could not locate that place in India.";
+        }
+      } catch (e) {
+        console.error("Live OSM lookup failed:", e.message);
+        externalNote = "Live lookup temporarily unavailable; showing saved results only.";
+      }
     }
 
     res.json({
       success: true,
-      count: hospitals.length,
-      data: hospitals
+      count: localResults.length,
+      data: localResults,
+      ...(externalNote ? { note: externalNote } : {})
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 }
 
-// ১. GET Route (যাতে "/" অথবা "/hospitals" যেকোনোটিতেই ডেটা পায়)
+// ১. GET Route (যাতে "/" অথবা "/hospitals" যেকোনোটিতেই ডেটা পায়)
 router.get("/", getHospitalsHandler);
 router.get("/hospitals", getHospitalsHandler);
 
 // ২. POST: নতুন হাসপাতাল যুক্ত করা (Viable ফিচার)
 router.post("/", async (req, res) => {
   try {
-    const { name, location, totalBeds, availableBeds, icuBeds, contact, bloodAvailable } = req.body;
-    
+    const { name, location, totalBeds, availableBeds, icuBeds, contact, bloodAvailable, address, city, state, lat, lng } = req.body;
+
     if (!name || !location || !contact) {
       return res.status(400).json({ success: false, message: "Name, Location, and Contact are required!" });
     }
@@ -104,11 +226,17 @@ router.post("/", async (req, res) => {
     const newHospital = new Hospital({
       name,
       location,
-      totalBeds: Number(totalBeds) || 50,
-      availableBeds: Number(availableBeds) || 10,
-      icuBeds: Number(icuBeds) || 5,
+      address: address || "",
+      city: city || "",
+      state: state || "",
+      lat: typeof lat === "number" ? lat : null,
+      lng: typeof lng === "number" ? lng : null,
+      totalBeds: Number.isFinite(Number(totalBeds)) ? Number(totalBeds) : null,
+      availableBeds: Number.isFinite(Number(availableBeds)) ? Number(availableBeds) : null,
+      icuBeds: Number.isFinite(Number(icuBeds)) ? Number(icuBeds) : null,
       contact,
-      bloodAvailable: Array.isArray(bloodAvailable) ? bloodAvailable : ["O+", "A+"]
+      bloodAvailable: Array.isArray(bloodAvailable) ? bloodAvailable : [],
+      source: "manual"
     });
 
     const saved = await newHospital.save();
@@ -118,7 +246,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ৩. PATCH: বেড সংখ্যা রিয়েল-টাইম আপডেট করা
+// ৩. PATCH: বেড সংখ্যা রিয়েল-টাইম আপডেট করা
 router.patch("/:id/beds", async (req, res) => {
   try {
     const { availableBeds, icuBeds } = req.body;
