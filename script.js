@@ -156,6 +156,7 @@
   function toggleSiren() {
     const btn = document.getElementById('btnPlaySiren');
     const label = document.getElementById('sirenLabel');
+    btn.setAttribute('aria-pressed', String(!STATE.isSirenPlaying));
 
     if (!STATE.isSirenPlaying) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -230,7 +231,7 @@
     const sideCard = document.getElementById('activeMapHospitalCard');
     sideCard.innerHTML = `
       <div>
-        <div class="badge badge-green mb-2"><i class="fa-solid fa-map-pin"></i> Targeted On Map</div>
+        <div class="badge badge-green mb-2"><i class="fa-solid fa-map-pin"></i> Sample listing</div>
         <h3 style="font-size: 17px; margin-top: 6px; font-weight:800; color:var(--slate-900);">${hosp.name}</h3>
         <p style="font-size: 12px; color:var(--slate-600); margin-top: 4px;">${hosp.address}</p>
         
@@ -245,16 +246,16 @@
           </div>
           <div>
             <div class="bed-stat-val">${hosp.distanceKm} km</div>
-            <div class="bed-stat-lbl">Distance</div>
+            <div class="bed-stat-lbl">${STATE.userCoordinates ? "Straight-line distance" : "Sample distance"}</div>
           </div>
         </div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:8px;">
         <a href="https://www.google.com/maps/dir/?api=1&destination=${hosp.lat},${hosp.lng}" 
-           target="_blank" 
+           target="_blank" rel="noopener noreferrer" 
            class="btn btn-green btn-block">
-          <i class="fa-solid fa-diamond-turn-right"></i> Open Google GPS Navigation
+          <i class="fa-solid fa-diamond-turn-right"></i> Get directions
         </a>
         <a href="tel:${hosp.phone}" class="btn btn-blue-outline btn-block">
           <i class="fa-solid fa-phone-volume"></i> Call Desk: ${hosp.phone}
@@ -279,6 +280,7 @@
       return true;
     });
 
+    if (!filtered.length) { grid.innerHTML = '<p class="empty-state">No facilities match. Try another name or care type.</p>'; return; }
     grid.innerHTML = filtered.map(h => `
       <div class="hospital-card">
         <div>
@@ -315,7 +317,7 @@
           <button class="btn btn-green btn-inspect" data-id="${h.id}" style="flex:1;">
             <i class="fa-solid fa-magnifying-glass-plus"></i> Inspect
           </button>
-          <a href="https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}" target="_blank" class="btn btn-dark" title="Directions">
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}" target="_blank" rel="noopener noreferrer" class="btn btn-dark" title="Directions">
             <i class="fa-solid fa-directions"></i>
           </a>
           <a href="tel:${h.phone}" class="btn btn-blue" title="Call Emergency Desk">
@@ -363,7 +365,7 @@
           <p style="font-size:13px; color:var(--slate-600);">${hosp.address} | <strong>Emergency Desk:</strong> ${hosp.emergencyLine}</p>
         </div>
         <div style="display:flex; gap:8px;">
-          <a href="https://www.google.com/maps/dir/?api=1&destination=${hosp.lat},${hosp.lng}" target="_blank" class="btn btn-green">
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${hosp.lat},${hosp.lng}" target="_blank" rel="noopener noreferrer" class="btn btn-green">
             <i class="fa-solid fa-diamond-turn-right"></i> Direct GPS Route
           </a>
           <a href="tel:${hosp.phone}" class="btn btn-blue">
@@ -391,7 +393,7 @@
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="inspector-columns">
         <div>
           <h4 style="font-size:14px; font-weight:700; margin-bottom:8px;"><i class="fa-solid fa-user-doctor text-green"></i> On-Duty Specialist Roster</h4>
           <div style="display:flex; flex-direction:column; gap:8px;">
@@ -530,7 +532,7 @@
       (pos) => {
         const { latitude, longitude } = pos.coords;
         STATE.userCoordinates = { lat: latitude, lng: longitude };
-        banner.innerHTML = `<i class="fa-solid fa-check"></i> GPS Located: (${latitude.toFixed(4)}, ${longitude.toFixed(4)}). Distances and route times updated.`;
+        banner.innerHTML = `<i class="fa-solid fa-check"></i> GPS Located: (${latitude.toFixed(4)}, ${longitude.toFixed(4)}). Straight-line distances updated.`;
 
         // Recalculate hospital distances
         STATE.hospitals.forEach(h => {
@@ -540,6 +542,7 @@
         // Re-sort by closest
         STATE.hospitals.sort((a, b) => a.distanceKm - b.distanceKm);
 
+        STATE.activeHospitalId = STATE.hospitals[0].id;
         renderHospitals();
         renderMapControls();
         updateMapView();
@@ -547,7 +550,8 @@
       },
       (err) => {
         banner.textContent = 'Unable to retrieve location (permission denied or timeout). Using default Kolaghat center point.';
-      }
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
     );
   }
 
@@ -559,6 +563,7 @@
     // Strobe Alert
     document.getElementById('btnStrobe').addEventListener('click', () => {
       document.body.classList.toggle('strobe-alert');
+      document.getElementById('btnStrobe').setAttribute('aria-pressed', String(document.body.classList.contains('strobe-alert')));
       const btn = document.getElementById('btnStrobe');
       if (document.body.classList.contains('strobe-alert')) {
         btn.classList.add('btn-blue');
@@ -575,11 +580,13 @@
     // Copy SOS Dispatch Link
     document.getElementById('btnShareSms').addEventListener('click', () => {
       const activeHosp = getActiveHospital();
-      const text = `EMERGENCY SOS: Heading to ${activeHosp.name}. Contact: ${activeHosp.emergencyLine}. Location: https://maps.google.com/?q=${activeHosp.lat},${activeHosp.lng}`;
+      const loc = STATE.userCoordinates;
+      const text = loc ? `My location: https://maps.google.com/?q=${loc.lat},${loc.lng}` : `Selected hospital location (not my GPS): https://maps.google.com/?q=${activeHosp.lat},${activeHosp.lng}`;
+      if (!navigator.clipboard) { showToast(text); return; }
       navigator.clipboard.writeText(text).then(() => {
-        alert('Copied Emergency Dispatch Message to Clipboard:\n\n' + text);
+        showToast('Location link copied. Share it with your contact.');
       }).catch(() => {
-        alert('Emergency Info: ' + text);
+        showToast(text);
       });
     });
 
@@ -605,7 +612,7 @@
       const hospital = document.getElementById('reqHospital').value;
       const notice = document.getElementById('requisitionNotice');
 
-      notice.innerHTML = `<span style="color:var(--dark-green);"><i class="fa-solid fa-circle-check"></i> Requisition broadcasted to state pool for ${units}x ${item} for patient ${name} at ${hospital}.</span>`;
+      notice.textContent = `Request preview: ${units} × ${item} for ${name} at ${hospital}. Demo only — nothing was sent.`;
       setTimeout(() => { notice.innerHTML = ''; }, 6000);
       e.target.reset();
     });
@@ -645,7 +652,7 @@
         document.getElementById('btnStaffBroadcast').disabled = true;
       }
 
-      notice.innerHTML = `<span style="color:var(--dark-green);"><i class="fa-solid fa-circle-check"></i> Logged in successfully as ${role.toUpperCase()}.</span>`;
+      notice.innerHTML = `<span style="color:var(--dark-green);"><i class="fa-solid fa-circle-check"></i> Demo session opened as ${role.toUpperCase()}.</span>`;
       setTimeout(() => { notice.innerHTML = ''; }, 4000);
     });
 
@@ -671,7 +678,7 @@
       hosp.bloodStock['AB+'] = parseInt(document.getElementById('staffABPosUnits').value, 10);
 
       const notice = document.getElementById('staffNotice');
-      notice.innerHTML = `<span style="color:var(--dark-green);"><i class="fa-solid fa-tower-broadcast"></i> Telemetry for ${hosp.name} successfully updated across the regional grid!</span>`;
+      notice.innerHTML = `<span style="color:var(--dark-green);"><i class="fa-solid fa-tower-broadcast"></i> Demo inventory for ${hosp.name} updated in this tab only.</span>`;
       setTimeout(() => { notice.innerHTML = ''; }, 5000);
 
       // Re-render affected sections
@@ -679,6 +686,34 @@
       renderBloodAndOrgans();
       renderInspector();
       updateMapView();
+    });
+  }
+
+  let toastTimer;
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('visible'), 3500);
+  }
+  function initTouchEffects() {
+    const selector = '.btn, .hotline-btn, .nav-links a, .pill, .quick-card';
+    document.addEventListener('pointerdown', e => {
+      const el = e.target.closest(selector);
+      if (!el || el.disabled || e.button !== 0 || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const rect = el.getBoundingClientRect();
+      const ripple = document.createElement('span');
+      ripple.className = 'touch-ripple';
+      ripple.setAttribute('aria-hidden', 'true');
+      const size = Math.max(rect.width, rect.height) * 2;
+      Object.assign(ripple.style, {width: size + 'px', height: size + 'px', left: (e.clientX - rect.left - size / 2) + 'px', top: (e.clientY - rect.top - size / 2) + 'px'});
+      el.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 650);
+    });
+    document.querySelectorAll('label').forEach(label => {
+      const input = label.parentElement.querySelector('input, select');
+      if (input && input.id) label.htmlFor = input.id;
     });
   }
 
@@ -692,6 +727,7 @@
     renderDoctors('all');
     populateStaffDropdown();
     setupEventListeners();
+    initTouchEffects();
   }
 
   window.addEventListener('DOMContentLoaded', init);

@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PulsePoint Emergency Care | Instant Hospital, Bed, Blood & Organ Locator</title>
+  <title>PulsePoint+ | Instant Hospital, Bed, Blood & Organ Locator</title>
   <meta name="theme-color" content="#16804a">
-  <link rel="stylesheet" href="style.css?v=family-green-3">
+  <link rel="stylesheet" href="style.css?v=premium-4">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
   <!-- Top Emergency Ticker Bar -->
-  <div class="top-sos-bar">
+  <div class="top-sos-bar" id="emergency-contacts">
     <div class="sos-ticker-container">
       <div class="sos-pill-pulse">
         <span class="pulse-beacon"></span>
-        <strong>24/7 CRITICAL DISPATCH</strong>
+        <strong>Emergency assistance</strong>
       </div>
       <div class="sos-hotlines">
         <a href="tel:108" class="hotline-btn"><i class="fa-solid fa-truck-medical"></i> 108 Ambulance</a>
         <a href="tel:102" class="hotline-btn"><i class="fa-solid fa-baby"></i> 102 Maternity</a>
-        <a href="tel:112" class="hotline-btn"><i class="fa-solid fa-shield-heart"></i> 112 National Police/EMT</a>
-        <a href="tel:104" class="hotline-btn"><i class="fa-solid fa-user-doctor"></i> 104 Health Helpline</a>
+        <a href="tel:112" class="hotline-btn"><i class="fa-solid fa-shield-heart"></i> 112 Emergency</a>
+        <a href="tel:104" class="hotline-btn"><i class="fa-solid fa-user-doctor"></i> 104 Health</a>
       </div>
     </div>
   </div>
@@ -32,17 +32,16 @@
       <div class="brand">
         <div class="brand-icon"><i class="fa-solid fa-heart-pulse"></i></div>
         <div class="brand-text">
-          <h1>PulsePoint <span>Emergency</span></h1>
-          <p>Real-Time Hospital Beds, Blood Bank & Organ Registry</p>
+          <h1 aria-label="PulsePoint Plus"><span class="wordmark">PulsePoint</span><span class="brand-plus" aria-hidden="true">+</span></h1>
+          <p>Emergency Care</p>
         </div>
       </div>
-      <nav class="nav-links">
+      <nav class="nav-links" aria-label="Main navigation">
         <a href="#section-map"><i class="fa-solid fa-map-location-dot"></i> Live Map</a>
         <a href="#section-hospitals"><i class="fa-solid fa-hospital"></i> Hospitals</a>
-        <a href="#section-inspector"><i class="fa-solid fa-circle-info"></i> Facility Detail</a>
         <a href="#section-blood-organ"><i class="fa-solid fa-droplet"></i> Blood & Organs</a>
         <a href="#section-doctors"><i class="fa-solid fa-user-doctor"></i> Doctors</a>
-        <a href="#section-auth"><i class="fa-solid fa-user-shield"></i> Portal / Login</a>
+        <a href="#section-auth"><i class="fa-solid fa-user-shield"></i> Sign in</a>
       </nav>
       <div class="nav-user-badge" id="navUserBadge">
         <i class="fa-solid fa-circle-user"></i>
@@ -53,31 +52,40 @@
 
   <main class="main-content">
 
-    <!-- Section 1: Live Triage & Sensory Alert Console -->
-    <section class="emergency-console-card">
-      <div class="console-grid">
-        <div class="alert-box">
-          <div class="status-indicator">
-            <span class="dot-green"></span> <strong>TRIAGE SYSTEM OPERATIONAL:</strong> Kolaghat - NH6 Medical Corridor
-          </div>
-          <p>Select your emergency requirement below or share instant coordinates with ambulance emergency dispatch.</p>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="dot-green"></span> CARE STARTS WITH CONNECTION</p>
+        <h2 id="hero-title">Find the right care,<br><span>nearby.</span></h2>
+        <p class="hero-description">Locate hospitals and get directions when every minute matters.</p>
+        <span class="location-tag"><i class="fa-solid fa-location-dot"></i> Kolaghat, West Bengal</span>
+        <div class="hero-actions">
+          <a href="#section-hospitals" class="btn btn-green"><i class="fa-solid fa-hospital"></i> Find nearby hospitals <span aria-hidden="true">→</span></a>
+          <button id="btnGpsCalc" class="btn btn-location"><i class="fa-solid fa-location-crosshairs"></i> Use my location</button>
+          <a href="tel:108" class="btn btn-emergency"><i class="fa-solid fa-phone"></i> Call ambulance 108</a>
         </div>
-        <div class="console-actions">
-          <button id="btnPlaySiren" class="btn btn-blue-outline"><i class="fa-solid fa-bullhorn"></i> <span id="sirenLabel">Emergency Siren</span></button>
-          <button id="btnStrobe" class="btn btn-blue-outline"><i class="fa-solid fa-bolt"></i> Strobe Beacon</button>
-          <button id="btnGpsCalc" class="btn btn-green"><i class="fa-solid fa-location-crosshairs"></i> Use My GPS</button>
-          <button id="btnShareSms" class="btn btn-dark"><i class="fa-solid fa-share-nodes"></i> Copy SOS Dispatch Link</button>
-        </div>
+        <div id="gpsStatusMessage" class="gps-status-banner" role="status" aria-live="polite"></div>
       </div>
-      <div id="gpsStatusMessage" class="gps-status-banner"></div>
+      <img class="hero-art" src="assets/hospital-hero.png" alt="" width="2048" height="745" fetchpriority="high">
     </section>
+    <nav class="quick-services" aria-label="Quick care services">
+      <a class="quick-card service-green" href="#section-hospitals"><span class="service-icon"><i class="fa-solid fa-bed-pulse"></i></span><span><strong>Hospital beds</strong><small>Explore nearby facilities</small></span><span aria-hidden="true">›</span></a>
+      <a class="quick-card service-red" href="#section-blood-organ"><span class="service-icon"><i class="fa-solid fa-droplet"></i></span><span><strong>Blood banks</strong><small>Find blood bank contacts</small></span><span aria-hidden="true">›</span></a>
+      <a class="quick-card service-purple" href="#section-doctors"><span class="service-icon"><i class="fa-solid fa-user-doctor"></i></span><span><strong>Specialists</strong><small>Browse by specialty</small></span><span aria-hidden="true">›</span></a>
+      <a class="quick-card service-teal" href="#emergency-contacts"><span class="service-icon"><i class="fa-solid fa-phone"></i></span><span><strong>Emergency contacts</strong><small>Quick access to helplines</small></span><span aria-hidden="true">›</span></a>
+    </nav>
+    <details class="emergency-tools"><summary><i class="fa-solid fa-sliders"></i> Additional emergency tools</summary><div class="console-actions">
+      <button id="btnPlaySiren" class="btn btn-blue-outline" aria-pressed="false"><i class="fa-solid fa-bullhorn"></i> <span id="sirenLabel">Emergency Siren</span></button>
+      <button id="btnStrobe" class="btn btn-blue-outline" aria-pressed="false"><i class="fa-solid fa-lightbulb"></i> Screen beacon</button>
+      <button id="btnShareSms" class="btn btn-dark"><i class="fa-solid fa-share-nodes"></i> Copy location link</button>
+    </div><p class="form-subtext">These tools run on your device. They do not contact emergency services.</p></details>
+    <p class="demo-notice"><i class="fa-solid fa-circle-info"></i> Demo directory: availability, doctors, contacts and organ listings are sample data. Confirm details with the facility before travelling.</p>
 
     <!-- Section 2: Real Google Maps Navigation -->
     <section id="section-map" class="content-section">
       <div class="section-title">
         <div>
-          <h2><i class="fa-solid fa-map-marked-alt text-green"></i> Real Google Map Navigation & Route</h2>
-          <p>Live coordinates for trauma centres along Kolaghat, Mecheda & Tamluk</p>
+          <h2><i class="fa-solid fa-map-marked-alt text-green"></i> Hospitals near you</h2>
+          <p>Explore the map around Kolaghat, Mecheda and Tamluk.</p>
         </div>
         <div class="map-controls-pills" id="mapTargetPills">
           <!-- Populated by JS -->
@@ -102,8 +110,8 @@
     <section id="section-hospitals" class="content-section">
       <div class="section-title">
         <div>
-          <h2><i class="fa-solid fa-hospital text-blue"></i> Emergency Facilities & Bed Availability</h2>
-          <p>Real-time occupancy counters updated by hospital EMT reception desk</p>
+          <h2><i class="fa-solid fa-hospital text-blue"></i> Find a hospital</h2>
+          <p>Browse sample facilities by name, location or care type.</p>
         </div>
         <div class="filter-controls">
           <input type="text" id="hospitalSearch" placeholder="Search hospital name or area..." class="form-input search-input">
@@ -125,10 +133,10 @@
     <section id="section-inspector" class="content-section inspector-section">
       <div class="section-title">
         <div>
-          <h2><i class="fa-solid fa-microscope text-green"></i> Detailed Facility Inspector & Triage Desk</h2>
-          <p>Inspect complete telemetry, doctors roster, and blood bank before heading to facility</p>
+          <h2><i class="fa-solid fa-microscope text-green"></i> Facility details</h2>
+          <p>Explore the selected facility’s sample care services.</p>
         </div>
-        <span class="badge badge-green"><i class="fa-solid fa-shield-check"></i> Verified Data Stream</span>
+        <span class="badge badge-green"><i class="fa-solid fa-shield-check"></i> Sample data</span>
       </div>
 
       <div class="inspector-card" id="inspectorCard">
@@ -140,8 +148,8 @@
     <section id="section-blood-organ" class="content-section">
       <div class="section-title">
         <div>
-          <h2><i class="fa-solid fa-droplet text-blue"></i> Blood Bank Reserves & Organ Registry</h2>
-          <p>Direct match availability across 8 blood categories & NOTTO transplant listings</p>
+          <h2><i class="fa-solid fa-droplet text-blue"></i> Blood banks & organ registry</h2>
+          <p>Sample blood stock and organ listings. No connection to a transplant registry.</p>
         </div>
       </div>
 
@@ -150,7 +158,7 @@
         <div class="card card-clean">
           <div class="card-header">
             <h3><i class="fa-solid fa-cubes-stacked text-blue"></i> Regional Blood Stock Matrix</h3>
-            <span class="badge badge-blue">Updated 10m ago</span>
+            <span class="badge badge-blue">Demo stock</span>
           </div>
           <div class="blood-group-chips" id="bloodSummaryChips">
             <!-- Populated by JS -->
@@ -178,8 +186,8 @@
         <!-- Right: Organ Registry & Requisition Form -->
         <div class="card card-clean">
           <div class="card-header">
-            <h3><i class="fa-solid fa-dna text-green"></i> NOTTO Organ Transplant Registry</h3>
-            <span class="badge badge-green">Green Corridor Ready</span>
+            <h3><i class="fa-solid fa-dna text-green"></i> NOT TO Organ Transplant Registry</h3>
+            <span class="badge badge-green">Sample listings</span>
           </div>
           
           <div class="organ-list" id="organListContainer">
@@ -188,8 +196,8 @@
 
           <hr class="divider">
 
-          <h3 class="form-heading"><i class="fa-solid fa-hand-holding-medical text-blue"></i> In-Page Blood / Organ Urgent Requisition</h3>
-          <p class="form-subtext">Submit immediate requirement to notify regional blood banks</p>
+          <h3 class="form-heading"><i class="fa-solid fa-hand-holding-medical text-blue"></i> Blood / organ request demo</h3>
+          <p class="form-subtext">Preview a request locally. This form does not notify hospitals or blood banks.</p>
           <form id="requisitionForm" class="inpage-form">
             <div class="form-row">
               <div class="form-col">
@@ -225,7 +233,7 @@
                 <input type="tel" id="reqPhone" class="form-input" placeholder="+91 98XXXXXXXX" required>
               </div>
             </div>
-            <button type="submit" class="btn btn-blue btn-block"><i class="fa-solid fa-paper-plane"></i> Broadcast Requisition to Emergency Desk</button>
+            <button type="submit" class="btn btn-blue btn-block"><i class="fa-solid fa-paper-plane"></i> Preview request</button>
             <div id="requisitionNotice" class="form-notice"></div>
           </form>
         </div>
@@ -236,8 +244,8 @@
     <section id="section-doctors" class="content-section">
       <div class="section-title">
         <div>
-          <h2><i class="fa-solid fa-stethoscope text-green"></i> On-Duty Specialists & Surgeons</h2>
-          <p>Direct casualty intercom extensions for urgent consultation</p>
+          <h2><i class="fa-solid fa-stethoscope text-green"></i> Find a specialist</h2>
+          <p>Browse the sample specialist directory by area of care.</p>
         </div>
         <div class="doctor-filter-pills" id="doctorFilterPills">
           <button class="pill active" data-spec="all">All Doctors</button>
@@ -257,8 +265,8 @@
     <section id="section-auth" class="content-section auth-section">
       <div class="section-title">
         <div>
-          <h2><i class="fa-solid fa-lock text-green"></i> Secure Role Portal & Hospital Telemetry Manager</h2>
-          <p>Login to track personal profile or update bed and blood inventory directly</p>
+          <h2><i class="fa-solid fa-lock text-green"></i> Demo portal</h2>
+          <p>Try the patient and staff interfaces. Demo access is not secure authentication.</p>
         </div>
       </div>
 
@@ -266,7 +274,7 @@
         <!-- Auth Form Card -->
         <div class="card card-clean">
           <div class="card-header">
-            <h3><i class="fa-solid fa-right-to-bracket text-green"></i> Fast 1-Click Authentication</h3>
+            <h3><i class="fa-solid fa-right-to-bracket text-green"></i> Try a demo account</h3>
             <span class="badge badge-green" id="activeRoleTag">Role: Citizen</span>
           </div>
 
@@ -294,7 +302,7 @@
                 <option value="staff">Hospital Desk / Medical Officer (Editor)</option>
               </select>
             </div>
-            <button type="submit" class="btn btn-green btn-block" id="btnAuthSubmit"><i class="fa-solid fa-arrow-right-to-bracket"></i> Authenticate Session</button>
+            <button type="submit" class="btn btn-green btn-block" id="btnAuthSubmit"><i class="fa-solid fa-arrow-right-to-bracket"></i> Open demo session</button>
             <div id="authNotice" class="form-notice"></div>
           </form>
         </div>
@@ -302,7 +310,7 @@
         <!-- Live Hospital Staff Telemetry Editor -->
         <div class="card card-clean" id="staffPortalCard">
           <div class="card-header">
-            <h3><i class="fa-solid fa-pen-to-square text-blue"></i> Real-Time Telemetry Desk Editor</h3>
+            <h3><i class="fa-solid fa-pen-to-square text-blue"></i> Sample inventory editor</h3>
             <span class="badge badge-blue" id="staffLockBadge"><i class="fa-solid fa-lock"></i> Staff Login Required</span>
           </div>
           <p class="staff-intro">Hospital administrators can dynamically adjust available ICU beds, oxygen ventilators, and rare blood units.</p>
@@ -341,7 +349,7 @@
               </div>
             </div>
 
-            <button type="submit" id="btnStaffBroadcast" class="btn btn-blue btn-block" disabled><i class="fa-solid fa-tower-broadcast"></i> Broadcast Live Telemetry Changes</button>
+            <button type="submit" id="btnStaffBroadcast" class="btn btn-blue btn-block" disabled><i class="fa-solid fa-tower-broadcast"></i> Update demo inventory</button>
             <div id="staffNotice" class="form-notice"></div>
           </form>
         </div>
@@ -353,16 +361,17 @@
   <footer class="app-footer">
     <div class="footer-container">
       <div class="footer-brand">
-        <h3><i class="fa-solid fa-heart-pulse text-blue"></i> PulsePoint Emergency Care Network</h3>
-        <p>National Emergency Health Logistics System | West Bengal Sector - NH-6 Trauma Corridor</p>
+        <h3><i class="fa-solid fa-heart-pulse text-blue"></i> PulsePoint+ Emergency Care</h3>
+        <p>Find care. Stay connected. Kolaghat, West Bengal.</p>
       </div>
       <div class="footer-copy">
-        <p>&copy; 2026 PulsePoint System. All Data Verified with State Emergency Dispatch.</p>
-        <p>Built for Instant Deployment on GitHub Pages, Vercel, or Netlify.</p>
+        <p>&copy; 2026 PulsePoint+. Prototype with sample data.</p>
+        <p>No live hospital, dispatch or transplant-registry connection.</p>
       </div>
     </div>
   </footer>
 
-  <script src="script.js?v=family-green-3"></script>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="script.js?v=premium-4"></script>
 </body>
 </html>
