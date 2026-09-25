@@ -1124,3 +1124,69 @@ body.strobe-alert::after { content:''; position:fixed; inset:0; box-shadow:inset
   .footer-brand h3 { font-size:14px; }
   .footer-brand p,.footer-copy { font-size:10px; line-height:1.4; }
 }
+
+/* Uploaded desktop concept preserved: jelly contact pills only. */
+.top-sos-bar { background:linear-gradient(110deg,#075d43,#087b58); color:#fff; border-bottom:0; box-shadow:0 3px 12px #063e2a30; }
+.sos-ticker-container { align-items:center; }
+.sos-pill-pulse { color:#fff; }
+.sos-hotlines .hotline-btn { --jelly-ink:#fff; --jelly-bg:rgba(255,255,255,.16); color:#fff; background:linear-gradient(180deg,rgba(255,255,255,.30),var(--jelly-bg)); border:1px solid rgba(255,255,255,.42); border-radius:999px; padding:8px 13px; min-height:38px; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -4px 8px rgba(0,0,0,.08),0 3px 8px rgba(0,0,0,.13); }
+.sos-hotlines .hotline-btn[href="tel:108"] { --jelly-bg:rgba(238,76,91,.54); }
+.sos-hotlines .hotline-btn[href="tel:102"] { --jelly-bg:rgba(122,77,202,.55); }
+.sos-hotlines .hotline-btn[href="tel:112"] { --jelly-bg:rgba(42,104,224,.56); }
+.sos-hotlines .hotline-btn[href="tel:104"] { --jelly-bg:rgba(0,151,158,.55); }
+.sos-hotlines .hotline-btn::before { content:''; position:absolute; left:9px; right:9px; top:3px; height:42%; background:linear-gradient(180deg,rgba(255,255,255,.45),transparent); border-radius:999px; pointer-events:none; }
+.sos-hotlines .hotline-btn:hover { color:#fff; filter:brightness(1.1); }
+@media(max-width:600px) { .top-sos-bar { padding:10px 12px 12px; } .sos-hotlines .hotline-btn { padding:8px 7px; } }
+
+/* Final emergency contact chips: compact jewel-glass controls. */
+.sos-hotlines .hotline-btn { color:#fff; font-weight:800; letter-spacing:.05px; border:1px solid rgba(255,255,255,.72); border-radius:999px; padding:8px 13px; min-height:38px; box-shadow:inset 0 2px 0 rgba(255,255,255,.42),inset 0 -4px 7px rgba(0,0,0,.17),0 4px 10px rgba(0,0,0,.17); }
+.sos-hotlines .hotline-btn[href="tel:108"] { background:linear-gradient(180deg,#ed6373 0%,#d9364e 53%,#b9273e 100%); }
+.sos-hotlines .hotline-btn[href="tel:102"] { background:linear-gradient(180deg,#9a72e0 0%,#7044bd 53%,#59339e 100%); }
+.sos-hotlines .hotline-btn[href="tel:112"] { background:linear-gradient(180deg,#568bea 0%,#2865d3 53%,#1d4fae 100%); }
+.sos-hotlines .hotline-btn[href="tel:104"] { background:linear-gradient(180deg,#36c2c5 0%,#078e96 53%,#00747c 100%); }
+.sos-hotlines .hotline-btn::before { left:8px; right:8px; top:3px; height:38%; background:linear-gradient(180deg,rgba(255,255,255,.52),transparent); border-radius:999px; }
+.sos-hotlines .hotline-btn:active { transform:translateY(2px) scale(.96); box-shadow:inset 0 3px 7px rgba(0,0,0,.24),0 1px 3px rgba(0,0,0,.12); }
+
+/* Premium visual polish — subtle depth, light and motion. */
+body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:-2; background:radial-gradient(circle at 92% 12%,rgba(44,181,126,.10),transparent 23%),radial-gradient(circle at 4% 48%,rgba(37,99,235,.055),transparent 24%); }
+.top-sos-bar { position:relative; }
+.top-sos-bar::after { content:''; position:absolute; left:0; right:0; bottom:-1px; height:1px; background:linear-gradient(90deg,transparent,#8ae2ba,transparent); opacity:.65; }
+.app-header { position:relative; }
+.brand-icon { position:relative; overflow:hidden; }
+.brand-icon::after { content:''; position:absolute; width:26px; height:100px; background:rgba(255,255,255,.22); transform:rotate(35deg) translateX(-65px); animation:brandSweep 7s ease-in-out infinite; }
+@keyframes brandSweep { 0%,68% { transform:rotate(35deg) translateX(-65px); } 82%,100% { transform:rotate(35deg) translateX(65px); } }
+.hero { border-radius:0 0 24px 24px; }
+.hero::before { content:''; position:absolute; inset:16px -28px 0; z-index:-1; border-radius:28px; background:linear-gradient(115deg,rgba(231,247,239,.85),rgba(255,255,255,.2) 56%,rgba(217,245,235,.62)); box-shadow:inset 0 1px 0 rgba(255,255,255,.8); }
+.hero::after { content:''; position:absolute; width:220px; height:220px; right:25%; top:20px; z-index:-1; border-radius:50%; background:rgba(125,218,177,.13); filter:blur(2px); animation:softFloat 8s ease-in-out infinite; }
+@keyframes softFloat { 0%,100% { transform:translate3d(0,0,0) scale(1); } 50% { transform:translate3d(0,-9px,0) scale(1.04); } }
+.hero h2 { text-shadow:0 2px 0 rgba(255,255,255,.75); }
+.eyebrow { background:rgba(255,255,255,.58); width:max-content; padding:6px 10px; border-radius:999px; border:1px solid rgba(8,127,91,.12); }
+.hero-actions .btn { box-shadow:0 9px 20px rgba(16,60,48,.09),inset 0 1px 0 rgba(255,255,255,.4); }
+.hero-actions .btn:first-child span { display:inline-block; transition:transform .2s ease; }
+.hero-actions .btn:first-child:hover span { transform:translateX(4px); }
+.quick-services { position:relative; z-index:2; }
+.quick-card { transform:translateY(0); }
+.quick-card::before { content:''; position:absolute; inset:0; opacity:0; background:linear-gradient(120deg,rgba(255,255,255,.5),transparent 40%); transition:opacity .2s ease; pointer-events:none; }
+.quick-card:hover::before { opacity:1; }
+.quick-card:hover .service-icon { transform:rotate(-4deg) scale(1.08); }
+.service-icon { transition:transform .2s ease; }
+.section-title h2 { position:relative; width:max-content; max-width:100%; }
+.section-title h2::after { content:''; display:block; width:42px; height:3px; margin-top:8px; border-radius:3px; background:linear-gradient(90deg,#087f5b,#73c89c); }
+.map-container,.map-side-card,.hospital-card,.card,.inspector-card { box-shadow:0 10px 28px rgba(16,60,48,.065),0 2px 5px rgba(16,60,48,.035); }
+.map-side-card { background:linear-gradient(145deg,#fff,#f5fbf7); }
+.hospital-card:hover,.doctor-card:hover,.map-side-card:hover { border-color:#8dcaae; box-shadow:0 16px 30px rgba(16,60,48,.11); }
+.badge-green { box-shadow:inset 0 1px 0 rgba(255,255,255,.75); }
+.form-input,.form-select { box-shadow:inset 0 1px 3px rgba(16,60,48,.035); }
+.app-footer { position:relative; overflow:hidden; }
+.app-footer::before { content:''; position:absolute; width:300px; height:300px; right:-90px; top:-170px; border-radius:50%; background:rgba(8,127,91,.08); }
+@media (max-width:600px) {
+  .hero::before { inset:9px -10px 0; border-radius:20px; }
+  .hero::after { width:150px; height:150px; right:0; top:70px; }
+  .eyebrow { font-size:8px; }
+  .section-title h2::after { margin-top:6px; }
+  .quick-card:hover .service-icon { transform:none; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .brand-icon::after,.hero::after { animation:none; }
+  .hero-actions .btn:first-child span,.service-icon { transition:none; }
+}

@@ -33,3 +33,5 @@ No API keys, build step or backend are required for this design. A real service 
 - Pastel jelly/glass hotline pills with readable coloured labels, soft highlights and press feedback.
 
 - Mobile refinement: fixed-width-safe layout, compact hotline grid, scrollable nav/filter pills, stacked forms, readable map cards and touch-sized controls.
+
+- Final visual adjustment: original emerald top bar restored; only hotline pills use the jelly/glass treatment.
