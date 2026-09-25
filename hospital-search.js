@@ -288,6 +288,11 @@
     const filtered = getFilteredHospitals();
     renderHospitals(filtered);
     renderBloodMatrix(filtered);
+
+    // Let the account/staff module know which hospitals are currently visible.
+    window.dispatchEvent(new CustomEvent("pulsepoint:hospitals-updated", {
+      detail: { hospitals: hospitals.map(h => ({ ...h })) }
+    }));
   }
 
   function setGpsStatus(text, kind = "") {
@@ -593,6 +598,34 @@
       }, true);
     }
   }
+
+  window.PulsePointHospitalSearch = {
+    getHospitals() {
+      return hospitals.map(h => ({ ...h }));
+    },
+    updateInventoryLocal(id, patch) {
+      hospitals = hospitals.map(h => h.id === id ? { ...h, ...patch } : h);
+      originalHospitals = originalHospitals.map(h => h.id === id ? { ...h, ...patch } : h);
+      refreshVisibleData();
+    },
+    reload() {
+      return initialLoad();
+    }
+  };
+
+  window.PulsePointHospitalSearch = {
+    getHospitals() {
+      return hospitals.map(h => ({ ...h }));
+    },
+    updateInventoryLocal(id, patch) {
+      hospitals = hospitals.map(h => h.id === id ? { ...h, ...patch } : h);
+      originalHospitals = originalHospitals.map(h => h.id === id ? { ...h, ...patch } : h);
+      refreshVisibleData();
+    },
+    reload() {
+      return initialLoad();
+    }
+  };
 
   document.addEventListener("DOMContentLoaded", () => {
     renderHistory();
