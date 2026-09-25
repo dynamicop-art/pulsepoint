@@ -27,9 +27,3 @@ This remains a static frontend prototype. Google Maps embeds/directions, user-pe
 Hospital contacts, beds, doctors, distances before GPS, blood stocks and organ listings are unverified sample data. No hospital, transplant registry or dispatch system is connected. Demo login is not authentication; requests are previews and send nothing. Staff updates affect the current tab and reset on reload. The NOT TO label is the requested display wording, not an official integration claim.
 
 No API keys, build step or backend are required for this design. A real service needs verified data, authenticated backend APIs and server-side access controls.
-
-## Revision 5
-- Red hospital facade plus rendered as a precisely positioned CSS overlay on the unchanged illustration.
-- Pastel jelly/glass hotline pills with readable coloured labels, soft highlights and press feedback.
-
-- Mobile refinement: fixed-width-safe layout, compact hotline grid, scrollable nav/filter pills, stacked forms, readable map cards and touch-sized controls.
