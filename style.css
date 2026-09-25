@@ -1,25 +1,25 @@
 :root {
-  --primary-blue: #1565c0;
-  --dark-blue: #114b8c;
-  --light-blue: #e8f2ff;
-  --primary-green: #07845f;
-  --dark-green: #066849;
-  --light-green: #e4f6ee;
+  --primary-blue: #357982;
+  --dark-blue: #285d65;
+  --light-blue: #edf7f5;
+  --primary-green: #16804a;
+  --dark-green: #106438;
+  --light-green: #e3f5e9;
   --pure-white: #ffffff;
-  --off-white: #f5fafc;
-  --slate-100: #edf5f8;
-  --slate-200: #d6e6ed;
+  --off-white: #f5faf5;
+  --slate-100: #eef6ef;
+  --slate-200: #d9e9dc;
   --slate-400: #94a3b8;
-  --slate-600: #496173;
-  --slate-700: #345165;
-  --slate-800: #24465a;
-  --slate-900: #12384d;
+  --slate-600: #52675a;
+  --slate-700: #3e5948;
+  --slate-800: #294b37;
+  --slate-900: #173d28;
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.05);
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
   --radius-lg: 16px;
 }
 
@@ -43,14 +43,14 @@ body.strobe-alert {
 }
 
 @keyframes strobePulse {
-  0% { background-color: #e8f2ff; }
+  0% { background-color: #edf7f5; }
   50% { background-color: #ffffff; }
-  100% { background-color: #e8f2ff; }
+  100% { background-color: #edf7f5; }
 }
 
 /* Top SOS Hotlines */
 .top-sos-bar {
-  background-color: var(--dark-blue);
+  background-color: var(--dark-green);
   color: var(--pure-white);
   padding: 8px 16px;
   position: sticky;
@@ -99,7 +99,7 @@ body.strobe-alert {
 }
 
 .hotline-btn {
-  background-color: var(--primary-blue);
+  background-color: var(--primary-green);
   color: var(--pure-white);
   text-decoration: none;
   font-size: 12px;
@@ -115,7 +115,7 @@ body.strobe-alert {
 
 .hotline-btn:hover {
   background-color: var(--pure-white);
-  color: var(--dark-blue);
+  color: var(--dark-green);
 }
 
 /* Header */
@@ -145,14 +145,14 @@ body.strobe-alert {
 .brand-icon {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+  background: linear-gradient(135deg, #30965c, var(--dark-green));
   color: var(--pure-white);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  box-shadow: 0 4px 10px rgba(21, 101, 192, 0.20);
+  box-shadow: 0 4px 10px rgba(22, 128, 74, 0.18);
 }
 
 .brand-text h1 {
@@ -163,7 +163,7 @@ body.strobe-alert {
 }
 
 .brand-text h1 span {
-  color: var(--primary-blue);
+  color: var(--primary-green);
 }
 
 .brand-text p {
@@ -286,7 +286,7 @@ body.strobe-alert {
 /* Emergency Console Card */
 .emergency-console-card {
   background-color: var(--pure-white);
-  border: 2px solid var(--primary-blue);
+  border: 2px solid var(--primary-green);
   border-radius: var(--radius-md);
   padding: 18px 24px;
   box-shadow: var(--shadow-md);
@@ -356,12 +356,12 @@ body.strobe-alert {
 }
 
 .btn-blue {
-  background-color: var(--primary-blue);
+  background-color: var(--primary-green);
   color: var(--pure-white);
 }
 
 .btn-blue:hover {
-  background-color: var(--dark-blue);
+  background-color: var(--dark-green);
 }
 
 .btn-green {
@@ -383,13 +383,13 @@ body.strobe-alert {
 }
 
 .btn-blue-outline {
-  background-color: var(--light-blue);
-  color: var(--dark-blue);
-  border: 1px solid var(--primary-blue);
+  background-color: var(--light-green);
+  color: var(--dark-green);
+  border: 1px solid var(--primary-green);
 }
 
 .btn-blue-outline:hover {
-  background-color: var(--primary-blue);
+  background-color: var(--primary-green);
   color: var(--pure-white);
 }
 
@@ -410,8 +410,8 @@ body.strobe-alert {
 }
 
 .badge-blue {
-  background-color: var(--light-blue);
-  color: var(--dark-blue);
+  background-color: var(--light-green);
+  color: var(--dark-green);
 }
 
 .badge-slate {
@@ -600,8 +600,8 @@ body.strobe-alert {
 }
 
 .blood-chip.critical {
-  background-color: var(--light-blue);
-  border-color: var(--primary-blue);
+  background-color: var(--light-green);
+  border-color: var(--primary-green);
 }
 
 .blood-chip strong {
@@ -714,7 +714,7 @@ body.strobe-alert {
 
 .form-input:focus, .form-select:focus {
   border-color: var(--primary-green);
-  box-shadow: 0 0 0 2px rgba(7, 132, 95, 0.15);
+  box-shadow: 0 0 0 2px rgba(22, 128, 74, 0.15);
 }
 
 .form-notice {
@@ -852,15 +852,24 @@ body.strobe-alert {
 }
 
 /* Helper text colors */
-.text-blue { color: var(--primary-blue) !important; }
+.text-blue { color: var(--primary-green) !important; }
 .text-green { color: var(--primary-green) !important; }
 
-/* Medical theme: clear blue actions, green care accents, white surfaces. */
-.top-sos-bar { background: linear-gradient(110deg, var(--dark-blue), var(--dark-green)); }
-.app-header { border-bottom-color: var(--light-blue); }
-.btn-dark { background-color: var(--dark-blue); }
-.btn-dark:hover { background-color: var(--primary-blue); }
-.emergency-console-card { background: linear-gradient(110deg, var(--pure-white), var(--light-blue)); }
+/* Family care theme: leafy green actions, soft mint accents, white surfaces. */
+.top-sos-bar { background: linear-gradient(110deg, #106438, #24844e); }
+.app-header { border-bottom-color: var(--light-green); }
+.btn-dark { background-color: var(--dark-green); }
+.btn-dark:hover { background-color: var(--primary-green); }
+.emergency-console-card { background: linear-gradient(110deg, var(--pure-white), var(--light-green)); }
 .brand-text h1 { color: var(--dark-green); }
-.btn:focus-visible, .pill:focus-visible, a:focus-visible { outline: 3px solid var(--primary-blue); outline-offset: 3px; }
+.btn:focus-visible, .pill:focus-visible, a:focus-visible { outline: 3px solid var(--primary-green); outline-offset: 3px; }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Gentle accents and soft surfaces for the family care palette. */
+.text-blue { color: var(--primary-blue) !important; }
+.emergency-console-card { border-color: #9acbab; box-shadow: 0 4px 16px rgba(23, 61, 40, 0.05); }
+.inspector-card { border-color: #a6d3b4; }
+.card, .hospital-card, .doctor-card, .map-side-card { box-shadow: 0 3px 12px rgba(23, 61, 40, 0.04); }
+.brand-icon { border-radius: 14px; }
+.nav-user-badge { background-color: var(--light-green); color: var(--dark-green); }
+.app-footer { background-color: #eef7ef; }
