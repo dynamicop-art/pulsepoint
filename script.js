@@ -140,6 +140,70 @@
     }
   };
 
+  let token = '';
+  const apiBase = (window.PULSEPOINT_CONFIG?.API_BASE_URL || '').replace(/\/$/, '');
+  async function api(route, options = {}) {
+    if (!apiBase) throw new Error('Backend not configured. Set API_BASE_URL in config.js.');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 75000);
+    try {
+      const response = await fetch(apiBase + route, {...options, signal: controller.signal,
+        headers: {'Content-Type':'application/json', ...(token ? {Authorization:'Bearer '+token} : {})},
+        body: options.body === undefined ? undefined : JSON.stringify(options.body)});
+      const data = await response.json();
+      if (!response.ok) {
+        if (response.status === 401 && token) logout();
+        throw new Error(data.message || 'Request failed');
+      }
+      return data;
+    } catch (e) {
+      if (e.name === 'AbortError') throw new Error('Backend timed out. Open its health URL, then retry.');
+      if (e instanceof TypeError) throw new Error('Cannot reach backend. Check connection, API URL and CORS.');
+      throw e;
+    } finally { clearTimeout(timeout); }
+  }
+  function refreshViews() {
+    if (STATE.userCoordinates) STATE.hospitals.forEach(h => {
+      h.distanceKm = calculateDistance(STATE.userCoordinates.lat, STATE.userCoordinates.lng, h.lat, h.lng);
+    });
+    renderMapControls(); updateMapView(); renderHospitals(); renderInspector();
+    renderBloodAndOrgans();
+    renderDoctors(document.querySelector('#doctorFilterPills .active')?.getAttribute('data-spec') || 'all');
+  }
+  async function refreshData() {
+    const result = await api('/hospitals');
+    STATE.hospitals = result.data;
+    STATE.profilePhotos.doctors = result.doctorPhotos || {};
+    refreshViews();
+    document.getElementById('backendStatus').textContent = 'Backend connected • Sample facility data • Requests are recorded, not dispatched';
+  }
+  function showUser() {
+    const staff = STATE.user.isLoggedIn && STATE.user.role === 'staff';
+    document.getElementById('userStatusText').textContent = STATE.user.isLoggedIn ? `${STATE.user.name} (${STATE.user.role})` : 'Guest Citizen';
+    document.getElementById('activeRoleTag').textContent = `Role: ${STATE.user.role.toUpperCase()}`;
+    document.getElementById('staffLockBadge').textContent = staff ? 'Assigned hospital editor unlocked' : 'Staff login required';
+    document.getElementById('btnStaffBroadcast').disabled = !staff;
+    document.getElementById('btnLogout').hidden = !STATE.user.isLoggedIn;
+    populateStaffDropdown(); applyUserProfilePhoto(); renderDoctors();
+  }
+  function logout() {
+    token = ''; STATE.user = {name:'Guest Citizen',role:'citizen',isLoggedIn:false};
+    STATE.profilePhotos.citizen = ''; STATE.profilePhotos.staff = ''; showUser();
+  }
+  async function signIn(register = false) {
+    const notice = document.getElementById('authNotice');
+    notice.textContent = 'Connecting…';
+    try {
+      const result = await api(register ? '/auth/register' : '/auth/login', {method:'POST',body:{
+        email:document.getElementById('authEmail').value.trim(), password:document.getElementById('authPassword').value}});
+      token = result.token; STATE.user = {...result.user,isLoggedIn:true};
+      STATE.profilePhotos.citizen = ''; STATE.profilePhotos.staff = '';
+      STATE.profilePhotos[STATE.user.role] = result.user.photo || '';
+      document.getElementById('authPassword').value = '';
+      showUser(); notice.textContent = 'Signed in successfully.';
+    } catch(e) { notice.textContent = e.message; }
+  }
+
   // Helper Functions
   function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Radius of earth in km
@@ -484,6 +548,7 @@
     grid.innerHTML = filtered.map((d, index) => {
       const photoKey = encodeURIComponent(d.name);
       const photo = STATE.profilePhotos.doctors[d.name] || '';
+      const canEdit = STATE.user.role === 'staff' && STATE.hospitals.some(h => STATE.user.hospitalIds?.includes(h.id) && h.doctors.some(doc => doc.name === d.name));
       const photoMarkup = photo
         ? `<img src="${photo}" alt="${d.name} profile photo">`
         : `<i class="fa-solid fa-user-doctor"></i>`;
@@ -493,7 +558,7 @@
         <div class="doctor-info-top">
           <div class="doctor-avatar doctor-avatar-photo">
             ${photoMarkup}
-            <label class="doctor-photo-edit" for="${inputId}" title="Choose doctor profile photo" aria-label="Choose doctor profile photo">
+            <label style="${canEdit ? '' : 'display:none'}" class="doctor-photo-edit" for="${inputId}" title="Choose doctor profile photo" aria-label="Choose doctor profile photo">
               <i class="fa-solid fa-camera"></i>
             </label>
             <input type="file" id="${inputId}" class="visually-hidden-input doctor-photo-input" accept="image/jpeg,image/png,image/webp" data-doctor="${photoKey}">
@@ -509,7 +574,7 @@
           </div>
           <span class="badge badge-green">${d.status}</span>
         </div>
-        <div class="doctor-photo-actions">
+        <div class="doctor-photo-actions" style="${canEdit ? '' : 'display:none'}">
           <label class="btn btn-sm btn-blue-outline" for="${inputId}">
             <i class="fa-solid fa-camera"></i> ${photo ? 'Change photo' : 'Upload photo'}
           </label>
@@ -529,8 +594,9 @@
         if (!file || !doctorName) return;
         try {
           validateProfileImage(file);
-          STATE.profilePhotos.doctors[doctorName] = await resizeImageToDataUrl(file, 420, 0.82);
-          if (!persistProfilePhotos()) return;
+          const photo = await resizeImageToDataUrl(file, 420, 0.82);
+          await api('/doctors/photo', {method:'PUT',body:{name:doctorName,photo}});
+          STATE.profilePhotos.doctors[doctorName] = photo;
           renderDoctors(selectedSpec);
           showToast(`Profile photo saved for ${doctorName}.`);
         } catch (err) {
@@ -540,38 +606,15 @@
     });
 
     grid.querySelectorAll('.doctor-photo-remove').forEach(button => {
-      button.addEventListener('click', () => {
+      button.addEventListener('click', async () => {
         const doctorName = decodeURIComponent(button.getAttribute('data-doctor') || '');
         if (!doctorName) return;
+        try { await api('/doctors/photo', {method:'PUT',body:{name:doctorName,photo:''}}); } catch(e) { showToast(e.message); return; }
         delete STATE.profilePhotos.doctors[doctorName];
-        if (!persistProfilePhotos()) return;
         renderDoctors(selectedSpec);
         showToast(`Profile photo removed for ${doctorName}.`);
       });
     });
-  }
-
-  function loadProfilePhotos() {
-    try {
-      const saved = JSON.parse(localStorage.getItem('pulsepointProfilePhotos') || '{}');
-      STATE.profilePhotos = {
-        citizen: saved.citizen || '',
-        staff: saved.staff || '',
-        doctors: saved.doctors || {}
-      };
-    } catch (err) {
-      STATE.profilePhotos = { citizen: '', staff: '', doctors: {} };
-    }
-  }
-
-  function persistProfilePhotos() {
-    try {
-      localStorage.setItem('pulsepointProfilePhotos', JSON.stringify(STATE.profilePhotos));
-      return true;
-    } catch (err) {
-      showToast('Storage is full. Remove an old profile photo and try again.');
-      return false;
-    }
   }
 
   function validateProfileImage(file) {
@@ -621,7 +664,7 @@
 
     title.textContent = role === 'staff' ? 'Hospital Staff / EMT profile' : 'Citizen / Patient profile';
     hint.textContent = photo
-      ? 'Profile photo saved on this browser for this demo.'
+      ? 'Profile photo saved to your account on the backend.'
       : 'Choose Upload photo or the camera icon to add your photo.';
 
     if (photo) {
@@ -651,8 +694,10 @@
       try {
         validateProfileImage(file);
         const role = STATE.user.role === 'staff' ? 'staff' : 'citizen';
-        STATE.profilePhotos[role] = await resizeImageToDataUrl(file, 420, 0.82);
-        if (!persistProfilePhotos()) return;
+        if (!token) throw new Error('Sign in before uploading your profile photo.');
+        const photo = await resizeImageToDataUrl(file, 420, 0.82);
+        await api('/auth/photo', {method:'PUT',body:{photo}});
+        STATE.profilePhotos[role] = photo;
         applyUserProfilePhoto();
         showToast(`${role === 'staff' ? 'Staff' : 'Citizen / Patient'} profile photo updated.`);
       } catch (err) {
@@ -660,14 +705,14 @@
       }
     });
 
-    remove.addEventListener('click', () => {
+    remove.addEventListener('click', async () => {
       const role = STATE.user.role === 'staff' ? 'staff' : 'citizen';
       if (!STATE.profilePhotos[role]) {
         showToast('No profile photo to remove.');
         return;
       }
+      try { await api('/auth/photo', {method:'PUT',body:{photo:''}}); } catch(e) { showToast(e.message); return; }
       STATE.profilePhotos[role] = '';
-      if (!persistProfilePhotos()) return;
       applyUserProfilePhoto();
       showToast(`${role === 'staff' ? 'Staff' : 'Citizen / Patient'} profile photo removed.`);
     });
@@ -676,7 +721,7 @@
   // Populate Staff Hospital Dropdown
   function populateStaffDropdown() {
     const select = document.getElementById('staffSelectHospital');
-    select.innerHTML = STATE.hospitals.map(h => `<option value="${h.id}">${h.name}</option>`).join('');
+    select.innerHTML = STATE.hospitals.filter(h => STATE.user.role !== 'staff' || STATE.user.hospitalIds?.includes(h.id)).map(h => `<option value="${h.id}">${h.name}</option>`).join('');
     syncStaffInputs();
   }
 
@@ -777,100 +822,56 @@
       });
     });
 
-    // Requisition Form
-    document.getElementById('requisitionForm').addEventListener('submit', (e) => {
+    document.getElementById('requisitionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const name = document.getElementById('reqName').value;
-      const item = document.getElementById('reqItem').value;
-      const units = document.getElementById('reqUnits').value;
-      const hospital = document.getElementById('reqHospital').value;
       const notice = document.getElementById('requisitionNotice');
-
-      notice.textContent = `Request preview: ${units} × ${item} for ${name} at ${hospital}. Demo only — nothing was sent.`;
-      setTimeout(() => { notice.innerHTML = ''; }, 6000);
-      e.target.reset();
+      const button = e.target.querySelector('button[type="submit"]'); button.disabled = true;
+      notice.textContent = 'Saving…';
+      try {
+        const result = await api('/requisitions', {method:'POST',body:{
+          patientName:document.getElementById('reqName').value,
+          item:document.getElementById('reqItem').value,
+          units:Number(document.getElementById('reqUnits').value),
+          receivingHospital:document.getElementById('reqHospital').value,
+          contactPhone:document.getElementById('reqPhone').value}});
+        notice.textContent = `Saved request ${result.data.id}. No hospital or ambulance has been notified.`;
+        e.target.reset();
+      } catch(e) { notice.textContent = e.message; }
+      finally { button.disabled = false; }
     });
-
-    // Keep profile-photo label synced with the selected portal role.
-    document.getElementById('authRole').addEventListener('change', (e) => {
-      STATE.user.role = e.target.value;
-      applyUserProfilePhoto();
+    document.getElementById('authForm').addEventListener('submit', async e => {
+      e.preventDefault(); const button = document.getElementById('btnAuthSubmit');
+      button.disabled = true; try { await signIn(); } finally { button.disabled = false; }
     });
-
-    // Auth Demo Fill Buttons
-    document.getElementById('btnFillPatient').addEventListener('click', () => {
-      document.getElementById('authEmail').value = 'citizen.kolaghat@gmail.com';
-      document.getElementById('authRole').value = 'citizen';
-      STATE.user.role = 'citizen';
-      applyUserProfilePhoto();
+    document.getElementById('btnRegister').addEventListener('click', async e => {
+      if (!document.getElementById('authForm').reportValidity()) return;
+      e.target.disabled = true; try { await signIn(true); } finally { e.target.disabled = false; }
     });
-
-    document.getElementById('btnFillStaff').addEventListener('click', () => {
-      document.getElementById('authEmail').value = 'emt.officer@wbhealth.gov.in';
-      document.getElementById('authRole').value = 'staff';
-      STATE.user.role = 'staff';
-      applyUserProfilePhoto();
-    });
-
-    // Auth Form Submit
-    document.getElementById('authForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('authEmail').value;
-      const role = document.getElementById('authRole').value;
-      const notice = document.getElementById('authNotice');
-
-      STATE.user.isLoggedIn = true;
-      STATE.user.name = email.split('@')[0];
-      STATE.user.role = role;
-
-      document.getElementById('userStatusText').textContent = `${STATE.user.name} (${role === 'staff' ? 'Hospital EMT' : 'Citizen'})`;
-      document.getElementById('activeRoleTag').textContent = `Role: ${role.toUpperCase()}`;
-      applyUserProfilePhoto();
-
-      if (role === 'staff') {
-        document.getElementById('staffLockBadge').className = 'badge badge-green';
-        document.getElementById('staffLockBadge').innerHTML = '<i class="fa-solid fa-unlock"></i> Editor Unlocked';
-        document.getElementById('btnStaffBroadcast').disabled = false;
-      } else {
-        document.getElementById('staffLockBadge').className = 'badge badge-blue';
-        document.getElementById('staffLockBadge').innerHTML = '<i class="fa-solid fa-lock"></i> Staff Login Required';
-        document.getElementById('btnStaffBroadcast').disabled = true;
-      }
-
-      notice.innerHTML = `<span style="color:var(--dark-green);"><i class="fa-solid fa-circle-check"></i> Demo session opened as ${role.toUpperCase()}.</span>`;
-      setTimeout(() => { notice.innerHTML = ''; }, 4000);
+    document.getElementById('btnLogout').addEventListener('click', logout);
+    document.getElementById('btnRefreshData').addEventListener('click', async e => {
+      e.target.disabled = true;
+      try { await refreshData(); } catch(err) { document.getElementById('backendStatus').textContent = 'Offline / stale sample preview • '+err.message; }
+      finally { e.target.disabled = false; }
     });
 
     // Staff Dropdown Change
     document.getElementById('staffSelectHospital').addEventListener('change', syncStaffInputs);
 
-    // Staff Broadcast Update Form
-    document.getElementById('staffUpdateForm').addEventListener('submit', (e) => {
+    document.getElementById('staffUpdateForm').addEventListener('submit', async e => {
       e.preventDefault();
-      if (STATE.user.role !== 'staff') {
-        alert('You must be logged in as Hospital Staff / Medical Officer to update live telemetry.');
-        return;
-      }
-
-      const hospId = document.getElementById('staffSelectHospital').value;
-      const hosp = STATE.hospitals.find(h => h.id === hospId);
-      if (!hosp) return;
-
-      hosp.icuBeds = parseInt(document.getElementById('staffIcuBeds').value, 10);
-      hosp.ventilators = parseInt(document.getElementById('staffVentilators').value, 10);
-      hosp.generalBeds = parseInt(document.getElementById('staffGeneralBeds').value, 10);
-      hosp.bloodStock['O-'] = parseInt(document.getElementById('staffONegUnits').value, 10);
-      hosp.bloodStock['AB+'] = parseInt(document.getElementById('staffABPosUnits').value, 10);
-
       const notice = document.getElementById('staffNotice');
-      notice.innerHTML = `<span style="color:var(--dark-green);"><i class="fa-solid fa-tower-broadcast"></i> Demo inventory for ${hosp.name} updated in this tab only.</span>`;
-      setTimeout(() => { notice.innerHTML = ''; }, 5000);
-
-      // Re-render affected sections
-      renderHospitals();
-      renderBloodAndOrgans();
-      renderInspector();
-      updateMapView();
+      const button = document.getElementById('btnStaffBroadcast'); button.disabled = true;
+      try {
+        const id = document.getElementById('staffSelectHospital').value;
+        const data = await api('/hospitals/'+encodeURIComponent(id)+'/telemetry', {method:'PUT',body:{
+          icuBeds:Number(document.getElementById('staffIcuBeds').value),
+          ventilators:Number(document.getElementById('staffVentilators').value),
+          generalBeds:Number(document.getElementById('staffGeneralBeds').value),
+          bloodStock:{'O-':Number(document.getElementById('staffONegUnits').value),'AB+':Number(document.getElementById('staffABPosUnits').value)}}});
+        STATE.hospitals[STATE.hospitals.findIndex(h=>h.id===id)] = data.data;
+        refreshViews(); notice.textContent = 'Inventory saved to backend. Other users can select Refresh data to see it.';
+      } catch(err) { notice.textContent = err.message; }
+      finally { button.disabled = STATE.user.role !== 'staff'; }
     });
   }
 
@@ -904,7 +905,7 @@
 
   // Initialization
   function init() {
-    loadProfilePhotos();
+
     setupProfilePhotoControls();
     renderMapControls();
     updateMapView();
@@ -915,6 +916,9 @@
     populateStaffDropdown();
     setupEventListeners();
     initTouchEffects();
+    refreshData().then(populateStaffDropdown).catch(e => {
+      document.getElementById('backendStatus').textContent = 'Offline sample preview • '+e.message;
+    });
   }
 
   window.addEventListener('DOMContentLoaded', init);

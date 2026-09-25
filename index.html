@@ -78,6 +78,7 @@
       <button id="btnStrobe" class="btn btn-blue-outline" aria-pressed="false"><i class="fa-solid fa-lightbulb"></i> Screen beacon</button>
       <button id="btnShareSms" class="btn btn-dark"><i class="fa-solid fa-share-nodes"></i> Copy location link</button>
     </div><p class="form-subtext">These tools run on your device. They do not contact emergency services.</p></details>
+    <div class="demo-notice"><span id="backendStatus" role="status">Connecting to backend…</span> <button id="btnRefreshData" type="button" class="btn btn-sm btn-blue">Refresh data</button></div>
     <p class="demo-notice"><i class="fa-solid fa-circle-info"></i> Demo directory: availability, doctors, contacts and organ listings are sample data. Confirm details with the facility before travelling.</p>
 
     <!-- Section 2: Real Google Maps Navigation -->
@@ -196,8 +197,8 @@
 
           <hr class="divider">
 
-          <h3 class="form-heading"><i class="fa-solid fa-hand-holding-medical text-blue"></i> Blood / organ request demo</h3>
-          <p class="form-subtext">Preview a request locally. This form does not notify hospitals or blood banks.</p>
+          <h3 class="form-heading"><i class="fa-solid fa-hand-holding-medical text-blue"></i> Blood / organ request</h3>
+          <p class="form-subtext">Sign in to save a request. This prototype does not notify hospitals or blood banks.</p>
           <form id="requisitionForm" class="inpage-form">
             <div class="form-row">
               <div class="form-col">
@@ -233,7 +234,7 @@
                 <input type="tel" id="reqPhone" class="form-input" placeholder="+91 98XXXXXXXX" required>
               </div>
             </div>
-            <button type="submit" class="btn btn-blue btn-block"><i class="fa-solid fa-paper-plane"></i> Preview request</button>
+            <button type="submit" class="btn btn-blue btn-block"><i class="fa-solid fa-paper-plane"></i> Save request</button>
             <div id="requisitionNotice" class="form-notice"></div>
           </form>
         </div>
@@ -265,8 +266,8 @@
     <section id="section-auth" class="content-section auth-section">
       <div class="section-title">
         <div>
-          <h2><i class="fa-solid fa-lock text-green"></i> Demo portal</h2>
-          <p>Try the patient and staff interfaces. Demo access is not secure authentication.</p>
+          <h2><i class="fa-solid fa-lock text-green"></i> Account portal</h2>
+          <p>Create a patient account or sign in. Staff accounts are provisioned by the server administrator.</p>
         </div>
       </div>
 
@@ -274,7 +275,7 @@
         <!-- Auth Form Card -->
         <div class="card card-clean">
           <div class="card-header">
-            <h3><i class="fa-solid fa-right-to-bracket text-green"></i> Try a demo account</h3>
+            <h3><i class="fa-solid fa-right-to-bracket text-green"></i> Your account</h3>
             <span class="badge badge-green" id="activeRoleTag">Role: Citizen</span>
           </div>
 
@@ -289,7 +290,7 @@
             </div>
             <div class="profile-photo-copy">
               <strong id="profilePhotoTitle">Citizen / Patient profile</strong>
-              <span id="profilePhotoHint">Add a profile photo. It is saved only on this device in this demo.</span>
+              <span id="profilePhotoHint">Add a profile photo. Sign in to save it to your account.</span>
               <div class="profile-photo-actions">
                 <label class="btn btn-sm btn-green profile-upload-btn" for="profilePhotoInput">
                   <i class="fa-solid fa-camera"></i> Choose profile photo
@@ -301,14 +302,6 @@
             </div>
           </div>
 
-          <div class="quick-credentials">
-            <p><strong>Demo 1-Click Fast Login:</strong></p>
-            <div class="btn-group">
-              <button type="button" class="btn btn-sm btn-green" id="btnFillPatient"><i class="fa-solid fa-user"></i> Login as Citizen / Patient</button>
-              <button type="button" class="btn btn-sm btn-blue" id="btnFillStaff"><i class="fa-solid fa-user-doctor"></i> Login as Hospital Staff / EMT</button>
-            </div>
-          </div>
-
           <form id="authForm" class="inpage-form">
             <div class="form-group">
               <label>Registered Email or Medical ID</label>
@@ -316,16 +309,11 @@
             </div>
             <div class="form-group">
               <label>Password / Access PIN</label>
-              <input type="password" id="authPassword" class="form-input" value="demo123" required>
+              <input type="password" id="authPassword" class="form-input" minlength="12" autocomplete="current-password" required>
             </div>
-            <div class="form-group">
-              <label>Portal Role</label>
-              <select id="authRole" class="form-select">
-                <option value="citizen">Citizen / Patient (Emergency View)</option>
-                <option value="staff">Hospital Desk / Medical Officer (Editor)</option>
-              </select>
-            </div>
-            <button type="submit" class="btn btn-green btn-block" id="btnAuthSubmit"><i class="fa-solid fa-arrow-right-to-bracket"></i> Open demo session</button>
+            <button type="submit" class="btn btn-green btn-block" id="btnAuthSubmit"><i class="fa-solid fa-arrow-right-to-bracket"></i> Sign in</button>
+            <button id="btnRegister" type="button" class="btn btn-blue-outline btn-block">Create patient account</button>
+            <button id="btnLogout" type="button" class="btn btn-blue-outline" hidden>Sign out</button>
             <div id="authNotice" class="form-notice"></div>
           </form>
         </div>
@@ -372,7 +360,7 @@
               </div>
             </div>
 
-            <button type="submit" id="btnStaffBroadcast" class="btn btn-blue btn-block" disabled><i class="fa-solid fa-tower-broadcast"></i> Update demo inventory</button>
+            <button type="submit" id="btnStaffBroadcast" class="btn btn-blue btn-block" disabled><i class="fa-solid fa-tower-broadcast"></i> Save inventory</button>
             <div id="staffNotice" class="form-notice"></div>
           </form>
         </div>
@@ -395,6 +383,7 @@
   </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="script.js?v=jelly-6"></script>
+  <script src="config.js?v=connected-1"></script>
+  <script src="script.js?v=connected-1"></script>
 </body>
 </html>
