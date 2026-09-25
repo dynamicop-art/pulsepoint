@@ -1020,3 +1020,465 @@
             <div class="profile-photo-wrap">
 
               <img
+                id="profilePhotoPreview"
+                class="profile-photo"
+                alt="Profile photo preview"
+                hidden
+              >
+
+
+              <div
+                id="profilePhotoFallback"
+                class="profile-photo-fallback"
+              >
+
+                <i class="fa-solid fa-user"></i>
+
+              </div>
+
+
+              <label
+                class="profile-photo-camera"
+                for="profilePhotoInput"
+                title="Choose profile photo"
+                aria-label="Choose profile photo"
+              >
+
+                <i class="fa-solid fa-camera"></i>
+
+              </label>
+
+
+              <input
+                type="file"
+                id="profilePhotoInput"
+                class="visually-hidden-input"
+                accept="image/jpeg,image/png,image/webp"
+                capture="user"
+              >
+
+            </div>
+
+
+
+            <div class="profile-photo-copy">
+
+
+              <strong id="profilePhotoTitle">
+                Citizen / Patient profile
+              </strong>
+
+
+              <span id="profilePhotoHint">
+                Add a profile photo.
+                Sign in to save it to your account.
+              </span>
+
+
+              <div class="profile-photo-actions">
+
+
+                <label
+                  class="btn btn-sm btn-green profile-upload-btn"
+                  for="profilePhotoInput"
+                >
+
+                  <i class="fa-solid fa-camera"></i>
+
+                  Choose profile photo
+
+                </label>
+
+
+                <button
+                  type="button"
+                  class="btn btn-sm btn-blue-outline"
+                  id="btnRemoveProfilePhoto"
+                >
+
+                  <i class="fa-solid fa-trash-can"></i>
+
+                  Remove
+
+                </button>
+
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- LOGIN FORM -->
+
+          <form
+            id="authForm"
+            class="inpage-form"
+          >
+
+
+            <div class="form-group">
+
+              <label>
+                Registered Email or Medical ID
+              </label>
+
+              <input
+                type="text"
+                id="authEmail"
+                class="form-input"
+                placeholder="user@pulsepoint.in"
+                required
+              >
+
+            </div>
+
+
+
+            <div class="form-group">
+
+              <label>
+                Password / Access PIN
+              </label>
+
+              <input
+                type="password"
+                id="authPassword"
+                class="form-input"
+                minlength="12"
+                autocomplete="current-password"
+                required
+              >
+
+            </div>
+
+
+            <button
+              type="submit"
+              class="btn btn-green btn-block"
+              id="btnAuthSubmit"
+            >
+
+              <i class="fa-solid fa-arrow-right-to-bracket"></i>
+
+              Sign in
+
+            </button>
+
+
+            <button
+              id="btnRegister"
+              type="button"
+              class="btn btn-blue-outline btn-block"
+            >
+              Create patient account
+            </button>
+
+
+            <button
+              id="btnLogout"
+              type="button"
+              class="btn btn-blue-outline"
+              hidden
+            >
+              Sign out
+            </button>
+
+
+            <div
+              id="authNotice"
+              class="form-notice"
+            ></div>
+
+
+          </form>
+
+        </div>
+
+
+
+        <!-- =========================
+             STAFF INVENTORY
+        ========================== -->
+
+        <div
+          class="card card-clean"
+          id="staffPortalCard"
+        >
+
+
+          <div class="card-header">
+
+            <h3>
+
+              <i class="fa-solid fa-pen-to-square text-blue"></i>
+
+              Hospital inventory editor
+
+            </h3>
+
+
+            <span
+              class="badge badge-blue"
+              id="staffLockBadge"
+            >
+
+              <i class="fa-solid fa-lock"></i>
+
+              Staff Login Required
+
+            </span>
+
+          </div>
+
+
+          <p class="staff-intro">
+
+            Authorized hospital staff can update available beds,
+            ICU capacity, ventilators and blood stock.
+
+          </p>
+
+
+
+          <form
+            id="staffUpdateForm"
+            class="inpage-form"
+          >
+
+
+            <div class="form-group">
+
+              <label>
+                Select Facility
+              </label>
+
+
+              <select
+                id="staffSelectHospital"
+                class="form-select"
+              >
+
+                <!-- Populated dynamically -->
+
+              </select>
+
+            </div>
+
+
+
+            <div class="form-row">
+
+
+              <div class="form-col">
+
+                <label>
+                  Available ICU Beds
+                </label>
+
+                <input
+                  type="number"
+                  id="staffIcuBeds"
+                  class="form-input"
+                  min="0"
+                  max="100"
+                  value="5"
+                  required
+                >
+
+              </div>
+
+
+              <div class="form-col">
+
+                <label>
+                  Ventilators Free
+                </label>
+
+                <input
+                  type="number"
+                  id="staffVentilators"
+                  class="form-input"
+                  min="0"
+                  max="50"
+                  value="3"
+                  required
+                >
+
+              </div>
+
+
+              <div class="form-col">
+
+                <label>
+                  General Beds
+                </label>
+
+                <input
+                  type="number"
+                  id="staffGeneralBeds"
+                  class="form-input"
+                  min="0"
+                  max="300"
+                  value="28"
+                  required
+                >
+
+              </div>
+
+            </div>
+
+
+
+            <div class="form-row">
+
+
+              <div class="form-col">
+
+                <label>
+                  O- Blood Units
+                </label>
+
+                <input
+                  type="number"
+                  id="staffONegUnits"
+                  class="form-input"
+                  min="0"
+                  max="50"
+                  value="6"
+                  required
+                >
+
+              </div>
+
+
+              <div class="form-col">
+
+                <label>
+                  AB+ Blood Units
+                </label>
+
+                <input
+                  type="number"
+                  id="staffABPosUnits"
+                  class="form-input"
+                  min="0"
+                  max="50"
+                  value="9"
+                  required
+                >
+
+              </div>
+
+            </div>
+
+
+
+            <button
+              type="submit"
+              id="btnStaffBroadcast"
+              class="btn btn-blue btn-block"
+              disabled
+            >
+
+              <i class="fa-solid fa-tower-broadcast"></i>
+
+              Save inventory
+
+            </button>
+
+
+            <div
+              id="staffNotice"
+              class="form-notice"
+            ></div>
+
+
+          </form>
+
+        </div>
+
+
+      </div>
+
+    </section>
+
+
+  </main>
+
+
+
+  <!-- =========================
+       FOOTER
+  ========================== -->
+  <footer class="app-footer">
+
+    <div class="footer-container">
+
+
+      <div class="footer-brand">
+
+        <h3>
+
+          <i class="fa-solid fa-heart-pulse text-blue"></i>
+
+          PulsePoint+ Emergency Care
+
+        </h3>
+
+        <p>
+          Find nearby emergency care when every minute matters.
+        </p>
+
+      </div>
+
+
+      <div class="footer-copy">
+
+        <p>
+          &copy; 2026 PulsePoint+.
+        </p>
+
+        <p>
+          Hospital availability must be confirmed with the facility
+          before travelling.
+        </p>
+
+      </div>
+
+
+    </div>
+
+  </footer>
+
+
+
+  <!-- =========================
+       TOAST
+  ========================== -->
+
+  <div
+    id="toast"
+    class="toast"
+    role="status"
+    aria-live="polite"
+  ></div>
+
+
+
+  <!-- =========================
+       JAVASCRIPT
+  ========================== -->
+
+  <script src="config.js?v=connected-1"></script>
+
+  <script src="script.js?v=connected-1"></script>
+
+  <!-- Automatic hospital discovery -->
+  <script src="hospital-search.js?v=1"></script>
+
+
+</body>
+</html>
