@@ -187,8 +187,8 @@
 
       STATE.sirenOscillator = { osc, lfo, gain };
       STATE.isSirenPlaying = true;
-      btn.classList.add('btn-red');
-      btn.classList.remove('btn-red-outline');
+      btn.classList.add('btn-blue');
+      btn.classList.remove('btn-blue-outline');
       label.textContent = 'Mute Siren';
     } else {
       if (STATE.sirenOscillator) {
@@ -196,8 +196,8 @@
         STATE.sirenOscillator.lfo.stop();
       }
       STATE.isSirenPlaying = false;
-      btn.classList.remove('btn-red');
-      btn.classList.add('btn-red-outline');
+      btn.classList.remove('btn-blue');
+      btn.classList.add('btn-blue-outline');
       label.textContent = 'Emergency Siren';
     }
   }
@@ -236,7 +236,7 @@
         
         <div class="bed-telemetry-row" style="margin: 16px 0;">
           <div>
-            <div class="bed-stat-val text-red">${hosp.icuBeds}</div>
+            <div class="bed-stat-val text-blue">${hosp.icuBeds}</div>
             <div class="bed-stat-lbl">ICU Free</div>
           </div>
           <div>
@@ -256,7 +256,7 @@
            class="btn btn-green btn-block">
           <i class="fa-solid fa-diamond-turn-right"></i> Open Google GPS Navigation
         </a>
-        <a href="tel:${hosp.phone}" class="btn btn-red-outline btn-block">
+        <a href="tel:${hosp.phone}" class="btn btn-blue-outline btn-block">
           <i class="fa-solid fa-phone-volume"></i> Call Desk: ${hosp.phone}
         </a>
       </div>
@@ -291,13 +291,13 @@
           </div>
 
           <div class="hospital-meta" style="margin: 12px 0;">
-            <div><i class="fa-solid fa-location-dot text-red"></i> ${h.address}</div>
+            <div><i class="fa-solid fa-location-dot text-blue"></i> ${h.address}</div>
             <div><i class="fa-solid fa-phone text-green"></i> ${h.phone}</div>
           </div>
 
           <div class="bed-telemetry-row">
             <div>
-              <div class="bed-stat-val text-red">${h.icuBeds}</div>
+              <div class="bed-stat-val text-blue">${h.icuBeds}</div>
               <div class="bed-stat-lbl">ICU Beds</div>
             </div>
             <div>
@@ -318,7 +318,7 @@
           <a href="https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}" target="_blank" class="btn btn-dark" title="Directions">
             <i class="fa-solid fa-directions"></i>
           </a>
-          <a href="tel:${h.phone}" class="btn btn-red" title="Call Emergency Desk">
+          <a href="tel:${h.phone}" class="btn btn-blue" title="Call Emergency Desk">
             <i class="fa-solid fa-phone"></i>
           </a>
         </div>
@@ -358,7 +358,7 @@
     container.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
         <div>
-          <span class="badge badge-red mb-1"><i class="fa-solid fa-hospital-user"></i> Active Selected Inspection</span>
+          <span class="badge badge-blue mb-1"><i class="fa-solid fa-hospital-user"></i> Active Selected Inspection</span>
           <h3 style="font-size:20px; font-weight:800; color:var(--slate-900); margin-top:4px;">${hosp.name}</h3>
           <p style="font-size:13px; color:var(--slate-600);">${hosp.address} | <strong>Emergency Desk:</strong> ${hosp.emergencyLine}</p>
         </div>
@@ -366,16 +366,16 @@
           <a href="https://www.google.com/maps/dir/?api=1&destination=${hosp.lat},${hosp.lng}" target="_blank" class="btn btn-green">
             <i class="fa-solid fa-diamond-turn-right"></i> Direct GPS Route
           </a>
-          <a href="tel:${hosp.phone}" class="btn btn-red">
+          <a href="tel:${hosp.phone}" class="btn btn-blue">
             <i class="fa-solid fa-phone"></i> Call Facility
           </a>
         </div>
       </div>
 
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:20px;">
-        <div style="background:var(--light-red); border:1px solid var(--primary-red); padding:12px; border-radius:8px;">
-          <div style="font-size:24px; font-weight:800; color:var(--dark-red);">${hosp.icuBeds}</div>
-          <div style="font-size:12px; font-weight:700; color:var(--dark-red);">Critical ICU Beds Open</div>
+        <div style="background:var(--light-blue); border:1px solid var(--primary-blue); padding:12px; border-radius:8px;">
+          <div style="font-size:24px; font-weight:800; color:var(--dark-blue);">${hosp.icuBeds}</div>
+          <div style="font-size:12px; font-weight:700; color:var(--dark-blue);">Critical ICU Beds Open</div>
         </div>
         <div style="background:var(--light-green); border:1px solid var(--primary-green); padding:12px; border-radius:8px;">
           <div style="font-size:24px; font-weight:800; color:var(--dark-green);">${hosp.ventilators}</div>
@@ -399,7 +399,7 @@
           </div>
         </div>
         <div>
-          <h4 style="font-size:14px; font-weight:700; margin-bottom:8px;"><i class="fa-solid fa-dna text-red"></i> Organ & Tissue Bank</h4>
+          <h4 style="font-size:14px; font-weight:700; margin-bottom:8px;"><i class="fa-solid fa-dna text-blue"></i> Organ & Tissue Bank</h4>
           <div>
             ${organsList}
           </div>
@@ -431,7 +431,7 @@
     tbody.innerHTML = STATE.hospitals.map(h => `
       <tr>
         <td><strong>${h.name}</strong></td>
-        <td><span class="badge ${h.bloodStock['O-'] < 4 ? 'badge-red' : 'badge-green'}">${h.bloodStock['O-']}</span></td>
+        <td><span class="badge ${h.bloodStock['O-'] < 4 ? 'badge-blue' : 'badge-green'}">${h.bloodStock['O-']}</span></td>
         <td>${h.bloodStock['O+']}</td>
         <td>${h.bloodStock['A+']}</td>
         <td>${h.bloodStock['B+']}</td>
@@ -561,11 +561,11 @@
       document.body.classList.toggle('strobe-alert');
       const btn = document.getElementById('btnStrobe');
       if (document.body.classList.contains('strobe-alert')) {
-        btn.classList.add('btn-red');
-        btn.classList.remove('btn-red-outline');
+        btn.classList.add('btn-blue');
+        btn.classList.remove('btn-blue-outline');
       } else {
-        btn.classList.remove('btn-red');
-        btn.classList.add('btn-red-outline');
+        btn.classList.remove('btn-blue');
+        btn.classList.add('btn-blue-outline');
       }
     });
 
@@ -640,7 +640,7 @@
         document.getElementById('staffLockBadge').innerHTML = '<i class="fa-solid fa-unlock"></i> Editor Unlocked';
         document.getElementById('btnStaffBroadcast').disabled = false;
       } else {
-        document.getElementById('staffLockBadge').className = 'badge badge-red';
+        document.getElementById('staffLockBadge').className = 'badge badge-blue';
         document.getElementById('staffLockBadge').innerHTML = '<i class="fa-solid fa-lock"></i> Staff Login Required';
         document.getElementById('btnStaffBroadcast').disabled = true;
       }

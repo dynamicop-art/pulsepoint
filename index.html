@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PulsePoint Emergency Care | Instant Hospital, Bed, Blood & Organ Locator</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#07845f">
+  <link rel="stylesheet" href="style.css?v=medical-2">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -62,8 +63,8 @@
           <p>Select your emergency requirement below or share instant coordinates with ambulance emergency dispatch.</p>
         </div>
         <div class="console-actions">
-          <button id="btnPlaySiren" class="btn btn-red-outline"><i class="fa-solid fa-bullhorn"></i> <span id="sirenLabel">Emergency Siren</span></button>
-          <button id="btnStrobe" class="btn btn-red-outline"><i class="fa-solid fa-bolt"></i> Strobe Beacon</button>
+          <button id="btnPlaySiren" class="btn btn-blue-outline"><i class="fa-solid fa-bullhorn"></i> <span id="sirenLabel">Emergency Siren</span></button>
+          <button id="btnStrobe" class="btn btn-blue-outline"><i class="fa-solid fa-bolt"></i> Strobe Beacon</button>
           <button id="btnGpsCalc" class="btn btn-green"><i class="fa-solid fa-location-crosshairs"></i> Use My GPS</button>
           <button id="btnShareSms" class="btn btn-dark"><i class="fa-solid fa-share-nodes"></i> Copy SOS Dispatch Link</button>
         </div>
@@ -101,7 +102,7 @@
     <section id="section-hospitals" class="content-section">
       <div class="section-title">
         <div>
-          <h2><i class="fa-solid fa-hospital text-red"></i> Emergency Facilities & Bed Availability</h2>
+          <h2><i class="fa-solid fa-hospital text-blue"></i> Emergency Facilities & Bed Availability</h2>
           <p>Real-time occupancy counters updated by hospital EMT reception desk</p>
         </div>
         <div class="filter-controls">
@@ -139,7 +140,7 @@
     <section id="section-blood-organ" class="content-section">
       <div class="section-title">
         <div>
-          <h2><i class="fa-solid fa-droplet text-red"></i> Blood Bank Reserves & Organ Registry</h2>
+          <h2><i class="fa-solid fa-droplet text-blue"></i> Blood Bank Reserves & Organ Registry</h2>
           <p>Direct match availability across 8 blood categories & NOTTO transplant listings</p>
         </div>
       </div>
@@ -148,8 +149,8 @@
         <!-- Left: Blood Inventory Matrix -->
         <div class="card card-clean">
           <div class="card-header">
-            <h3><i class="fa-solid fa-cubes-stacked text-red"></i> Regional Blood Stock Matrix</h3>
-            <span class="badge badge-red">Updated 10m ago</span>
+            <h3><i class="fa-solid fa-cubes-stacked text-blue"></i> Regional Blood Stock Matrix</h3>
+            <span class="badge badge-blue">Updated 10m ago</span>
           </div>
           <div class="blood-group-chips" id="bloodSummaryChips">
             <!-- Populated by JS -->
@@ -187,7 +188,7 @@
 
           <hr class="divider">
 
-          <h3 class="form-heading"><i class="fa-solid fa-hand-holding-medical text-red"></i> In-Page Blood / Organ Urgent Requisition</h3>
+          <h3 class="form-heading"><i class="fa-solid fa-hand-holding-medical text-blue"></i> In-Page Blood / Organ Urgent Requisition</h3>
           <p class="form-subtext">Submit immediate requirement to notify regional blood banks</p>
           <form id="requisitionForm" class="inpage-form">
             <div class="form-row">
@@ -224,7 +225,7 @@
                 <input type="tel" id="reqPhone" class="form-input" placeholder="+91 98XXXXXXXX" required>
               </div>
             </div>
-            <button type="submit" class="btn btn-red btn-block"><i class="fa-solid fa-paper-plane"></i> Broadcast Requisition to Emergency Desk</button>
+            <button type="submit" class="btn btn-blue btn-block"><i class="fa-solid fa-paper-plane"></i> Broadcast Requisition to Emergency Desk</button>
             <div id="requisitionNotice" class="form-notice"></div>
           </form>
         </div>
@@ -273,7 +274,7 @@
             <p><strong>Demo 1-Click Fast Login:</strong></p>
             <div class="btn-group">
               <button type="button" class="btn btn-sm btn-green" id="btnFillPatient"><i class="fa-solid fa-user"></i> Login as Citizen / Patient</button>
-              <button type="button" class="btn btn-sm btn-red" id="btnFillStaff"><i class="fa-solid fa-user-doctor"></i> Login as Hospital Staff / EMT</button>
+              <button type="button" class="btn btn-sm btn-blue" id="btnFillStaff"><i class="fa-solid fa-user-doctor"></i> Login as Hospital Staff / EMT</button>
             </div>
           </div>
 
@@ -301,8 +302,8 @@
         <!-- Live Hospital Staff Telemetry Editor -->
         <div class="card card-clean" id="staffPortalCard">
           <div class="card-header">
-            <h3><i class="fa-solid fa-pen-to-square text-red"></i> Real-Time Telemetry Desk Editor</h3>
-            <span class="badge badge-red" id="staffLockBadge"><i class="fa-solid fa-lock"></i> Staff Login Required</span>
+            <h3><i class="fa-solid fa-pen-to-square text-blue"></i> Real-Time Telemetry Desk Editor</h3>
+            <span class="badge badge-blue" id="staffLockBadge"><i class="fa-solid fa-lock"></i> Staff Login Required</span>
           </div>
           <p class="staff-intro">Hospital administrators can dynamically adjust available ICU beds, oxygen ventilators, and rare blood units.</p>
 
@@ -340,7 +341,7 @@
               </div>
             </div>
 
-            <button type="submit" id="btnStaffBroadcast" class="btn btn-red btn-block" disabled><i class="fa-solid fa-tower-broadcast"></i> Broadcast Live Telemetry Changes</button>
+            <button type="submit" id="btnStaffBroadcast" class="btn btn-blue btn-block" disabled><i class="fa-solid fa-tower-broadcast"></i> Broadcast Live Telemetry Changes</button>
             <div id="staffNotice" class="form-notice"></div>
           </form>
         </div>
@@ -352,7 +353,7 @@
   <footer class="app-footer">
     <div class="footer-container">
       <div class="footer-brand">
-        <h3><i class="fa-solid fa-heart-pulse text-red"></i> PulsePoint Emergency Care Network</h3>
+        <h3><i class="fa-solid fa-heart-pulse text-blue"></i> PulsePoint Emergency Care Network</h3>
         <p>National Emergency Health Logistics System | West Bengal Sector - NH-6 Trauma Corridor</p>
       </div>
       <div class="footer-copy">
@@ -362,6 +363,6 @@
     </div>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=medical-2"></script>
 </body>
 </html>
