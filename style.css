@@ -1217,3 +1217,25 @@ body { background:linear-gradient(180deg,#f2fbf7 0 390px,#ffffff 820px,#f8fcfa);
 .section-title h2 { color:#103c30; }
 .hospital-card,.card,.doctor-card,.inspector-card { border-color:#deebe3; }
 @media(max-width:600px) { .hero { margin:0 -13px; padding-left:16px; padding-right:16px; } }
+
+/* Solid emergency contact buttons: no glass, blur, jelly shine or gradient. */
+.sos-hotlines .hotline-btn,
+.sos-hotlines .hotline-btn:hover,
+.sos-hotlines .hotline-btn:active {
+  color:#fff;
+  border:0;
+  border-radius:10px;
+  background:#126f50;
+  box-shadow:none;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  filter:none;
+  transform:none;
+}
+.sos-hotlines .hotline-btn[href="tel:108"] { background:#d7374e; }
+.sos-hotlines .hotline-btn[href="tel:102"] { background:#6842ad; }
+.sos-hotlines .hotline-btn[href="tel:112"] { background:#245ac5; }
+.sos-hotlines .hotline-btn[href="tel:104"] { background:#087f86; }
+.sos-hotlines .hotline-btn::before { display:none; }
+.sos-hotlines .hotline-btn:hover { filter:brightness(.94); }
+.sos-hotlines .hotline-btn:active { filter:brightness(.86); }
