@@ -1,12 +1,24 @@
 const { MongoClient } = require("mongodb");
 
-const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+/* =========================================================
+   CONFIG
+========================================================= */
 
-const OVERPASS_URL =
-  process.env.OVERPASS_URL ||
+const NOMINATIM_URL =
+  "https://nominatim.openstreetmap.org/search";
+
+const DEFAULT_OVERPASS_URL =
   "https://overpass-api.de/api/interpreter";
 
-const MONGO_URI = process.env.MONGO_URI || "";
+const OVERPASS_ENDPOINTS = [
+  process.env.OVERPASS_URL || DEFAULT_OVERPASS_URL,
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter"
+];
+
+const MONGO_URI =
+  process.env.MONGO_URI || "";
+
 const DB_NAME =
   process.env.MONGO_DB_NAME ||
   process.env.DB_NAME ||
@@ -20,36 +32,52 @@ let mongoClient = null;
 let mongoDb = null;
 
 const geocodeCache = new Map();
-const CACHE_TTL_MS = 5 * 60 * 1000;
+
+const CACHE_TTL_MS =
+  5 * 60 * 1000;
 
 
-// ===============================
-// BASIC HELPERS
-// ===============================
+/* =========================================================
+   BASIC HELPERS
+========================================================= */
 
 function cleanText(value) {
-  return value == null ? "" : String(value).trim();
+  return value == null
+    ? ""
+    : String(value).trim();
 }
+
 
 function toNumber(value) {
   const n = Number(value);
-  return Number.isFinite(n) ? n : null;
+
+  return Number.isFinite(n)
+    ? n
+    : null;
 }
+
 
 function normalizeName(value) {
   return cleanText(value)
     .toLowerCase()
-    .replace(/[^a-z0-9\u00c0-\uFFFF]+/g, " ")
+    .replace(
+      /[^a-z0-9\u00c0-\uFFFF]+/g,
+      " "
+    )
     .replace(/\s+/g, " ")
     .trim();
 }
 
 
-// ===============================
-// HOSPITAL NORMALIZER
-// ===============================
+/* =========================================================
+   HOSPITAL NORMALIZER
+========================================================= */
 
-function normalizeHospital(h, source = "unknown") {
+function normalizeHospital(
+  h,
+  source = "unknown"
+) {
+
   const lat = toNumber(
     h.lat ??
     h.latitude ??
@@ -65,6 +93,7 @@ function normalizeHospital(h, source = "unknown") {
   );
 
   return {
+
     id:
       cleanText(
         h.id ??
@@ -126,7 +155,9 @@ function normalizeHospital(h, source = "unknown") {
       ),
 
     availableBeds:
-      toNumber(h.availableBeds),
+      toNumber(
+        h.availableBeds
+      ),
 
     totalBeds:
       toNumber(
@@ -135,10 +166,14 @@ function normalizeHospital(h, source = "unknown") {
       ),
 
     icuBeds:
-      toNumber(h.icuBeds),
+      toNumber(
+        h.icuBeds
+      ),
 
     ventilators:
-      toNumber(h.ventilators),
+      toNumber(
+        h.ventilators
+      ),
 
     emergency:
       h.emergency === true ||
@@ -154,23 +189,35 @@ function normalizeHospital(h, source = "unknown") {
 }
 
 
-// ===============================
-// HAVERSINE DISTANCE
-// ===============================
+/* =========================================================
+   HAVERSINE DISTANCE
+========================================================= */
 
-function haversineKm(lat1, lon1, lat2, lon2) {
+function haversineKm(
+  lat1,
+  lon1,
+  lat2,
+  lon2
+) {
+
   const R = 6371;
 
   const dLat =
-    ((lat2 - lat1) * Math.PI) / 180;
+    ((lat2 - lat1) * Math.PI) /
+    180;
 
   const dLon =
-    ((lon2 - lon1) * Math.PI) / 180;
+    ((lon2 - lon1) * Math.PI) /
+    180;
 
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
+    Math.cos(
+      (lat1 * Math.PI) / 180
+    ) *
+      Math.cos(
+        (lat2 * Math.PI) / 180
+      ) *
       Math.sin(dLon / 2) ** 2;
 
   return (
@@ -184,11 +231,15 @@ function haversineKm(lat1, lon1, lat2, lon2) {
 }
 
 
-// ===============================
-// INDIA COORDINATE VALIDATION
-// ===============================
+/* =========================================================
+   INDIA COORDINATE VALIDATION
+========================================================= */
 
-function validIndiaCoordinates(lat, lng) {
+function validIndiaCoordinates(
+  lat,
+  lng
+) {
+
   return (
     Number.isFinite(lat) &&
     Number.isFinite(lng) &&
@@ -200,54 +251,85 @@ function validIndiaCoordinates(lat, lng) {
 }
 
 
-// ===============================
-// FETCH WITH TIMEOUT
-// ===============================
+/* =========================================================
+   FETCH WITH TIMEOUT
+========================================================= */
 
 async function fetchJson(
   url,
   options = {},
-  timeoutMs = 10000
+  timeoutMs = 15000
 ) {
+
   const controller =
     new AbortController();
 
-  const timer = setTimeout(
-    () => controller.abort(),
-    timeoutMs
-  );
-
-  try {
-    const response = await fetch(
-      url,
-      {
-        ...options,
-        signal: controller.signal
-      }
+  const timer =
+    setTimeout(
+      () => controller.abort(),
+      timeoutMs
     );
 
+  try {
+
+    const response =
+      await fetch(
+        url,
+        {
+          ...options,
+          signal:
+            controller.signal
+        }
+      );
+
+    const text =
+      await response.text();
+
     if (!response.ok) {
+
       throw new Error(
-        `HTTP ${response.status}`
+        `HTTP ${response.status}: ${text.slice(
+          0,
+          300
+        )}`
       );
     }
 
-    return await response.json();
+    if (!text) {
+      return {};
+    }
+
+    try {
+
+      return JSON.parse(text);
+
+    } catch (jsonError) {
+
+      throw new Error(
+        `Invalid JSON response: ${text.slice(
+          0,
+          300
+        )}`
+      );
+    }
 
   } finally {
+
     clearTimeout(timer);
   }
 }
 
 
-// ===============================
-// MONGODB CONNECTION
-// ===============================
+/* =========================================================
+   MONGODB CONNECTION
+========================================================= */
 
 async function connectDB(
   uri = MONGO_URI
 ) {
+
   if (!uri) {
+
     console.warn(
       "MONGO_URI not configured. MongoDB search will be skipped."
     );
@@ -257,15 +339,24 @@ async function connectDB(
 
   try {
 
-    if (!mongoClient) {
+    if (
+      mongoClient &&
+      mongoDb
+    ) {
 
-      mongoClient =
-        new MongoClient(uri, {
-          serverSelectionTimeoutMS: 8000
-        });
-
-      await mongoClient.connect();
+      return mongoDb;
     }
+
+    mongoClient =
+      new MongoClient(
+        uri,
+        {
+          serverSelectionTimeoutMS:
+            10000
+        }
+      );
+
+    await mongoClient.connect();
 
     mongoDb =
       mongoClient.db(
@@ -273,7 +364,7 @@ async function connectDB(
       );
 
     console.log(
-      "MongoDB connected."
+      "MongoDB connected successfully."
     );
 
     return mongoDb;
@@ -293,22 +384,45 @@ async function connectDB(
 }
 
 
-// ===============================
-// SEARCH MONGODB HOSPITALS
-// ===============================
+/* =========================================================
+   ENSURE DATABASE CONNECTION
+========================================================= */
+
+async function ensureMongoConnection() {
+
+  if (mongoDb) {
+    return mongoDb;
+  }
+
+  if (!MONGO_URI) {
+    return null;
+  }
+
+  return await connectDB(
+    MONGO_URI
+  );
+}
+
+
+/* =========================================================
+   SEARCH MONGODB HOSPITALS
+========================================================= */
 
 async function searchMongoHospitals(
   query = ""
 ) {
 
-  if (!mongoDb) {
+  const db =
+    await ensureMongoConnection();
+
+  if (!db) {
     return [];
   }
 
   try {
 
     const collection =
-      mongoDb.collection(
+      db.collection(
         HOSPITAL_COLLECTION
       );
 
@@ -322,7 +436,7 @@ async function searchMongoHospitals(
       docs =
         await collection
           .find({})
-          .limit(100)
+          .limit(500)
           .toArray();
 
     } else {
@@ -347,10 +461,11 @@ async function searchMongoHospitals(
               { hospitalName: regex },
               { address: regex },
               { city: regex },
-              { district: regex }
+              { district: regex },
+              { state: regex }
             ]
           })
-          .limit(100)
+          .limit(200)
           .toArray();
     }
 
@@ -374,9 +489,9 @@ async function searchMongoHospitals(
 }
 
 
-// ===============================
-// GEOCODING
-// ===============================
+/* =========================================================
+   GEOCODING
+========================================================= */
 
 async function geocodePlace(
   place
@@ -399,9 +514,11 @@ async function geocodePlace(
 
   if (
     cached &&
-    Date.now() - cached.time <
+    Date.now() -
+      cached.time <
       CACHE_TTL_MS
   ) {
+
     return cached.value;
   }
 
@@ -443,7 +560,7 @@ async function geocodePlace(
               "application/json"
           }
         },
-        10000
+        12000
       );
 
     const first =
@@ -454,8 +571,12 @@ async function geocodePlace(
     const value =
       first
         ? {
-            lat: Number(first.lat),
-            lng: Number(first.lon),
+            lat:
+              Number(first.lat),
+
+            lng:
+              Number(first.lon),
+
             displayName:
               first.display_name ||
               q
@@ -484,9 +605,9 @@ async function geocodePlace(
 }
 
 
-// ===============================
-// OPENSTREETMAP HOSPITAL SEARCH
-// ===============================
+/* =========================================================
+   OPENSTREETMAP / OVERPASS HOSPITAL SEARCH
+========================================================= */
 
 async function fetchOSMHospitals(
   lat,
@@ -500,6 +621,7 @@ async function fetchOSMHospitals(
       lng
     )
   ) {
+
     return [];
   }
 
@@ -514,27 +636,31 @@ async function fetchOSMHospitals(
     );
 
   const query = `
-[out:json][timeout:20];
+[out:json][timeout:25];
 (
   nwr["amenity"="hospital"](around:${radius},${lat},${lng});
   nwr["healthcare"="hospital"](around:${radius},${lat},${lng});
+  nwr["amenity"="clinic"](around:${radius},${lat},${lng});
 );
 out center tags;
 `;
 
-  const endpoints = [
-
-    OVERPASS_URL,
-
-    "https://overpass.kumi.systems/api/interpreter"
-
-  ];
+  let lastError =
+    null;
 
   for (
-    const endpoint of endpoints
+    const endpoint of OVERPASS_ENDPOINTS
   ) {
 
+    if (!endpoint) {
+      continue;
+    }
+
     try {
+
+      console.log(
+        `Trying Overpass endpoint: ${endpoint}`
+      );
 
       const result =
         await fetchJson(
@@ -544,7 +670,10 @@ out center tags;
 
             headers: {
               "Content-Type":
-                "application/x-www-form-urlencoded",
+                "application/x-www-form-urlencoded; charset=UTF-8",
+
+              "Accept":
+                "application/json",
 
               "User-Agent":
                 "PulsePoint/1.0 emergency-hospital-discovery"
@@ -556,7 +685,7 @@ out center tags;
               }).toString()
           },
 
-          25000
+          30000
         );
 
       const elements =
@@ -566,84 +695,104 @@ out center tags;
           ? result.elements
           : [];
 
-      return elements
+      console.log(
+        `Overpass returned ${elements.length} places.`
+      );
 
-        .map(item => {
+      const hospitals =
+        elements
 
-          const tags =
-            item.tags || {};
+          .map(item => {
 
-          const itemLat =
-            item.lat ??
-            item.center?.lat ??
-            null;
+            const tags =
+              item.tags || {};
 
-          const itemLng =
-            item.lon ??
-            item.center?.lon ??
-            null;
+            const itemLat =
+              item.lat ??
+              item.center?.lat ??
+              null;
 
-          const address = [
+            const itemLng =
+              item.lon ??
+              item.center?.lon ??
+              null;
 
-            tags["addr:housenumber"],
+            const address = [
 
-            tags["addr:street"],
+              tags["addr:housenumber"],
+              tags["addr:street"],
+              tags["addr:suburb"],
+              tags["addr:city"],
+              tags["addr:district"],
+              tags["addr:state"]
 
-            tags["addr:suburb"],
+            ]
+              .filter(Boolean)
+              .join(", ");
 
-            tags["addr:city"],
+            return normalizeHospital(
+              {
 
-            tags["addr:district"],
+                id:
+                  `osm-${item.type}-${item.id}`,
 
-            tags["addr:state"]
+                name:
+                  tags.name ||
+                  tags["name:en"] ||
+                  tags["name:bn"] ||
+                  tags.operator,
 
-          ]
-            .filter(Boolean)
-            .join(", ");
+                address,
 
-          return normalizeHospital(
+                category:
+                  tags.healthcare ||
+                  tags.amenity ||
+                  "Hospital",
 
-            {
-              id:
-                `osm-${item.type}-${item.id}`,
+                phone:
+                  tags.phone ||
+                  tags["contact:phone"] ||
+                  null,
 
-              name:
-                tags.name ||
-                tags["name:en"] ||
-                tags["name:bn"],
+                website:
+                  tags.website ||
+                  tags["contact:website"] ||
+                  null,
 
-              address,
+                lat:
+                  itemLat,
 
-              phone:
-                tags.phone ||
-                tags["contact:phone"],
+                lng:
+                  itemLng,
 
-              website:
-                tags.website ||
-                tags["contact:website"],
+                emergency:
+                  tags.emergency
 
-              lat: itemLat,
+              },
+              "openstreetmap"
+            );
+          })
 
-              lng: itemLng,
-
-              emergency:
-                tags.emergency
-            },
-
-            "openstreetmap"
+          .filter(
+            hospital =>
+              hospital.name &&
+              validIndiaCoordinates(
+                hospital.lat,
+                hospital.lng
+              )
           );
-        })
 
-        .filter(
-          h =>
-            h.name &&
-            validIndiaCoordinates(
-              h.lat,
-              h.lng
-            )
-        );
+      /*
+       * IMPORTANT:
+       * A successful Overpass response with zero results
+       * is still a valid response.
+       */
+      return hospitals;
 
     } catch (err) {
+
+      lastError =
+        err;
 
       console.warn(
         `Overpass endpoint failed: ${endpoint}`,
@@ -652,22 +801,26 @@ out center tags;
     }
   }
 
+  console.error(
+    "All Overpass endpoints failed.",
+    lastError?.message ||
+      "Unknown error"
+  );
+
   return [];
 }
 
 
-// ===============================
-// DEDUPLICATE HOSPITALS
-// ===============================
+/* =========================================================
+   DEDUPLICATE HOSPITALS
+========================================================= */
 
 function dedupeHospitals(
   hospitals
 ) {
 
   const output = [];
-
-  const byName =
-    new Map();
+  const byName = new Map();
 
   for (
     const hospital of hospitals
@@ -705,6 +858,7 @@ function dedupeHospitals(
                 existing.name
               ) !== nameKey
             ) {
+
               return false;
             }
 
@@ -752,6 +906,11 @@ function dedupeHospitals(
         duplicateIndex
       ];
 
+    /*
+     * Prefer MongoDB data because it may contain
+     * your manually verified hospital details.
+     */
+
     if (
       existing.source !==
         "mongodb" &&
@@ -782,8 +941,7 @@ function dedupeHospitals(
             ([key, value]) =>
               value !== null &&
               value !== "" &&
-              value !==
-                undefined &&
+              value !== undefined &&
               (
                 existing[key] ===
                   null ||
@@ -802,9 +960,9 @@ function dedupeHospitals(
 }
 
 
-// ===============================
-// SORT BY DISTANCE
-// ===============================
+/* =========================================================
+   SORT BY DISTANCE
+========================================================= */
 
 function sortByDistance(
   hospitals
@@ -819,6 +977,7 @@ function sortByDistance(
         b.distanceKm ==
           null
       ) {
+
         return 0;
       }
 
@@ -826,6 +985,7 @@ function sortByDistance(
         a.distanceKm ==
           null
       ) {
+
         return 1;
       }
 
@@ -833,6 +993,7 @@ function sortByDistance(
         b.distanceKm ==
           null
       ) {
+
         return -1;
       }
 
@@ -845,9 +1006,9 @@ function sortByDistance(
 }
 
 
-// ===============================
-// GPS NEARBY SEARCH
-// ===============================
+/* =========================================================
+   GPS NEARBY SEARCH
+========================================================= */
 
 async function searchNearbyHospitals(
   latitude,
@@ -894,12 +1055,19 @@ async function searchNearbyHospitals(
       100
     );
 
+  console.log(
+    `Nearby hospital search: ${lat}, ${lng}, radius=${radius}m`
+  );
+
+  /*
+   * Run OSM and MongoDB in parallel.
+   */
+
   const [
     osmHospitals,
     mongoHospitals
   ] =
     await Promise.all([
-
       fetchOSMHospitals(
         lat,
         lng,
@@ -908,6 +1076,14 @@ async function searchNearbyHospitals(
 
       searchMongoHospitals("")
     ]);
+
+  console.log(
+    `OSM hospitals: ${osmHospitals.length}`
+  );
+
+  console.log(
+    `MongoDB hospitals: ${mongoHospitals.length}`
+  );
 
   const merged =
     dedupeHospitals([
@@ -926,6 +1102,7 @@ async function searchNearbyHospitals(
           hospital.lng ==
             null
         ) {
+
           return hospital;
         }
 
@@ -962,9 +1139,9 @@ async function searchNearbyHospitals(
 }
 
 
-// ===============================
-// CITY / PLACE SEARCH
-// ===============================
+/* =========================================================
+   CITY / PLACE SEARCH
+========================================================= */
 
 async function searchAllIndia(
   query = ""
@@ -1020,6 +1197,7 @@ async function searchAllIndia(
           hospital.lng ==
             null
         ) {
+
           return hospital;
         }
 
@@ -1046,9 +1224,9 @@ async function searchAllIndia(
 }
 
 
-// ===============================
-// EXPORTS
-// ===============================
+/* =========================================================
+   EXPORTS
+========================================================= */
 
 module.exports = {
 
