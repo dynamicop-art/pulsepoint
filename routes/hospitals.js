@@ -141,161 +141,150 @@ async function upsertHospitals(records) {
   return saved;
 }
 
-// Straight-line distance between two coordinates, in km.
+// Straight-line distance in km between two coordinates.
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 // ============================================================
-// GET /api/hospitals/nearby?lat=..&lng=..&radius=..
-// Takes a raw coordinate (e.g. from the browser's Geolocation API)
-// and returns real hospitals around it, anywhere in India, sorted
-// nearest-first. No place name / geocoding step needed, so this is
-// what "use my location" should call.
-// 1. Pull real hospitals from OpenStreetMap (Overpass) within the
-//    radius, cache them into Mongo.
-// 2. Also pull any hospitals already saved in Mongo that fall
-//    inside the same radius (covers manually-added hospitals that
-//    may not be in OSM).
-// 3. Merge, dedupe, compute distanceKm for every entry, sort by
-//    distance, and return.
+// GET /api/hospitals?lat=..&lng=..
+// Used by the "Use my location" button: the browser already
+// knows the coordinates, so this skips the geocoding step and
+// goes straight to a LIVE OpenStreetMap lookup around that exact
+// point every time — cached/manual Mongo entries are only used
+// as a fallback/extra, never given priority over the live data.
 // ============================================================
-async function getNearbyHandler(req, res) {
+async function getHospitalsByCoords(req, res, lat, lng) {
+  const radiusKm = 20;
+  let liveNearby = [];
+  let externalNote;
+
+  // 1. ALWAYS ask OpenStreetMap first — this is the "real, current"
+  //    source. It gets cached into Mongo (upsert), but that cache is
+  //    just a copy for next time, not something we trust over this.
   try {
-    const lat = parseFloat(req.query.lat);
-    const lng = parseFloat(req.query.lng);
-    const limit = Math.min(parseInt(req.query.limit, 10) || 30, 60);
-    let radius = parseInt(req.query.radius, 10) || 15000; // meters
-    radius = Math.min(Math.max(radius, 1000), 50000); // clamp 1km - 50km
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      return res.status(400).json({ success: false, message: "lat and lng query params are required numbers." });
-    }
-    // Rough India bounding box so bad/foreign coordinates don't hit Overpass pointlessly.
-    if (lat < 6 || lat > 37 || lng < 68 || lng > 98) {
-      return res.status(400).json({ success: false, message: "Coordinates fall outside India." });
-    }
-
-    let osmNote;
-    let osmResults = [];
-    try {
-      osmResults = await fetchOSMHospitals(lat, lng, radius);
-      if (osmResults.length === 0 && radius < 50000) {
-        osmResults = await fetchOSMHospitals(lat, lng, Math.min(radius * 2.5, 50000)); // widen once for sparse areas
-      }
-      await upsertHospitals(osmResults);
-    } catch (e) {
-      console.error("Live OSM nearby lookup failed:", e.message);
-      osmNote = "Live lookup temporarily unavailable; showing saved results only.";
-    }
-
-    // Also pull from Mongo directly (covers manual entries + anything just cached above),
-    // using a generous degree-box pre-filter before the precise haversine check.
-    const degreePad = radius / 111000; // ~meters per degree of latitude
-    const dbCandidates = await Hospital.find({
-      lat: { $gte: lat - degreePad, $lte: lat + degreePad },
-      lng: { $gte: lng - degreePad, $lte: lng + degreePad }
-    }).limit(200);
-
-    const merged = new Map();
-    for (const h of [...osmResults, ...dbCandidates]) {
-      const hLat = h.lat, hLng = h.lng;
-      if (hLat == null || hLng == null) continue;
-      const distanceKm = haversineKm(lat, lng, hLat, hLng);
-      if (distanceKm > radius / 1000) continue;
-      const key = `${h.name}|${h.city || h.location}`;
-      const plain = typeof h.toObject === "function" ? h.toObject() : h;
-      const existing = merged.get(key);
-      if (!existing || distanceKm < existing.distanceKm) {
-        merged.set(key, { ...plain, distanceKm: Math.round(distanceKm * 10) / 10 });
-      }
-    }
-
-    const data = Array.from(merged.values())
-      .sort((a, b) => a.distanceKm - b.distanceKm)
-      .slice(0, limit);
-
-    res.json({
-      success: true,
-      count: data.length,
-      origin: { lat, lng },
-      radiusMeters: radius,
-      data,
-      ...(osmNote ? { note: osmNote } : {})
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    let osm = await fetchOSMHospitals(lat, lng, radiusKm * 1000);
+    if (osm.length === 0) osm = await fetchOSMHospitals(lat, lng, 50000); // widen for rural areas
+    const savedDocs = await upsertHospitals(osm);
+    liveNearby = savedDocs
+      .filter(doc => doc.lat != null && doc.lng != null)
+      .map(doc => ({ doc, d: haversineKm(lat, lng, doc.lat, doc.lng) }))
+      .filter(x => x.d <= 50)
+      .sort((a, b) => a.d - b.d);
+  } catch (e) {
+    console.error("Live OSM lookup (by coords) failed:", e.message);
+    externalNote = "Live lookup temporarily unavailable; showing saved results only.";
   }
+
+  // 2. Only to fill gaps: anything already in Mongo nearby that the
+  //    live call above didn't return (e.g. a manually-added entry).
+  //    These are appended AFTER the live results, never ahead of them.
+  const known = new Set(liveNearby.map(x => String(x.doc._id)));
+  const cached = await Hospital.find({ lat: { $ne: null }, lng: { $ne: null } }).limit(500);
+  const cachedNearby = cached
+    .map(doc => ({ doc, d: haversineKm(lat, lng, doc.lat, doc.lng) }))
+    .filter(x => x.d <= radiusKm && !known.has(String(x.doc._id)))
+    .sort((a, b) => a.d - b.d);
+
+  const merged = [...liveNearby, ...cachedNearby].slice(0, 30);
+
+  const data = merged.map(x => {
+    const obj = x.doc.toObject ? x.doc.toObject() : x.doc;
+    return { ...obj, distanceKm: Math.round(x.d * 10) / 10 };
+  });
+
+  res.json({
+    success: true,
+    count: data.length,
+    data,
+    ...(externalNote ? { note: externalNote } : {})
+  });
 }
 
 // ============================================================
 // GET /api/hospitals?search=xyz
-// 1. Look inside Mongo first (fast, works offline of OSM too).
-// 2. If that comes up thin, geocode the search text and pull
-//    real nearby hospitals from OpenStreetMap, cache them into
-//    Mongo, and merge them into the results.
+// LIVE-FIRST: every search geocodes the typed place and pulls
+// real, current hospitals from OpenStreetMap FIRST. Whatever is
+// already sitting in Mongo (old manual entries, previously
+// cached searches) is only appended afterwards to fill gaps —
+// it is never allowed to take priority over the live lookup.
 // This is what makes search work for ANY place in India, not
-// just the handful of cities in defaultHospitals.
+// just the handful of cities in defaultHospitals, and keeps
+// results fresh instead of stuck on whatever was typed/saved
+// before.
 // ============================================================
 async function getHospitalsHandler(req, res) {
   try {
-    const search = (req.query.search || "").toString().trim().slice(0, 100);
-    let localResults = [];
+    // "Use my location" comes in as lat/lng instead of typed text —
+    // handle that path separately, no geocoding needed.
+    const rawLat = parseFloat(req.query.lat);
+    const rawLng = parseFloat(req.query.lng);
+    if (Number.isFinite(rawLat) && Number.isFinite(rawLng)) {
+      return await getHospitalsByCoords(req, res, rawLat, rawLng);
+    }
 
-    if (search) {
-      const safe = escapeRegex(search);
-      localResults = await Hospital.find({
-        $or: [
-          { name: { $regex: safe, $options: "i" } },
-          { location: { $regex: safe, $options: "i" } },
-          { address: { $regex: safe, $options: "i" } },
-          { city: { $regex: safe, $options: "i" } },
-          { state: { $regex: safe, $options: "i" } }
-        ]
-      }).sort({ updatedAt: -1 }).limit(60);
-    } else {
-      localResults = await Hospital.find({}).sort({ updatedAt: -1 }).limit(60);
+    const search = (req.query.search || "").toString().trim().slice(0, 100);
+
+    if (!search) {
+      let localResults = await Hospital.find({}).sort({ updatedAt: -1 }).limit(60);
       if (localResults.length === 0) {
         localResults = await Hospital.insertMany(defaultHospitals);
       }
       return res.json({ success: true, count: localResults.length, data: localResults });
     }
 
+    // 1. ALWAYS geocode + hit OpenStreetMap live for this search text.
+    //    This runs every time, regardless of what's already cached.
+    let liveResults = [];
     let externalNote;
-    if (localResults.length < 6) {
-      try {
-        const place = await geocodePlace(search + ", India");
-        if (place) {
-          let osm = await fetchOSMHospitals(place.lat, place.lon, 20000);
-          if (osm.length === 0) osm = await fetchOSMHospitals(place.lat, place.lon, 50000); // widen once for smaller towns
-          const savedDocs = await upsertHospitals(osm);
-          const known = new Set(localResults.map(h => `${h.name}|${h.location}`));
-          for (const doc of savedDocs) {
-            const key = `${doc.name}|${doc.location}`;
-            if (!known.has(key)) {
-              localResults.push(doc);
-              known.add(key);
-            }
-          }
-        } else {
-          externalNote = "Could not locate that place in India.";
-        }
-      } catch (e) {
-        console.error("Live OSM lookup failed:", e.message);
-        externalNote = "Live lookup temporarily unavailable; showing saved results only.";
+    try {
+      const place = await geocodePlace(search + ", India");
+      if (place) {
+        let osm = await fetchOSMHospitals(place.lat, place.lon, 20000);
+        if (osm.length === 0) osm = await fetchOSMHospitals(place.lat, place.lon, 50000); // widen once for smaller towns
+        liveResults = await upsertHospitals(osm); // fresh data, and re-caches it for next time
+      } else {
+        externalNote = "Could not locate that place in India.";
+      }
+    } catch (e) {
+      console.error("Live OSM lookup failed:", e.message);
+      externalNote = "Live lookup temporarily unavailable; showing saved results only.";
+    }
+
+    // 2. Only to fill gaps: local Mongo matches (e.g. hand-entered
+    //    hospitals) that the live lookup above doesn't already cover.
+    //    These are appended AFTER the live results, never ahead.
+    const safe = escapeRegex(search);
+    const localMatches = await Hospital.find({
+      $or: [
+        { name: { $regex: safe, $options: "i" } },
+        { location: { $regex: safe, $options: "i" } },
+        { address: { $regex: safe, $options: "i" } },
+        { city: { $regex: safe, $options: "i" } },
+        { state: { $regex: safe, $options: "i" } }
+      ]
+    }).sort({ updatedAt: -1 }).limit(60);
+
+    const known = new Set(liveResults.map(d => `${d.name}|${d.location}`));
+    const merged = [...liveResults];
+    for (const doc of localMatches) {
+      const key = `${doc.name}|${doc.location}`;
+      if (!known.has(key)) {
+        merged.push(doc);
+        known.add(key);
       }
     }
 
     res.json({
       success: true,
-      count: localResults.length,
-      data: localResults,
+      count: merged.length,
+      data: merged,
       ...(externalNote ? { note: externalNote } : {})
     });
   } catch (error) {
@@ -306,9 +295,6 @@ async function getHospitalsHandler(req, res) {
 // ১. GET Route (যাতে "/" অথবা "/hospitals" যেকোনোটিতেই ডেটা পায়)
 router.get("/", getHospitalsHandler);
 router.get("/hospitals", getHospitalsHandler);
-
-// GET /api/hospitals/nearby?lat=..&lng=.. — location-based lookup, all of India
-router.get("/nearby", getNearbyHandler);
 
 // ২. POST: নতুন হাসপাতাল যুক্ত করা (Viable ফিচার)
 router.post("/", async (req, res) => {
