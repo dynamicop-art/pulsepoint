@@ -31,3 +31,5 @@ No API keys, build step or backend are required for this design. A real service 
 ## Revision 5
 - Red hospital facade plus rendered as a precisely positioned CSS overlay on the unchanged illustration.
 - Pastel jelly/glass hotline pills with readable coloured labels, soft highlights and press feedback.
+
+- Mobile refinement: fixed-width-safe layout, compact hotline grid, scrollable nav/filter pills, stacked forms, readable map cards and touch-sized controls.
