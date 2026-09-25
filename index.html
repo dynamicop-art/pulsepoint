@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PulsePoint+ | Instant Hospital, Bed, Blood & Organ Locator</title>
   <meta name="theme-color" content="#16804a">
-  <link rel="stylesheet" href="style.css?v=solid-6">
+  <link rel="stylesheet" href="style.css?v=solid-7">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -285,14 +285,19 @@
               <label class="profile-photo-camera" for="profilePhotoInput" title="Choose profile photo" aria-label="Choose profile photo">
                 <i class="fa-solid fa-camera"></i>
               </label>
-              <input type="file" id="profilePhotoInput" class="visually-hidden-input" accept="image/*">
+              <input type="file" id="profilePhotoInput" class="visually-hidden-input" accept="image/jpeg,image/png,image/webp" capture="user">
             </div>
             <div class="profile-photo-copy">
               <strong id="profilePhotoTitle">Citizen / Patient profile</strong>
               <span id="profilePhotoHint">Add a profile photo. It is saved only on this device in this demo.</span>
-              <button type="button" class="btn btn-sm btn-blue-outline" id="btnRemoveProfilePhoto">
-                <i class="fa-solid fa-trash-can"></i> Remove photo
-              </button>
+              <div class="profile-photo-actions">
+                <label class="btn btn-sm btn-green profile-upload-btn" for="profilePhotoInput">
+                  <i class="fa-solid fa-camera"></i> Choose profile photo
+                </label>
+                <button type="button" class="btn btn-sm btn-blue-outline" id="btnRemoveProfilePhoto">
+                  <i class="fa-solid fa-trash-can"></i> Remove
+                </button>
+              </div>
             </div>
           </div>
 
@@ -390,6 +395,6 @@
   </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="script.js?v=jelly-5"></script>
+  <script src="script.js?v=jelly-6"></script>
 </body>
 </html>

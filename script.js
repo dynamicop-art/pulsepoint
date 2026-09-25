@@ -477,10 +477,9 @@
       });
     });
 
-    let filtered = allDoctors;
-    if (selectedSpec !== 'all') {
-      filtered = allDoctors.filter(d => d.spec === selectedSpec);
-    }
+    const filtered = selectedSpec === 'all'
+      ? allDoctors
+      : allDoctors.filter(d => d.spec === selectedSpec);
 
     grid.innerHTML = filtered.map((d, index) => {
       const photoKey = encodeURIComponent(d.name);
@@ -488,15 +487,16 @@
       const photoMarkup = photo
         ? `<img src="${photo}" alt="${d.name} profile photo">`
         : `<i class="fa-solid fa-user-doctor"></i>`;
+      const inputId = `doctorPhoto-${index}`;
       return `
       <div class="doctor-card">
         <div class="doctor-info-top">
           <div class="doctor-avatar doctor-avatar-photo">
             ${photoMarkup}
-            <label class="doctor-photo-edit" for="doctorPhoto-${index}" title="Add or change doctor photo" aria-label="Add or change doctor photo">
+            <label class="doctor-photo-edit" for="${inputId}" title="Choose doctor profile photo" aria-label="Choose doctor profile photo">
               <i class="fa-solid fa-camera"></i>
             </label>
-            <input type="file" id="doctorPhoto-${index}" class="visually-hidden-input doctor-photo-input" accept="image/*" data-doctor="${photoKey}">
+            <input type="file" id="${inputId}" class="visually-hidden-input doctor-photo-input" accept="image/jpeg,image/png,image/webp" data-doctor="${photoKey}">
           </div>
           <div class="doctor-name-title">
             <h4>${d.name}</h4>
@@ -509,26 +509,44 @@
           </div>
           <span class="badge badge-green">${d.status}</span>
         </div>
+        <div class="doctor-photo-actions">
+          <label class="btn btn-sm btn-blue-outline" for="${inputId}">
+            <i class="fa-solid fa-camera"></i> ${photo ? 'Change photo' : 'Upload photo'}
+          </label>
+          ${photo ? `<button type="button" class="btn btn-sm btn-danger-outline doctor-photo-remove" data-doctor="${photoKey}"><i class="fa-solid fa-trash-can"></i> Remove</button>` : ''}
+        </div>
         <a href="tel:${d.hospitalPhone}" class="btn btn-sm btn-green btn-block">
           <i class="fa-solid fa-phone"></i> Casualty Ext: ${d.hospitalPhone}
         </a>
-      </div>
-    `;
+      </div>`;
     }).join('');
 
     grid.querySelectorAll('.doctor-photo-input').forEach(input => {
       input.addEventListener('change', async (e) => {
         const file = e.target.files && e.target.files[0];
         const doctorName = decodeURIComponent(e.target.getAttribute('data-doctor') || '');
+        e.target.value = '';
         if (!file || !doctorName) return;
         try {
-          STATE.profilePhotos.doctors[doctorName] = await resizeImageToDataUrl(file, 360, 0.82);
-          persistProfilePhotos();
+          validateProfileImage(file);
+          STATE.profilePhotos.doctors[doctorName] = await resizeImageToDataUrl(file, 420, 0.82);
+          if (!persistProfilePhotos()) return;
           renderDoctors(selectedSpec);
           showToast(`Profile photo saved for ${doctorName}.`);
         } catch (err) {
-          showToast('Could not process that image. Please choose another photo.');
+          showToast(err.message || 'Photo could not be loaded. Use JPG, PNG or WEBP.');
         }
+      });
+    });
+
+    grid.querySelectorAll('.doctor-photo-remove').forEach(button => {
+      button.addEventListener('click', () => {
+        const doctorName = decodeURIComponent(button.getAttribute('data-doctor') || '');
+        if (!doctorName) return;
+        delete STATE.profilePhotos.doctors[doctorName];
+        if (!persistProfilePhotos()) return;
+        renderDoctors(selectedSpec);
+        showToast(`Profile photo removed for ${doctorName}.`);
       });
     });
   }
@@ -549,8 +567,20 @@
   function persistProfilePhotos() {
     try {
       localStorage.setItem('pulsepointProfilePhotos', JSON.stringify(STATE.profilePhotos));
+      return true;
     } catch (err) {
-      showToast('Photo saved for this session, but browser storage is full.');
+      showToast('Storage is full. Remove an old profile photo and try again.');
+      return false;
+    }
+  }
+
+  function validateProfileImage(file) {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      throw new Error('Please choose a JPG, PNG or WEBP image.');
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      throw new Error('Please choose an image smaller than 8 MB.');
     }
   }
 
@@ -591,8 +621,8 @@
 
     title.textContent = role === 'staff' ? 'Hospital Staff / EMT profile' : 'Citizen / Patient profile';
     hint.textContent = photo
-      ? 'Your profile photo is active on this device.'
-      : 'Add a profile photo. It is saved only on this device in this demo.';
+      ? 'Profile photo saved on this browser for this demo.'
+      : 'Choose Upload photo or the camera icon to add your photo.';
 
     if (photo) {
       preview.src = photo;
@@ -616,26 +646,30 @@
 
     input.addEventListener('change', async (e) => {
       const file = e.target.files && e.target.files[0];
+      e.target.value = '';
       if (!file) return;
       try {
+        validateProfileImage(file);
         const role = STATE.user.role === 'staff' ? 'staff' : 'citizen';
         STATE.profilePhotos[role] = await resizeImageToDataUrl(file, 420, 0.82);
-        persistProfilePhotos();
+        if (!persistProfilePhotos()) return;
         applyUserProfilePhoto();
-        showToast('Profile photo updated.');
+        showToast(`${role === 'staff' ? 'Staff' : 'Citizen / Patient'} profile photo updated.`);
       } catch (err) {
-        showToast('Could not process that image. Please choose another photo.');
-      } finally {
-        input.value = '';
+        showToast(err.message || 'Photo could not be loaded.');
       }
     });
 
     remove.addEventListener('click', () => {
       const role = STATE.user.role === 'staff' ? 'staff' : 'citizen';
+      if (!STATE.profilePhotos[role]) {
+        showToast('No profile photo to remove.');
+        return;
+      }
       STATE.profilePhotos[role] = '';
-      persistProfilePhotos();
+      if (!persistProfilePhotos()) return;
       applyUserProfilePhoto();
-      showToast('Profile photo removed.');
+      showToast(`${role === 'staff' ? 'Staff' : 'Citizen / Patient'} profile photo removed.`);
     });
   }
 
