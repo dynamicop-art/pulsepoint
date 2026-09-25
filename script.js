@@ -294,6 +294,9 @@ function setupLocationButton() {
   const btn = document.getElementById("btnGpsCalc");
   if (!btn) return;
 
+  const statusEl = document.getElementById("gpsStatusMessage");
+  const setStatus = (msg) => { if (statusEl) statusEl.textContent = msg; };
+
   btn.addEventListener("click", () => {
     if (!navigator.geolocation) {
       alert("Your browser does not support location access.");
@@ -303,33 +306,51 @@ function setupLocationButton() {
     const originalLabel = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Locating…`;
+    setStatus("📍 Getting your location…");
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const { latitude, longitude } = pos.coords;
 
-        allHospitals.forEach(h => {
-          if (h.lat != null && h.lng != null) {
-            h.distanceKm = haversineKm(latitude, longitude, h.lat, h.lng);
-          }
-        });
+        // No typing needed: send the coordinates straight to the backend,
+        // which checks Mongo first and, if that's thin, pulls real
+        // hospitals near this exact point live from OpenStreetMap.
+        setStatus("🔎 Finding real hospitals near you…");
+        const searchInput = document.getElementById("hospitalSearch") || document.querySelector("input[type='text']");
+        if (searchInput) searchInput.value = ""; // this is a location lookup, not a text search
 
-        allHospitals.sort((a, b) => {
-          const da = a.distanceKm ?? Infinity;
-          const db = b.distanceKm ?? Infinity;
-          return da - db;
-        });
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/hospitals?lat=${latitude}&lng=${longitude}`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const result = await response.json();
+          const raw = result.data || [];
 
-        renderFacilityCards(allHospitals, document.getElementById("hospitalsGrid"));
+          allHospitals = raw.map(normalizeHospital);
+          // backend already sorts by distance, but re-sort defensively
+          allHospitals.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
 
-        btn.disabled = false;
-        btn.innerHTML = originalLabel;
-        document.getElementById("section-hospitals")?.scrollIntoView({ behavior: "smooth" });
+          renderFacilityCards(allHospitals, document.getElementById("hospitalsGrid"));
+          renderBloodMatrix(allHospitals);
+
+          setStatus(
+            allHospitals.length
+              ? `✅ Found ${allHospitals.length} hospital(s) near your current location.`
+              : "🔍 No hospitals found near your current location."
+          );
+        } catch (error) {
+          console.error("Location-based fetch error:", error);
+          setStatus("⚠️ Could not fetch nearby hospitals. Please try again.");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalLabel;
+          document.getElementById("section-hospitals")?.scrollIntoView({ behavior: "smooth" });
+        }
       },
       (err) => {
         console.error("Geolocation error:", err);
         btn.disabled = false;
         btn.innerHTML = originalLabel;
+        setStatus("⚠️ Could not get your location. Please allow location access and try again.");
         alert("Could not get your location. Please allow location access in your browser and try again.");
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
