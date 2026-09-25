@@ -5,1480 +5,259 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PulsePoint+ | Instant Hospital, Bed, Blood & Organ Locator</title>
   <meta name="theme-color" content="#16804a">
-
   <link rel="stylesheet" href="style.css?v=solid-7">
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-  >
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-
 <body>
 
-  <!-- =========================
-       TOP EMERGENCY BAR
-  ========================== -->
   <div class="top-sos-bar" id="emergency-contacts">
     <div class="sos-ticker-container">
-
       <div class="sos-pill-pulse">
         <span class="pulse-beacon"></span>
         <strong>Emergency assistance</strong>
       </div>
-
       <div class="sos-hotlines">
-        <a href="tel:108" class="hotline-btn">
-          <i class="fa-solid fa-truck-medical"></i>
-          108 Ambulance
-        </a>
-
-        <a href="tel:102" class="hotline-btn">
-          <i class="fa-solid fa-baby"></i>
-          102 Maternity
-        </a>
-
-        <a href="tel:112" class="hotline-btn">
-          <i class="fa-solid fa-shield-heart"></i>
-          112 Emergency
-        </a>
-
-        <a href="tel:104" class="hotline-btn">
-          <i class="fa-solid fa-user-doctor"></i>
-          104 Health
-        </a>
+        <a href="tel:108" class="hotline-btn"><i class="fa-solid fa-truck-medical"></i> 108 Ambulance</a>
+        <a href="tel:102" class="hotline-btn"><i class="fa-solid fa-baby"></i> 102 Maternity</a>
+        <a href="tel:112" class="hotline-btn"><i class="fa-solid fa-shield-heart"></i> 112 Emergency</a>
+        <a href="tel:104" class="hotline-btn"><i class="fa-solid fa-user-doctor"></i> 104 Health</a>
       </div>
-
     </div>
   </div>
 
-
-  <!-- =========================
-       HEADER
-  ========================== -->
   <header class="app-header">
     <div class="header-container">
-
       <div class="brand">
-
-        <div class="brand-icon">
-          <i class="fa-solid fa-heart-pulse"></i>
-        </div>
-
+        <div class="brand-icon"><i class="fa-solid fa-heart-pulse"></i></div>
         <div class="brand-text">
-          <h1 aria-label="PulsePoint Plus">
-            <span class="wordmark">PulsePoint</span>
-            <span class="brand-plus" aria-hidden="true">+</span>
-          </h1>
-
+          <h1 aria-label="PulsePoint Plus"><span class="wordmark">PulsePoint</span><span class="brand-plus" aria-hidden="true">+</span></h1>
           <p>Emergency Care</p>
         </div>
-
       </div>
-
-
       <nav class="nav-links" aria-label="Main navigation">
-
-        <a href="#section-map">
-          <i class="fa-solid fa-map-location-dot"></i>
-          Live Map
-        </a>
-
-        <a href="#section-hospitals">
-          <i class="fa-solid fa-hospital"></i>
-          Hospitals
-        </a>
-
-        <a href="#section-blood-organ">
-          <i class="fa-solid fa-droplet"></i>
-          Blood & Organs
-        </a>
-
-        <a href="#section-doctors">
-          <i class="fa-solid fa-user-doctor"></i>
-          Doctors
-        </a>
-
-        <a href="#section-auth">
-          <i class="fa-solid fa-user-shield"></i>
-          Sign in
-        </a>
-
+        <a href="#section-map"><i class="fa-solid fa-map-location-dot"></i> Live Map</a>
+        <a href="#section-hospitals"><i class="fa-solid fa-hospital"></i> Hospitals</a>
+        <a href="#section-blood-organ"><i class="fa-solid fa-droplet"></i> Blood & Organs</a>
+        <a href="#section-doctors"><i class="fa-solid fa-user-doctor"></i> Doctors</a>
+        <a href="#section-auth"><i class="fa-solid fa-user-shield"></i> Sign in</a>
       </nav>
-
-
       <div class="nav-user-badge" id="navUserBadge">
         <i class="fa-solid fa-circle-user"></i>
         <span id="userStatusText">Guest (Public View)</span>
       </div>
-
     </div>
   </header>
 
-
-  <!-- =========================
-       MAIN
-  ========================== -->
   <main class="main-content">
 
-
-    <!-- =========================
-         HERO
-    ========================== -->
     <section class="hero" aria-labelledby="hero-title">
-
       <div class="hero-copy">
-
-        <p class="eyebrow">
-          <span class="dot-green"></span>
-          CARE STARTS WITH CONNECTION
-        </p>
-
-        <h2 id="hero-title">
-          Find the right care,<br>
-          <span>nearby.</span>
-        </h2>
-
-        <p class="hero-description">
-          Locate hospitals and get directions when every minute matters.
-        </p>
-
-        <span class="location-tag">
-          <i class="fa-solid fa-location-dot"></i>
-          Search your location
-        </span>
-
-
+        <p class="eyebrow"><span class="dot-green"></span> CARE STARTS WITH CONNECTION</p>
+        <h2 id="hero-title">Find the right care,<br><span>nearby.</span></h2>
+        <p class="hero-description">Locate hospitals and get directions when every minute matters.</p>
+        <span class="location-tag"><i class="fa-solid fa-location-dot"></i> Search your location</span>
         <div class="hero-actions">
-
-          <a href="#section-hospitals" class="btn btn-green">
-            <i class="fa-solid fa-hospital"></i>
-            Find nearby hospitals
-            <span aria-hidden="true">→</span>
-          </a>
-
-          <button
-            id="btnGpsCalc"
-            type="button"
-            class="btn btn-location"
-          >
-            <i class="fa-solid fa-location-crosshairs"></i>
-            Use my location
-          </button>
-
-          <a href="tel:108" class="btn btn-emergency">
-            <i class="fa-solid fa-phone"></i>
-            Call ambulance 108
-          </a>
-
+          <a href="#section-hospitals" class="btn btn-green"><i class="fa-solid fa-hospital"></i> Find nearby hospitals <span aria-hidden="true">→</span></a>
+          <button id="btnGpsCalc" type="button" class="btn btn-location"><i class="fa-solid fa-location-crosshairs"></i> Use my location</button>
+          <a href="tel:108" class="btn btn-emergency"><i class="fa-solid fa-phone"></i> Call ambulance 108</a>
         </div>
-
-
-        <div
-          id="gpsStatusMessage"
-          class="gps-status-banner"
-          role="status"
-          aria-live="polite"
-        ></div>
-
+        <div id="gpsStatusMessage" class="gps-status-banner" role="status" aria-live="polite"></div>
       </div>
-
-
-      <div class="hero-art" aria-hidden="true">
-
-        <img
-          src="assets/hospital-hero.png"
-          alt=""
-          width="2048"
-          height="745"
-          fetchpriority="high"
-        >
-
-        <span class="hospital-red-plus"></span>
-
-      </div>
-
+      <div class="hero-art" aria-hidden="true"><img src="assets/hospital-hero.png" alt="" width="2048" height="745" fetchpriority="high"><span class="hospital-red-plus"></span></div>
     </section>
 
-
-    <!-- =========================
-         QUICK SERVICES
-    ========================== -->
-    <nav
-      class="quick-services"
-      aria-label="Quick care services"
-    >
-
-      <a
-        class="quick-card service-green"
-        href="#section-hospitals"
-      >
-
-        <span class="service-icon">
-          <i class="fa-solid fa-bed-pulse"></i>
-        </span>
-
-        <span>
-          <strong>Hospital beds</strong>
-          <small>Explore nearby facilities</small>
-        </span>
-
-        <span aria-hidden="true">›</span>
-
-      </a>
-
-
-      <a
-        class="quick-card service-red"
-        href="#section-blood-organ"
-      >
-
-        <span class="service-icon">
-          <i class="fa-solid fa-droplet"></i>
-        </span>
-
-        <span>
-          <strong>Blood banks</strong>
-          <small>Find blood bank contacts</small>
-        </span>
-
-        <span aria-hidden="true">›</span>
-
-      </a>
-
-
-      <a
-        class="quick-card service-purple"
-        href="#section-doctors"
-      >
-
-        <span class="service-icon">
-          <i class="fa-solid fa-user-doctor"></i>
-        </span>
-
-        <span>
-          <strong>Specialists</strong>
-          <small>Browse by specialty</small>
-        </span>
-
-        <span aria-hidden="true">›</span>
-
-      </a>
-
-
-      <a
-        class="quick-card service-teal"
-        href="#emergency-contacts"
-      >
-
-        <span class="service-icon">
-          <i class="fa-solid fa-phone"></i>
-        </span>
-
-        <span>
-          <strong>Emergency contacts</strong>
-          <small>Quick access to helplines</small>
-        </span>
-
-        <span aria-hidden="true">›</span>
-
-      </a>
-
+    <nav class="quick-services" aria-label="Quick care services">
+      <a class="quick-card service-green" href="#section-hospitals"><span class="service-icon"><i class="fa-solid fa-bed-pulse"></i></span><span><strong>Hospital beds</strong><small>Explore nearby facilities</small></span><span aria-hidden="true">›</span></a>
+      <a class="quick-card service-red" href="#section-blood-organ"><span class="service-icon"><i class="fa-solid fa-droplet"></i></span><span><strong>Blood banks</strong><small>Find blood bank contacts</small></span><span aria-hidden="true">›</span></a>
+      <a class="quick-card service-purple" href="#section-doctors"><span class="service-icon"><i class="fa-solid fa-user-doctor"></i></span><span><strong>Specialists</strong><small>Browse by specialty</small></span><span aria-hidden="true">›</span></a>
+      <a class="quick-card service-teal" href="#emergency-contacts"><span class="service-icon"><i class="fa-solid fa-phone"></i></span><span><strong>Emergency contacts</strong><small>Quick access to helplines</small></span><span aria-hidden="true">›</span></a>
     </nav>
 
+    <details class="emergency-tools"><summary><i class="fa-solid fa-sliders"></i> Additional emergency tools</summary><div class="console-actions">
+      <button id="btnPlaySiren" class="btn btn-blue-outline" aria-pressed="false"><i class="fa-solid fa-bullhorn"></i> <span id="sirenLabel">Emergency Siren</span></button>
+      <button id="btnStrobe" class="btn btn-blue-outline" aria-pressed="false"><i class="fa-solid fa-lightbulb"></i> Screen beacon</button>
+      <button id="btnShareSms" class="btn btn-dark"><i class="fa-solid fa-share-nodes"></i> Copy location link</button>
+    </div><p class="form-subtext">These tools run on your device. They do not contact emergency services.</p></details>
 
-    <!-- =========================
-         EMERGENCY TOOLS
-    ========================== -->
-    <details class="emergency-tools">
+    <div class="demo-notice"><span id="backendStatus" role="status">Connecting to backend…</span> <button id="btnRefreshData" type="button" class="btn btn-sm btn-blue">Refresh data</button></div>
+    <p class="demo-notice"><i class="fa-solid fa-circle-info"></i> Hospital locations come from public map data. Bed, ICU, ventilator and blood availability are shown only when reported in PulsePoint.</p>
 
-      <summary>
-        <i class="fa-solid fa-sliders"></i>
-        Additional emergency tools
-      </summary>
-
-      <div class="console-actions">
-
-        <button
-          id="btnPlaySiren"
-          class="btn btn-blue-outline"
-          aria-pressed="false"
-        >
-          <i class="fa-solid fa-bullhorn"></i>
-          <span id="sirenLabel">Emergency Siren</span>
-        </button>
-
-
-        <button
-          id="btnStrobe"
-          class="btn btn-blue-outline"
-          aria-pressed="false"
-        >
-          <i class="fa-solid fa-lightbulb"></i>
-          Screen beacon
-        </button>
-
-
-        <button
-          id="btnShareSms"
-          class="btn btn-dark"
-        >
-          <i class="fa-solid fa-share-nodes"></i>
-          Copy location link
-        </button>
-
-      </div>
-
-      <p class="form-subtext">
-        These tools run on your device.
-        They do not contact emergency services.
-      </p>
-
-    </details>
-
-
-    <!-- Backend Status -->
-
-    <div class="demo-notice">
-
-      <span
-        id="backendStatus"
-        role="status"
-      >
-        Connecting to backend…
-      </span>
-
-      <button
-        id="btnRefreshData"
-        type="button"
-        class="btn btn-sm btn-blue"
-      >
-        Refresh data
-      </button>
-
-    </div>
-
-
-    <p class="demo-notice">
-
-      <i class="fa-solid fa-circle-info"></i>
-
-      Hospital locations are discovered from public map data.
-      Bed, ICU, ventilator and blood availability are shown only
-      when reported through PulsePoint.
-
-    </p>
-
-
-
-    <!-- =========================
-         LIVE MAP
-    ========================== -->
-    <section
-      id="section-map"
-      class="content-section"
-    >
-
+    <section id="section-map" class="content-section">
       <div class="section-title">
-
         <div>
-
-          <h2>
-            <i class="fa-solid fa-map-marked-alt text-green"></i>
-            Hospitals near you
-          </h2>
-
-          <p>
-            Search an area or use your location to discover nearby hospitals.
-          </p>
-
+          <h2><i class="fa-solid fa-map-marked-alt text-green"></i> Hospitals near you</h2>
+          <p>Search an area or use your current location.</p>
         </div>
-
-
-        <div
-          class="map-controls-pills"
-          id="mapTargetPills"
-        >
-          <!-- Populated dynamically -->
-        </div>
-
+        <div class="map-controls-pills" id="mapTargetPills"></div>
       </div>
-
-
       <div class="map-wrapper">
-
-
         <div class="map-container">
-
-          <iframe
-            id="googleMapIframe"
-            title="Google Map Hospital Location"
-            src="https://maps.google.com/maps?q=West+Bengal+India&t=&z=9&ie=UTF8&iwloc=&output=embed"
-            loading="lazy"
-          >
-          </iframe>
-
+          <iframe id="googleMapIframe" title="Google Map Live Hospital Embed" src="https://maps.google.com/maps?q=West+Bengal+India&t=&z=9&ie=UTF8&iwloc=&output=embed" loading="lazy"></iframe>
         </div>
-
-
-        <div
-          class="map-side-card"
-          id="activeMapHospitalCard"
-        >
-
-          <div style="padding:20px;text-align:center;color:#64748b;">
-
-            <i
-              class="fa-solid fa-location-crosshairs"
-              style="font-size:28px;margin-bottom:10px;"
-            ></i>
-
-            <h3>Select a hospital</h3>
-
-            <p>
-              Search for an area or use your current location.
-            </p>
-
-          </div>
-
-        </div>
-
+        <div class="map-side-card" id="activeMapHospitalCard"></div>
       </div>
-
     </section>
 
-
-
-    <!-- =========================
-         HOSPITAL DIRECTORY
-    ========================== -->
-    <section
-      id="section-hospitals"
-      class="content-section"
-    >
-
+    <section id="section-hospitals" class="content-section">
       <div class="section-title">
-
-
         <div>
-
-          <h2>
-            <i class="fa-solid fa-hospital text-blue"></i>
-            Find a hospital
-          </h2>
-
-          <p>
-            Search hospitals by area and view the nearest facilities first.
-          </p>
-
+          <h2><i class="fa-solid fa-hospital text-blue"></i> Find a hospital</h2>
+          <p>Search hospitals by area and view nearest facilities first.</p>
         </div>
-
-
         <div class="filter-controls">
-
-          <input
-            type="text"
-            id="hospitalSearch"
-            placeholder="Search area e.g. Howrah, Kolkata, Bauria..."
-            class="form-input search-input"
-            autocomplete="off"
-          >
-
-
-          <select
-            id="filterType"
-            class="form-select"
-          >
-
-            <option value="all">
-              All Hospitals
-            </option>
-
-            <option value="icu">
-              ICU Bed Available
-            </option>
-
-            <option value="vent">
-              Ventilator Available
-            </option>
-
-            <option value="govt">
-              Government Hospitals
-            </option>
-
+          <input type="text" id="hospitalSearch" placeholder="Search area e.g. Howrah, Kolkata, Bauria..." class="form-input search-input" autocomplete="off">
+          <select id="filterType" class="form-select">
+            <option value="all">All Hospitals</option>
+            <option value="icu">ICU Bed Available</option>
+            <option value="vent">Ventilator Available</option>
+            <option value="govt">Government Hospitals</option>
           </select>
-
         </div>
-
       </div>
-
-
-      <div
-        class="hospitals-grid"
-        id="hospitalsGrid"
-      >
-
-        <!-- Hospital cards populated dynamically -->
-
-      </div>
-
+      <div class="hospitals-grid" id="hospitalsGrid"></div>
     </section>
 
-
-
-    <!-- =========================
-         FACILITY DETAILS
-    ========================== -->
-    <section
-      id="section-inspector"
-      class="content-section inspector-section"
-    >
-
+    <section id="section-inspector" class="content-section inspector-section">
       <div class="section-title">
-
         <div>
-
-          <h2>
-            <i class="fa-solid fa-microscope text-green"></i>
-            Facility details
-          </h2>
-
-          <p>
-            Explore available information for the selected facility.
-          </p>
-
+          <h2><i class="fa-solid fa-microscope text-green"></i> Facility details</h2>
+          <p>Explore the selected facility’s available information.</p>
         </div>
-
-
-        <span class="badge badge-green">
-
-          <i class="fa-solid fa-shield-check"></i>
-          Facility information
-
-        </span>
-
+        <span class="badge badge-green"><i class="fa-solid fa-shield-check"></i> Facility information</span>
       </div>
-
-
-      <div
-        class="inspector-card"
-        id="inspectorCard"
-      >
-
-        <!-- Rendered dynamically -->
-
-      </div>
-
+      <div class="inspector-card" id="inspectorCard"></div>
     </section>
 
-
-
-    <!-- =========================
-         BLOOD & ORGAN
-    ========================== -->
-    <section
-      id="section-blood-organ"
-      class="content-section"
-    >
-
+    <section id="section-blood-organ" class="content-section">
       <div class="section-title">
-
         <div>
-
-          <h2>
-            <i class="fa-solid fa-droplet text-blue"></i>
-            Blood banks & organ registry
-          </h2>
-
-          <p>
-            Blood stock is displayed only when reported by a facility.
-          </p>
-
+          <h2><i class="fa-solid fa-droplet text-blue"></i> Blood banks & organ registry</h2>
+          <p>Blood stock is shown only when reported by a facility.</p>
         </div>
-
       </div>
-
-
       <div class="blood-organ-grid">
-
-
-        <!-- BLOOD INVENTORY -->
-
         <div class="card card-clean">
-
           <div class="card-header">
-
-            <h3>
-              <i class="fa-solid fa-cubes-stacked text-blue"></i>
-              Regional Blood Stock Matrix
-            </h3>
-
-            <span class="badge badge-blue">
-              Reported stock
-            </span>
-
+            <h3><i class="fa-solid fa-cubes-stacked text-blue"></i> Regional Blood Stock Matrix</h3>
+            <span class="badge badge-blue">Reported stock</span>
           </div>
-
-
-          <div
-            class="blood-group-chips"
-            id="bloodSummaryChips"
-          >
-          </div>
-
-
+          <div class="blood-group-chips" id="bloodSummaryChips"></div>
           <div class="table-container">
-
-            <table
-              class="data-table"
-              id="bloodTable"
-            >
-
-              <thead>
-
-                <tr>
-
-                  <th>Hospital</th>
-                  <th>O-</th>
-                  <th>O+</th>
-                  <th>A+</th>
-                  <th>B+</th>
-                  <th>AB+</th>
-                  <th>Contact</th>
-
-                </tr>
-
-              </thead>
-
-
-              <tbody id="bloodTableBody">
-
-                <!-- Populated dynamically -->
-
-              </tbody>
-
+            <table class="data-table" id="bloodTable">
+              <thead><tr><th>Hospital</th><th>O-</th><th>O+</th><th>A+</th><th>B+</th><th>AB+</th><th>Contact</th></tr></thead>
+              <tbody id="bloodTableBody"></tbody>
             </table>
-
           </div>
-
         </div>
 
-
-
-        <!-- ORGAN REQUEST -->
-
         <div class="card card-clean">
-
           <div class="card-header">
-
-            <h3>
-              <i class="fa-solid fa-dna text-green"></i>
-              Organ Transplant Information
-            </h3>
-
-            <span class="badge badge-green">
-              Prototype
-            </span>
-
+            <h3><i class="fa-solid fa-dna text-green"></i> Organ Transplant Information</h3>
+            <span class="badge badge-green">Prototype</span>
           </div>
-
-
-          <div
-            class="organ-list"
-            id="organListContainer"
-          >
-          </div>
-
-
+          <div class="organ-list" id="organListContainer"></div>
           <hr class="divider">
-
-
-          <h3 class="form-heading">
-
-            <i class="fa-solid fa-hand-holding-medical text-blue"></i>
-
-            Blood / organ request
-
-          </h3>
-
-
-          <p class="form-subtext">
-
-            Sign in to save a request.
-            This prototype does not automatically notify hospitals,
-            blood banks or transplant registries.
-
-          </p>
-
-
-          <form
-            id="requisitionForm"
-            class="inpage-form"
-          >
-
-
+          <h3 class="form-heading"><i class="fa-solid fa-hand-holding-medical text-blue"></i> Blood / organ request</h3>
+          <p class="form-subtext">Sign in to save a request. This prototype does not automatically notify hospitals, blood banks or transplant registries.</p>
+          <form id="requisitionForm" class="inpage-form">
             <div class="form-row">
-
-
-              <div class="form-col">
-
-                <label>
-                  Patient Full Name
-                </label>
-
-                <input
-                  type="text"
-                  id="reqName"
-                  class="form-input"
-                  placeholder="e.g. Souvik Das"
-                  required
-                >
-
-              </div>
-
-
-              <div class="form-col">
-
-                <label>
-                  Blood / Organ Needed
-                </label>
-
-
-                <select
-                  id="reqItem"
-                  class="form-select"
-                  required
-                >
-
-                  <option value="O- Blood Units">
-                    O- Negative
-                  </option>
-
-                  <option value="O+ Blood Units">
-                    O+ Positive
-                  </option>
-
-                  <option value="A+ Blood Units">
-                    A+ Positive
-                  </option>
-
-                  <option value="B+ Blood Units">
-                    B+ Positive
-                  </option>
-
-                  <option value="AB+ Blood Units">
-                    AB+ Positive
-                  </option>
-
-                  <option value="Cornea Tissue">
-                    Cornea Tissue
-                  </option>
-
-                  <option value="Kidney Match Requisition">
-                    Kidney Transplant Match
-                  </option>
-
-                </select>
-
-              </div>
-
+              <div class="form-col"><label>Patient Full Name</label><input type="text" id="reqName" class="form-input" placeholder="e.g. Souvik Das" required></div>
+              <div class="form-col"><label>Blood / Organ Needed</label><select id="reqItem" class="form-select" required>
+                <option value="O- Blood Units">O- Negative</option><option value="O+ Blood Units">O+ Positive</option><option value="A+ Blood Units">A+ Positive</option><option value="B+ Blood Units">B+ Positive</option><option value="AB+ Blood Units">AB+ Positive</option><option value="Cornea Tissue">Cornea Tissue</option><option value="Kidney Match Requisition">Kidney Transplant Match</option>
+              </select></div>
             </div>
-
-
-
             <div class="form-row">
-
-
-              <div class="form-col">
-
-                <label>
-                  Quantity / Units
-                </label>
-
-                <input
-                  type="number"
-                  id="reqUnits"
-                  class="form-input"
-                  min="1"
-                  max="10"
-                  value="2"
-                  required
-                >
-
-              </div>
-
-
-              <div class="form-col">
-
-                <label>
-                  Receiving Hospital
-                </label>
-
-                <input
-                  type="text"
-                  id="reqHospital"
-                  class="form-input"
-                  placeholder="Hospital name"
-                  required
-                >
-
-              </div>
-
+              <div class="form-col"><label>Quantity / Units</label><input type="number" id="reqUnits" class="form-input" min="1" max="10" value="2" required></div>
+              <div class="form-col"><label>Receiving Hospital</label><input type="text" id="reqHospital" class="form-input" placeholder="Hospital name" required></div>
             </div>
-
-
-
-            <div class="form-row">
-
-              <div class="form-col">
-
-                <label>
-                  Attending Doctor / Contact Phone
-                </label>
-
-                <input
-                  type="tel"
-                  id="reqPhone"
-                  class="form-input"
-                  placeholder="+91 98XXXXXXXX"
-                  required
-                >
-
-              </div>
-
-            </div>
-
-
-            <button
-              type="submit"
-              class="btn btn-blue btn-block"
-            >
-
-              <i class="fa-solid fa-paper-plane"></i>
-
-              Save request
-
-            </button>
-
-
-            <div
-              id="requisitionNotice"
-              class="form-notice"
-            ></div>
-
-
+            <div class="form-row"><div class="form-col"><label>Attending Doctor / Contact Phone</label><input type="tel" id="reqPhone" class="form-input" placeholder="+91 98XXXXXXXX" required></div></div>
+            <button type="submit" class="btn btn-blue btn-block"><i class="fa-solid fa-paper-plane"></i> Save request</button>
+            <div id="requisitionNotice" class="form-notice"></div>
           </form>
-
         </div>
-
       </div>
-
     </section>
 
-
-
-    <!-- =========================
-         DOCTORS
-    ========================== -->
-    <section
-      id="section-doctors"
-      class="content-section"
-    >
-
+    <section id="section-doctors" class="content-section">
       <div class="section-title">
-
-        <div>
-
-          <h2>
-            <i class="fa-solid fa-stethoscope text-green"></i>
-            Find a specialist
-          </h2>
-
-          <p>
-            Browse the specialist directory by area of care.
-          </p>
-
+        <div><h2><i class="fa-solid fa-stethoscope text-green"></i> Find a specialist</h2><p>Browse the specialist directory by area of care.</p></div>
+        <div class="doctor-filter-pills" id="doctorFilterPills">
+          <button class="pill active" data-spec="all">All Doctors</button>
+          <button class="pill" data-spec="Trauma">Trauma & Surgery</button>
+          <button class="pill" data-spec="Cardiology">Cardiology</button>
+          <button class="pill" data-spec="Pediatrics">Pediatrics</button>
+          <button class="pill" data-spec="Critical Care">Critical Care</button>
         </div>
-
-
-        <div
-          class="doctor-filter-pills"
-          id="doctorFilterPills"
-        >
-
-          <button
-            class="pill active"
-            data-spec="all"
-          >
-            All Doctors
-          </button>
-
-          <button
-            class="pill"
-            data-spec="Trauma"
-          >
-            Trauma & Surgery
-          </button>
-
-          <button
-            class="pill"
-            data-spec="Cardiology"
-          >
-            Cardiology
-          </button>
-
-          <button
-            class="pill"
-            data-spec="Pediatrics"
-          >
-            Pediatrics
-          </button>
-
-          <button
-            class="pill"
-            data-spec="Critical Care"
-          >
-            Critical Care
-          </button>
-
-        </div>
-
       </div>
-
-
-      <div
-        class="doctors-grid"
-        id="doctorsGrid"
-      >
-
-        <!-- Populated dynamically -->
-
-      </div>
-
+      <div class="doctors-grid" id="doctorsGrid"></div>
     </section>
 
-
-
-    <!-- =========================
-         LOGIN / ACCOUNT
-    ========================== -->
-    <section
-      id="section-auth"
-      class="content-section auth-section"
-    >
-
+    <section id="section-auth" class="content-section auth-section">
       <div class="section-title">
-
-        <div>
-
-          <h2>
-            <i class="fa-solid fa-lock text-green"></i>
-            Account portal
-          </h2>
-
-          <p>
-            Create a patient account or sign in.
-            Staff accounts are provisioned by the server administrator.
-          </p>
-
-        </div>
-
+        <div><h2><i class="fa-solid fa-lock text-green"></i> Account portal</h2><p>Create a patient account or sign in. Staff accounts are provisioned by the server administrator.</p></div>
       </div>
-
-
-
       <div class="auth-grid">
-
-
-        <!-- USER ACCOUNT -->
-
         <div class="card card-clean">
-
-
-          <div class="card-header">
-
-            <h3>
-              <i class="fa-solid fa-right-to-bracket text-green"></i>
-              Your account
-            </h3>
-
-            <span
-              class="badge badge-green"
-              id="activeRoleTag"
-            >
-              Role: Citizen
-            </span>
-
-          </div>
-
-
-
-          <!-- PROFILE PHOTO -->
-
+          <div class="card-header"><h3><i class="fa-solid fa-right-to-bracket text-green"></i> Your account</h3><span class="badge badge-green" id="activeRoleTag">Role: Citizen</span></div>
           <div class="profile-photo-panel">
-
-
             <div class="profile-photo-wrap">
-
-              <img
-                id="profilePhotoPreview"
-                class="profile-photo"
-                alt="Profile photo preview"
-                hidden
-              >
-
-
-              <div
-                id="profilePhotoFallback"
-                class="profile-photo-fallback"
-              >
-
-                <i class="fa-solid fa-user"></i>
-
-              </div>
-
-
-              <label
-                class="profile-photo-camera"
-                for="profilePhotoInput"
-                title="Choose profile photo"
-                aria-label="Choose profile photo"
-              >
-
-                <i class="fa-solid fa-camera"></i>
-
-              </label>
-
-
-              <input
-                type="file"
-                id="profilePhotoInput"
-                class="visually-hidden-input"
-                accept="image/jpeg,image/png,image/webp"
-                capture="user"
-              >
-
+              <img id="profilePhotoPreview" class="profile-photo" alt="Profile photo preview" hidden>
+              <div id="profilePhotoFallback" class="profile-photo-fallback"><i class="fa-solid fa-user"></i></div>
+              <label class="profile-photo-camera" for="profilePhotoInput" title="Choose profile photo" aria-label="Choose profile photo"><i class="fa-solid fa-camera"></i></label>
+              <input type="file" id="profilePhotoInput" class="visually-hidden-input" accept="image/jpeg,image/png,image/webp" capture="user">
             </div>
-
-
-
             <div class="profile-photo-copy">
-
-
-              <strong id="profilePhotoTitle">
-                Citizen / Patient profile
-              </strong>
-
-
-              <span id="profilePhotoHint">
-                Add a profile photo.
-                Sign in to save it to your account.
-              </span>
-
-
+              <strong id="profilePhotoTitle">Citizen / Patient profile</strong>
+              <span id="profilePhotoHint">Add a profile photo. Sign in to save it to your account.</span>
               <div class="profile-photo-actions">
-
-
-                <label
-                  class="btn btn-sm btn-green profile-upload-btn"
-                  for="profilePhotoInput"
-                >
-
-                  <i class="fa-solid fa-camera"></i>
-
-                  Choose profile photo
-
-                </label>
-
-
-                <button
-                  type="button"
-                  class="btn btn-sm btn-blue-outline"
-                  id="btnRemoveProfilePhoto"
-                >
-
-                  <i class="fa-solid fa-trash-can"></i>
-
-                  Remove
-
-                </button>
-
-
+                <label class="btn btn-sm btn-green profile-upload-btn" for="profilePhotoInput"><i class="fa-solid fa-camera"></i> Choose profile photo</label>
+                <button type="button" class="btn btn-sm btn-blue-outline" id="btnRemoveProfilePhoto"><i class="fa-solid fa-trash-can"></i> Remove</button>
               </div>
-
             </div>
-
           </div>
-
-
-
-          <!-- LOGIN FORM -->
-
-          <form
-            id="authForm"
-            class="inpage-form"
-          >
-
-
-            <div class="form-group">
-
-              <label>
-                Registered Email or Medical ID
-              </label>
-
-              <input
-                type="text"
-                id="authEmail"
-                class="form-input"
-                placeholder="user@pulsepoint.in"
-                required
-              >
-
-            </div>
-
-
-
-            <div class="form-group">
-
-              <label>
-                Password / Access PIN
-              </label>
-
-              <input
-                type="password"
-                id="authPassword"
-                class="form-input"
-                minlength="12"
-                autocomplete="current-password"
-                required
-              >
-
-            </div>
-
-
-            <button
-              type="submit"
-              class="btn btn-green btn-block"
-              id="btnAuthSubmit"
-            >
-
-              <i class="fa-solid fa-arrow-right-to-bracket"></i>
-
-              Sign in
-
-            </button>
-
-
-            <button
-              id="btnRegister"
-              type="button"
-              class="btn btn-blue-outline btn-block"
-            >
-              Create patient account
-            </button>
-
-
-            <button
-              id="btnLogout"
-              type="button"
-              class="btn btn-blue-outline"
-              hidden
-            >
-              Sign out
-            </button>
-
-
-            <div
-              id="authNotice"
-              class="form-notice"
-            ></div>
-
-
+          <form id="authForm" class="inpage-form">
+            <div class="form-group"><label>Registered Email or Medical ID</label><input type="text" id="authEmail" class="form-input" placeholder="user@pulsepoint.in" required></div>
+            <div class="form-group"><label>Password / Access PIN</label><input type="password" id="authPassword" class="form-input" minlength="12" autocomplete="current-password" required></div>
+            <button type="submit" class="btn btn-green btn-block" id="btnAuthSubmit"><i class="fa-solid fa-arrow-right-to-bracket"></i> Sign in</button>
+            <button id="btnRegister" type="button" class="btn btn-blue-outline btn-block">Create patient account</button>
+            <button id="btnLogout" type="button" class="btn btn-blue-outline" hidden>Sign out</button>
+            <div id="authNotice" class="form-notice"></div>
           </form>
-
         </div>
 
-
-
-        <!-- =========================
-             STAFF INVENTORY
-        ========================== -->
-
-        <div
-          class="card card-clean"
-          id="staffPortalCard"
-        >
-
-
-          <div class="card-header">
-
-            <h3>
-
-              <i class="fa-solid fa-pen-to-square text-blue"></i>
-
-              Hospital inventory editor
-
-            </h3>
-
-
-            <span
-              class="badge badge-blue"
-              id="staffLockBadge"
-            >
-
-              <i class="fa-solid fa-lock"></i>
-
-              Staff Login Required
-
-            </span>
-
-          </div>
-
-
-          <p class="staff-intro">
-
-            Authorized hospital staff can update available beds,
-            ICU capacity, ventilators and blood stock.
-
-          </p>
-
-
-
-          <form
-            id="staffUpdateForm"
-            class="inpage-form"
-          >
-
-
-            <div class="form-group">
-
-              <label>
-                Select Facility
-              </label>
-
-
-              <select
-                id="staffSelectHospital"
-                class="form-select"
-              >
-
-                <!-- Populated dynamically -->
-
-              </select>
-
-            </div>
-
-
-
+        <div class="card card-clean" id="staffPortalCard">
+          <div class="card-header"><h3><i class="fa-solid fa-pen-to-square text-blue"></i> Hospital inventory editor</h3><span class="badge badge-blue" id="staffLockBadge"><i class="fa-solid fa-lock"></i> Staff Login Required</span></div>
+          <p class="staff-intro">Authorized hospital staff can update available beds, ICU capacity, ventilators and blood stock.</p>
+          <form id="staffUpdateForm" class="inpage-form">
+            <div class="form-group"><label>Select Facility</label><select id="staffSelectHospital" class="form-select"></select></div>
             <div class="form-row">
-
-
-              <div class="form-col">
-
-                <label>
-                  Available ICU Beds
-                </label>
-
-                <input
-                  type="number"
-                  id="staffIcuBeds"
-                  class="form-input"
-                  min="0"
-                  max="100"
-                  value="5"
-                  required
-                >
-
-              </div>
-
-
-              <div class="form-col">
-
-                <label>
-                  Ventilators Free
-                </label>
-
-                <input
-                  type="number"
-                  id="staffVentilators"
-                  class="form-input"
-                  min="0"
-                  max="50"
-                  value="3"
-                  required
-                >
-
-              </div>
-
-
-              <div class="form-col">
-
-                <label>
-                  General Beds
-                </label>
-
-                <input
-                  type="number"
-                  id="staffGeneralBeds"
-                  class="form-input"
-                  min="0"
-                  max="300"
-                  value="28"
-                  required
-                >
-
-              </div>
-
+              <div class="form-col"><label>Available ICU Beds</label><input type="number" id="staffIcuBeds" class="form-input" min="0" max="100" value="5" required></div>
+              <div class="form-col"><label>Ventilators Free</label><input type="number" id="staffVentilators" class="form-input" min="0" max="50" value="3" required></div>
+              <div class="form-col"><label>General Beds</label><input type="number" id="staffGeneralBeds" class="form-input" min="0" max="300" value="28" required></div>
             </div>
-
-
-
             <div class="form-row">
-
-
-              <div class="form-col">
-
-                <label>
-                  O- Blood Units
-                </label>
-
-                <input
-                  type="number"
-                  id="staffONegUnits"
-                  class="form-input"
-                  min="0"
-                  max="50"
-                  value="6"
-                  required
-                >
-
-              </div>
-
-
-              <div class="form-col">
-
-                <label>
-                  AB+ Blood Units
-                </label>
-
-                <input
-                  type="number"
-                  id="staffABPosUnits"
-                  class="form-input"
-                  min="0"
-                  max="50"
-                  value="9"
-                  required
-                >
-
-              </div>
-
+              <div class="form-col"><label>O- Blood Units</label><input type="number" id="staffONegUnits" class="form-input" min="0" max="50" value="6" required></div>
+              <div class="form-col"><label>AB+ Blood Units</label><input type="number" id="staffABPosUnits" class="form-input" min="0" max="50" value="9" required></div>
             </div>
-
-
-
-            <button
-              type="submit"
-              id="btnStaffBroadcast"
-              class="btn btn-blue btn-block"
-              disabled
-            >
-
-              <i class="fa-solid fa-tower-broadcast"></i>
-
-              Save inventory
-
-            </button>
-
-
-            <div
-              id="staffNotice"
-              class="form-notice"
-            ></div>
-
-
+            <button type="submit" id="btnStaffBroadcast" class="btn btn-blue btn-block" disabled><i class="fa-solid fa-tower-broadcast"></i> Save inventory</button>
+            <div id="staffNotice" class="form-notice"></div>
           </form>
-
         </div>
-
-
       </div>
-
     </section>
-
 
   </main>
 
-
-
-  <!-- =========================
-       FOOTER
-  ========================== -->
   <footer class="app-footer">
-
     <div class="footer-container">
-
-
-      <div class="footer-brand">
-
-        <h3>
-
-          <i class="fa-solid fa-heart-pulse text-blue"></i>
-
-          PulsePoint+ Emergency Care
-
-        </h3>
-
-        <p>
-          Find nearby emergency care when every minute matters.
-        </p>
-
-      </div>
-
-
-      <div class="footer-copy">
-
-        <p>
-          &copy; 2026 PulsePoint+.
-        </p>
-
-        <p>
-          Hospital availability must be confirmed with the facility
-          before travelling.
-        </p>
-
-      </div>
-
-
+      <div class="footer-brand"><h3><i class="fa-solid fa-heart-pulse text-blue"></i> PulsePoint+ Emergency Care</h3><p>Find nearby emergency care when every minute matters.</p></div>
+      <div class="footer-copy"><p>&copy; 2026 PulsePoint+.</p><p>Hospital availability must be confirmed with the facility before travelling.</p></div>
     </div>
-
   </footer>
 
-
-
-  <!-- =========================
-       TOAST
-  ========================== -->
-
-  <div
-    id="toast"
-    class="toast"
-    role="status"
-    aria-live="polite"
-  ></div>
-
-
-
-  <!-- =========================
-       JAVASCRIPT
-  ========================== -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="config.js?v=connected-1"></script>
-
-  <script src="script.js?v=connected-1"></script>
-
-  <!-- Automatic hospital discovery -->
-  <script src="hospital-search.js?v=1"></script>
-
-
+  <script src="hospital-search.js?v=2"></script>
 </body>
 </html>
