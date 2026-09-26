@@ -34,18 +34,34 @@
   }
 
   async function request(path, options = {}) {
-    const response = await fetch(api(path), {
-      ...options,
-      headers: authHeaders(options.headers || {})
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 70000);
 
-    let data = {};
-    try { data = await response.json(); } catch (_) {}
+    try {
+      const response = await fetch(api(path), {
+        ...options,
+        signal: controller.signal,
+        headers: authHeaders(options.headers || {})
+      });
 
-    if (!response.ok) {
-      throw new Error(data.message || data.error || `HTTP ${response.status}`);
+      let data = {};
+      try { data = await response.json(); } catch (_) {}
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || `HTTP ${response.status}`);
+      }
+      return data;
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        throw new Error("The server is taking too long to respond. Please retry in a moment.");
+      }
+      if (error instanceof TypeError) {
+        throw new Error("Could not reach the PulsePoint server. Please check your connection and retry.");
+      }
+      throw error;
+    } finally {
+      clearTimeout(timer);
     }
-    return data;
   }
 
   function escapeHtml(value) {
