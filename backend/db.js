@@ -368,60 +368,83 @@ async function osmHospitals(lat, lng, radiusMeters = 30000) {
   const radius = Math.min(Math.max(Number(radiusMeters) || 30000, 1000), 50000);
   const cacheKey = `${lat.toFixed(3)}:${lng.toFixed(3)}:${radius}`;
 
-  const fresh = cacheGet(hospitalCache, cacheKey, HOSPITAL_TTL_MS);
-  if (fresh?.fresh) return fresh.value;
+  // IMPORTANT: explicit hospital searches are LIVE-FIRST.
+  // We never return a fresh backend cache before attempting the internet.
+  // Stale cache is used only when every public provider is unreachable.
   const stale = cacheGet(hospitalCache, cacheKey, HOSPITAL_TTL_MS, true)?.value || [];
 
   const candidates = OVERPASS_ENDPOINTS.filter(endpoint =>
     (endpointCooldown.get(endpoint) || 0) <= Date.now()
   );
-
   const endpoints = candidates.length ? candidates : OVERPASS_ENDPOINTS;
 
-  // All providers are queried concurrently. This avoids 18s + 18s + 18s sequential delays.
-  const settled = await Promise.allSettled(
-    endpoints.map(endpoint => overpassFrom(endpoint, lat, lng, radius))
-  );
+  let sawEmptyLiveResponse = false;
+  const errors = [];
 
-  const successful = [];
-  let lastError = null;
-
-  settled.forEach((result, index) => {
-    const endpoint = endpoints[index];
-    if (result.status === 'fulfilled') {
+  const attempts = endpoints.map(async endpoint => {
+    try {
+      const result = await overpassFrom(endpoint, lat, lng, radius);
       endpointCooldown.delete(endpoint);
-      successful.push(result.value);
-    } else {
-      lastError = result.reason;
-      endpointCooldown.set(endpoint, Date.now() + ENDPOINT_COOLDOWN_MS);
-      console.warn(`Overpass failed: ${endpoint}`, result.reason?.message || result.reason);
+
+      if (!result.hospitals.length) {
+        sawEmptyLiveResponse = true;
+        const empty = new Error('EMPTY_LIVE_RESULT');
+        empty.code = 'EMPTY_LIVE_RESULT';
+        throw empty;
+      }
+
+      return result;
+    } catch (err) {
+      if (err?.code !== 'EMPTY_LIVE_RESULT') {
+        endpointCooldown.set(endpoint, Date.now() + ENDPOINT_COOLDOWN_MS);
+        errors.push(err);
+        console.warn(`Overpass failed: ${endpoint}`, err?.message || err);
+      }
+      throw err;
     }
   });
 
-  const nonEmpty = successful
-    .filter(x => x.hospitals.length)
-    .sort((a, b) => a.elapsedMs - b.elapsedMs);
+  try {
+    // Promise.any returns as soon as the FIRST provider returns a non-empty LIVE result.
+    const winner = await Promise.any(attempts);
+    const live = winner.hospitals.map(h => ({
+      ...h,
+      source: 'openstreetmap',
+      discoverySource: 'openstreetmap-live',
+      cachedLocationOnly: false
+    }));
+    cacheSet(hospitalCache, cacheKey, live);
+    return live;
+  } catch (aggregate) {
+    // At least one provider answered successfully but found nothing.
+    if (sawEmptyLiveResponse) {
+      cacheSet(hospitalCache, cacheKey, []);
+      return [];
+    }
 
-  if (nonEmpty.length) {
-    cacheSet(hospitalCache, cacheKey, nonEmpty[0].hospitals);
-    return nonEmpty[0].hospitals;
+    // Every live provider failed. Only now may we fall back to old locations.
+    if (stale.length) {
+      console.warn('All live Overpass providers failed; using stale location cache only.');
+      return stale.map(h => ({
+        ...h,
+        source: 'openstreetmap',
+        discoverySource: 'openstreetmap-cache',
+        cachedLocationOnly: true,
+        availableBeds: null,
+        generalBeds: null,
+        totalBeds: null,
+        icuBeds: null,
+        ventilators: null,
+        bloodStock: null,
+        bloodAvailable: []
+      }));
+    }
+
+    throw serviceError(
+      'Public hospital map services are temporarily unavailable. Please retry in a moment.',
+      errors[0] || aggregate
+    );
   }
-
-  // A successful empty result means the service worked but no mapped hospitals were found.
-  if (successful.length) {
-    cacheSet(hospitalCache, cacheKey, []);
-    return [];
-  }
-
-  if (stale.length) {
-    console.warn('All live Overpass providers failed; using backend cache.');
-    return stale;
-  }
-
-  throw serviceError(
-    'Public hospital map services are temporarily unavailable. Please retry in a moment.',
-    lastError
-  );
 }
 
 function sameHospital(a, b) {
@@ -490,6 +513,32 @@ async function inventoryHospitals() {
   return dedupe([...seed, ...(await mongoHospitals(''))]);
 }
 
+function enrichLiveHospital(liveHospital, inventoryHospital) {
+  if (!inventoryHospital) return liveHospital;
+
+  return {
+    ...liveHospital,
+    phone: liveHospital.phone || inventoryHospital.phone || null,
+    website: liveHospital.website || inventoryHospital.website || null,
+    availableBeds: inventoryHospital.availableBeds ?? liveHospital.availableBeds ?? null,
+    generalBeds: inventoryHospital.generalBeds ?? liveHospital.generalBeds ?? null,
+    totalBeds: inventoryHospital.totalBeds ?? liveHospital.totalBeds ?? null,
+    icuBeds: inventoryHospital.icuBeds ?? liveHospital.icuBeds ?? null,
+    ventilators: inventoryHospital.ventilators ?? liveHospital.ventilators ?? null,
+    bloodStock: inventoryHospital.bloodStock ?? liveHospital.bloodStock ?? null,
+    bloodAvailable: inventoryHospital.bloodAvailable?.length
+      ? inventoryHospital.bloodAvailable
+      : (liveHospital.bloodAvailable || []),
+    doctors: inventoryHospital.doctors?.length
+      ? inventoryHospital.doctors
+      : (liveHospital.doctors || []),
+    organs: inventoryHospital.organs?.length
+      ? inventoryHospital.organs
+      : (liveHospital.organs || []),
+    inventorySource: inventoryHospital.source
+  };
+}
+
 async function searchNearbyHospitals(latValue, lngValue, radiusMeters = 30000, limit = 30) {
   const lat = Number(latValue);
   const lng = Number(lngValue);
@@ -498,35 +547,47 @@ async function searchNearbyHospitals(latValue, lngValue, radiusMeters = 30000, l
   const requested = Math.min(Math.max(Number(radiusMeters) || 30000, 1000), 50000);
   const maxResults = Math.min(Math.max(Number(limit) || 30, 1), 100);
 
+  // Step 1: fetch hospital LOCATIONS from the internet every time.
   let live = await osmHospitals(lat, lng, requested);
 
-  // Only one wider fallback round, and only when the first round is sparse.
-  if (live.length < 3 && requested < 50000) {
+  // Step 2: if the live result is sparse, make one wider live internet request.
+  if (live.length < 3 && requested < 50000 && !live.some(h => h.cachedLocationOnly)) {
     const wider = await osmHospitals(lat, lng, 50000);
     live = dedupe([...live, ...wider]);
   }
 
-  const local = withDistance(await inventoryHospitals(), lat, lng)
-    .filter(h => h.distanceKm <= 50);
-  const discovered = withDistance(live, lat, lng)
-    .filter(h => h.distanceKm <= 50);
+  let discovered = withDistance(live, lat, lng)
+    .filter(h => h.distanceKm <= 50)
+    .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
 
-  return dedupe([...discovered, ...local])
-    .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity))
-    .slice(0, maxResults);
+  // If internet failed and we only have stale locations, NEVER attach old bed/ICU stock.
+  if (discovered.some(h => h.cachedLocationOnly)) {
+    return discovered.slice(0, maxResults);
+  }
+
+  // Step 3: local/Mongo data is ENRICHMENT ONLY.
+  // It is no longer appended as a hospital discovery source.
+  const inventory = await inventoryHospitals();
+  discovered = discovered.map(liveHospital => {
+    const match = inventory.find(localHospital => sameHospital(liveHospital, localHospital));
+    return enrichLiveHospital(liveHospital, match);
+  });
+
+  return discovered.slice(0, maxResults);
 }
 
 async function searchAllIndia(query = '') {
   const q = clean(query);
+
+  // Empty query is used only for the initial PulsePoint directory/staff UI.
+  // Explicit area searches below are internet-first.
   if (!q) return inventoryHospitals();
 
   const place = await geocodePlace(q);
   if (!place) {
-    const mongoMatches = await mongoHospitals(q);
-    const seedMatches = seed.filter(h =>
-      `${h.name} ${h.address} ${h.category}`.toLowerCase().includes(q.toLowerCase())
-    );
-    return dedupe([...mongoMatches, ...seedMatches]);
+    const err = new Error(`Location not found: ${q}`);
+    err.code = 'LOCATION_NOT_FOUND';
+    throw err;
   }
 
   return searchNearbyHospitals(place.lat, place.lng, 30000, 40);

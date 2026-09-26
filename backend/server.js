@@ -422,9 +422,24 @@ app.patch('/api/profile', verifyAuth, async (req, res) => {
 
 app.get('/api/hospitals', async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
     const query = String(req.query.q || req.query.search || '').trim().slice(0, 120);
     const hospitals = await applyInventories(await searchAllIndia(query));
-    return res.json({ success: true, query, count: hospitals.length, data: hospitals });
+    const cached = hospitals.some(h => h?.cachedLocationOnly || h?.discoverySource === 'openstreetmap-cache');
+
+    return res.json({
+      success: true,
+      query,
+      count: hospitals.length,
+      meta: {
+        mode: query ? (cached ? 'cache-fallback' : 'live-internet') : 'pulsepoint-directory',
+        fetchedAt: new Date().toISOString()
+      },
+      data: hospitals
+    });
   } catch (err) {
     console.error('Hospital search failed:', err);
     return searchErrorResponse(res, err, 'Hospital search failed');
@@ -433,6 +448,10 @@ app.get('/api/hospitals', async (req, res) => {
 
 app.get('/api/hospitals/nearby', async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
     const { lat, lng, radius = 30000, limit = 30 } = req.query;
     const latitude = Number(lat);
     const longitude = Number(lng);
@@ -448,6 +467,7 @@ app.get('/api/hospitals/nearby', async (req, res) => {
     const hospitals = await applyInventories(
       await searchNearbyHospitals(latitude, longitude, Number(radius), Number(limit))
     );
+    const cached = hospitals.some(h => h?.cachedLocationOnly || h?.discoverySource === 'openstreetmap-cache');
 
     return res.json({
       success: true,
@@ -455,6 +475,10 @@ app.get('/api/hospitals/nearby', async (req, res) => {
       longitude,
       radius: Number(radius),
       count: hospitals.length,
+      meta: {
+        mode: cached ? 'cache-fallback' : 'live-internet',
+        fetchedAt: new Date().toISOString()
+      },
       data: hospitals
     });
   } catch (err) {
