@@ -1,0 +1,32 @@
+PULSEPOINT LIVE INTERNET SEARCH FIX
+
+REPLACE THESE 4 FILES:
+1. /hospital-search.js
+2. /index.html
+3. /backend/db.js
+4. /backend/server.js
+
+Do NOT change config.js, account-staff.js, style.css, or assets.
+
+WHY THIS FIX:
+- Explicit area search and Use my location now attempt LIVE OpenStreetMap/Overpass internet data every time.
+- Backend no longer returns its 10-minute hospital cache before trying the internet.
+- Stored/Mongo/seed hospitals are no longer appended as discovery results. They only enrich a live-matched hospital with beds/ICU/blood data.
+- The first non-empty Overpass provider wins immediately instead of waiting for every provider.
+- Browser fetch uses no-store and each explicit search has a timestamp query to avoid browser/proxy cache.
+- If every live provider fails, stale location cache may be used, but beds/ICU/blood are removed and the UI clearly says it is cached.
+
+AFTER UPLOAD:
+A. Commit all 4 files.
+B. Render -> Manual Deploy -> Deploy latest commit (if auto deploy does not start).
+C. Wait until deploy is Live.
+D. Open /api/health and confirm status ONLINE.
+E. Hard refresh the website. On Android Chrome, close the tab and reopen if needed.
+
+TEST:
+- Search: Howrah
+- Search: Medinipur
+- Search: Kalyani
+- Use my location
+
+Success status should say: LIVE internet fetch complete.

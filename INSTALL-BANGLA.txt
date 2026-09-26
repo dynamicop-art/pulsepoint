@@ -1,0 +1,102 @@
+PULSEPOINT FINAL SYSTEM FIX
+===========================
+
+এই package-এ আমি hospital search/GPS, Render backend entrypoint, Mongo persistence,
+login/register/request persistence, staff inventory persistence, doctor rendering এবং
+emergency siren deployment একসাথে clean করেছি।
+
+REPLACE / ADD THESE FILES
+-------------------------
+ROOT:
+1. index.html                -> replace
+2. hospital-search.js        -> replace
+3. account-staff.js          -> replace
+4. emergency-tools.js        -> add / replace
+5. package.json              -> replace (Render root-directory fallback)
+6. server.js                 -> replace (Render root-directory fallback)
+
+BACKEND:
+7. backend/db.js             -> replace
+8. backend/server.js         -> replace
+9. backend/package.json      -> replace
+
+GITHUB PAGES:
+10. .github/workflows/pages.yml -> replace
+
+UNCHANGED FILES
+---------------
+style.css, config.js, assets/, backend/seed.js এগুলো replace করতে হবে না।
+পুরোনো package-lock.json files delete করার দরকার নেই যদি Render Build Command = npm install থাকে।
+
+RENDER RECOMMENDED SETTINGS
+---------------------------
+Recommended:
+Root Directory: backend
+Build Command: npm install
+Start Command: npm start
+
+(এই final code root directory blank থাকলেও কাজ করার fallback রেখেছে,
+কিন্তু backend Root Directory সবচেয়ে clean setup.)
+
+RENDER ENVIRONMENT KEYS
+-----------------------
+MONGO_URI = your MongoDB Atlas connection string
+MONGO_DB_NAME = pulsepoint
+JWT_SECRET = long random secret (40+ chars)
+STAFF_EMAIL = your staff email
+STAFF_PASSWORD = your 12+ character staff password
+FRONTEND_ORIGIN = https://dynamicop-art.github.io
+
+IMPORTANT: secret values GitHub-এ কখনো upload করবে না।
+
+AFTER DEPLOY
+------------
+1. Render deploy success হওয়া পর্যন্ত wait.
+2. Open:
+   https://pulsepoint-api-x7fp.onrender.com/api/health
+
+Ideal response should include:
+"status": "ONLINE"
+"storage": "mongodb"
+"persistentStorage": true
+
+If storage says "local-fallback", website কাজ করবে কিন্তু account/request/inventory
+Render restart/deploy-এর পরে reset হতে পারে. তখন MONGO_URI setup check করতে হবে।
+
+3. GitHub Actions -> Pages deploy green হওয়া পর্যন্ত wait.
+4. Website hard refresh / browser cache clear.
+
+WHAT WAS FIXED
+--------------
+- Use my location: GPS পাওয়ার পরে button এখন "Searching hospitals..." দেখাবে.
+- Overpass APIs sequential 18+18+18 sec wait আর করবে না; providers parallel query হয়.
+- Sparse area হলে only one wider 50 km fallback round.
+- Public map API fail করলে misleading "No hospitals" না দেখিয়ে service error দেখায়.
+- Cached fallback হলে bed/ICU/ventilator/blood values hide করা হয়; stale availability live হিসেবে দেখানো হয় না.
+- Search box typing করলে API call হয় না; Search button/Enter press করলে search হয়.
+- Medinipur/Midnapore etc alias fallback আছে.
+- MongoDB dependency added.
+- Registered patient accounts MongoDB-তে persist করতে পারে.
+- Blood/organ requests MongoDB-তে persist করতে পারে.
+- Staff inventory updates MongoDB-তে persist করতে পারে.
+- Backend /api/health storage mode দেখায়.
+- Root Render entrypoint broken থাকলেও fallback root server/package fixed.
+- Doctor directory now renders reported doctors from PulsePoint inventory.
+- Emergency siren file GitHub Pages workflow-এ deploy হয়.
+
+IMPORTANT LIMITATION
+--------------------
+OpenStreetMap / Nominatim / public Overpass services demo/prototype-এর জন্য suitable,
+but they are not guaranteed emergency-grade infrastructure. Render Free service can also
+sleep after inactivity, so first request may take around 30-60 seconds to wake.
+For real production emergency use, use an always-on backend plus a supported commercial
+places/healthcare data provider or your own maintained hospital registry.
+
+IF SOMETHING STILL FAILS
+------------------------
+Send ONLY these screenshots (hide secret values):
+1. Render -> Settings: Root Directory, Build Command, Start Command
+2. Render -> latest Deploy Logs, last ~30 lines
+3. /api/health response
+
+Mongo screenshot is NOT needed unless /api/health says local-fallback even though MONGO_URI is set.
