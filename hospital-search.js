@@ -461,7 +461,11 @@
 
       try {
         const response = await fetch(url, {
-          headers: { Accept: "application/json" },
+          headers: {
+            Accept: "application/json",
+            "Cache-Control": "no-cache"
+          },
+          cache: "no-store",
           signal: controller.signal
         });
 
@@ -516,6 +520,9 @@
   }
 
   function friendly(error) {
+    if (error?.code === "LOCATION_NOT_FOUND") {
+      return error?.message || "Location not found. Try a more complete city/town/district name.";
+    }
     if (error?.code === "MAP_SERVICE_UNAVAILABLE") {
       return "Public map services are temporarily unavailable. Please retry in a moment.";
     }
@@ -569,14 +576,13 @@
     activeController?.abort();
     const controller = new AbortController();
     activeController = controller;
-    const cached = readCache(`text:${q}`);
 
-    loading(`Searching hospitals near ${q}…`);
-    setStatus(`🔎 Searching near ${q}…`);
+    loading(`Fetching live hospitals near ${q}…`);
+    setStatus(`🌐 Fetching LIVE hospital data near ${q} from the internet…`);
 
     try {
       const result = await fetchJson(
-        api(`/hospitals?search=${encodeURIComponent(q)}`),
+        api(`/hospitals?search=${encodeURIComponent(q)}&live=1&_=${Date.now()}`),
         { signal: controller.signal, retries: 1 }
       );
 
@@ -590,30 +596,29 @@
       updateLocationLabel(q);
 
       if (hospitals.length) {
-        saveCache(`text:${q}`, hospitals);
         refresh();
-        setStatus(`✅ Found ${hospitals.length} hospital(s) around ${q} — nearest first.`);
+        const cached = hospitals.some(h => h.cachedLocationOnly || h.discoverySource === "openstreetmap-cache");
+        setStatus(
+          cached
+            ? "⚠️ Live map providers could not be reached. Showing saved hospital LOCATIONS only; live availability is hidden."
+            : `✅ LIVE internet fetch complete — ${hospitals.length} hospital(s) found around ${q}, nearest first.`
+        );
       } else {
         problem(
           "No mapped hospitals found",
-          `The map service responded normally, but no mapped hospitals were found around ${q}. Try a nearby town/city or Use my location.`
+          `The live map service responded, but no mapped hospitals were found around ${q}. Try a nearby town/city or Use my location.`
         );
-        setStatus(`⚠️ No mapped hospitals were found around ${q}.`);
+        setStatus(`⚠️ Live search completed, but no mapped hospitals were found around ${q}.`);
       }
     } catch (error) {
       if (error?.code === "CANCELLED") return;
 
-      if (cached?.data?.length) {
-        hospitals = cachedLocationsOnly(cached.data);
-        updateLocationLabel(q);
-        refresh();
-        const mins = Math.max(1, Math.round(cached.ageMs / 60000));
-        setStatus(`⚠️ Live lookup is busy. Showing saved hospital locations from about ${mins} minute(s) ago. Live bed/ICU availability is hidden until refreshed.`);
-      } else {
-        const message = friendly(error);
-        problem("Live hospital lookup unavailable", message);
-        setStatus(`⚠️ ${message}`);
-      }
+      const message = error?.code === "LOCATION_NOT_FOUND"
+        ? `Location not found: ${q}. Try a city, town, district, or a more complete place name.`
+        : friendly(error);
+
+      problem("Live hospital lookup unavailable", message);
+      setStatus(`⚠️ ${message}`);
     } finally {
       if (activeController === controller) activeController = null;
     }
@@ -633,26 +638,24 @@
       button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Locating…';
     }
 
-    setStatus("📍 Getting your current location…");
+    setStatus("📍 Getting your current GPS location…");
 
     navigator.geolocation.getCurrentPosition(
       async position => {
-        const { latitude, longitude } = position.coords;
-        const key = `gps:${latitude.toFixed(3)},${longitude.toFixed(3)}`;
-        const cached = readCache(key);
+        const { latitude, longitude, accuracy } = position.coords;
         const controller = new AbortController();
         activeController = controller;
 
         if (button) {
-          button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching hospitals…';
+          button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Fetching live hospitals…';
         }
 
-        loading("Finding the nearest hospitals…");
-        setStatus("🔎 Searching nearby hospitals…");
+        loading("Fetching live nearby hospitals…");
+        setStatus(`🌐 GPS acquired${Number.isFinite(accuracy) ? ` (±${Math.round(accuracy)} m)` : ""}. Fetching LIVE hospitals from the internet…`);
 
         try {
           const result = await fetchJson(
-            api(`/hospitals/nearby?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&radius=30000&limit=30`),
+            api(`/hospitals/nearby?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&radius=30000&limit=30&live=1&_=${Date.now()}`),
             { signal: controller.signal, retries: 1 }
           );
 
@@ -667,30 +670,25 @@
           updateLocationLabel("Your current location");
 
           if (hospitals.length) {
-            saveCache(key, hospitals);
             refresh();
-            setStatus(`✅ ${hospitals.length} nearby hospital(s) found — closest first.`);
+            const cached = hospitals.some(h => h.cachedLocationOnly || h.discoverySource === "openstreetmap-cache");
+            setStatus(
+              cached
+                ? "⚠️ Internet providers are temporarily unreachable. Showing saved hospital LOCATIONS only; live bed/ICU availability is hidden."
+                : `✅ LIVE internet fetch complete — ${hospitals.length} nearby hospital(s) found, closest first.`
+            );
           } else {
             problem(
               "No mapped hospitals found",
-              "The map service responded normally, but no mapped hospitals were found around your current location."
+              "The live map service responded normally, but no mapped hospitals were found around your current location."
             );
-            setStatus("⚠️ No mapped hospitals were found around your current location.");
+            setStatus("⚠️ Live search completed, but no mapped hospitals were found around your current location.");
           }
         } catch (error) {
           if (error?.code === "CANCELLED") return;
-
-          if (cached?.data?.length) {
-            hospitals = cachedLocationsOnly(cached.data);
-            updateLocationLabel("Your current location");
-            refresh();
-            const mins = Math.max(1, Math.round(cached.ageMs / 60000));
-            setStatus(`⚠️ Live lookup is busy. Showing saved nearby hospital locations from about ${mins} minute(s) ago. Live bed/ICU availability is hidden until refreshed.`);
-          } else {
-            const message = friendly(error);
-            problem("Live hospital lookup unavailable", message);
-            setStatus(`⚠️ ${message}`);
-          }
+          const message = friendly(error);
+          problem("Live hospital lookup unavailable", message);
+          setStatus(`⚠️ ${message}`);
         } finally {
           if (activeController === controller) activeController = null;
           if (button) {
@@ -712,7 +710,7 @@
         };
         setStatus(`⚠️ ${messages[error.code] || "Could not get your location."}`);
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   }
 
