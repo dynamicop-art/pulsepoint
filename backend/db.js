@@ -4,10 +4,11 @@ let MongoClient = null;
 try {
   ({ MongoClient } = require('mongodb'));
 } catch (_) {
-  // MongoDB is optional at runtime. OSM discovery still works without it.
+  // MongoDB is optional at runtime. Live OSM discovery still works without it.
 }
 
 const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
+
 const OVERPASS_ENDPOINTS = [
   process.env.OVERPASS_URL,
   'https://overpass-api.de/api/interpreter',
@@ -22,8 +23,15 @@ const HOSPITAL_COLLECTION = process.env.HOSPITAL_COLLECTION || 'hospitals';
 const GEOCODE_TTL_MS = 6 * 60 * 60 * 1000;
 const HOSPITAL_TTL_MS = 10 * 60 * 1000;
 const ENDPOINT_COOLDOWN_MS = 60 * 1000;
-const OVERPASS_TIMEOUT_MS = 10000;
+
+const OVERPASS_TIMEOUT_MS = 9000;
 const NOMINATIM_TIMEOUT_MS = 9000;
+
+// Adaptive live search:
+// dense cities get fast small-radius queries;
+// small towns / PIN areas automatically widen.
+const ADAPTIVE_RADII_METERS = [8000, 15000, 30000, 50000];
+const MIN_USEFUL_RESULTS = 5;
 
 let mongoClient = null;
 let mongoDb = null;
@@ -49,6 +57,11 @@ function normalizeText(value) {
     .trim();
 }
 
+function extractIndianPin(value) {
+  const match = clean(value).match(/\b([1-9][0-9]{5})\b/);
+  return match ? match[1] : null;
+}
+
 function serviceError(message, cause = null) {
   const err = new Error(message);
   err.code = 'MAP_SERVICE_UNAVAILABLE';
@@ -56,110 +69,276 @@ function serviceError(message, cause = null) {
   return err;
 }
 
+function locationNotFoundError(query) {
+  const err = new Error(`Location not found: ${query}`);
+  err.code = 'LOCATION_NOT_FOUND';
+  return err;
+}
+
 function cacheGet(map, key, ttl, allowStale = false) {
   const row = map.get(key);
   if (!row) return null;
+
   const ageMs = Date.now() - row.time;
   const fresh = ageMs < ttl;
+
   if (!fresh && !allowStale) return null;
-  return { value: row.value, fresh, ageMs };
+
+  return {
+    value: row.value,
+    fresh,
+    ageMs
+  };
 }
 
 function cacheSet(map, key, value) {
-  map.set(key, { time: Date.now(), value });
+  map.set(key, {
+    time: Date.now(),
+    value
+  });
 }
 
 function normalizeHospital(h, source = 'unknown') {
-  const bloodStock = h?.bloodStock && typeof h.bloodStock === 'object'
-    ? h.bloodStock
-    : null;
+  const bloodStock =
+    h?.bloodStock && typeof h.bloodStock === 'object'
+      ? h.bloodStock
+      : null;
 
   return {
     id: clean(h?.id ?? h?._id ?? h?.osm_id) || undefined,
-    name: clean(h?.name ?? h?.hospitalName ?? h?.title) || 'Unnamed Hospital',
+    name:
+      clean(h?.name ?? h?.hospitalName ?? h?.title) ||
+      'Unnamed Hospital',
     address: clean(
       h?.address ??
       h?.fullAddress ??
       h?.locationName ??
       (typeof h?.location === 'string' ? h.location : '')
     ),
-    category: clean(h?.category ?? h?.type) || 'Hospital',
-    phone: clean(h?.phone ?? h?.telephone ?? h?.contact ?? h?.emergencyLine) || null,
-    website: clean(h?.website ?? h?.url) || null,
-    lat: toNumber(h?.lat ?? h?.latitude ?? h?.location?.lat),
-    lng: toNumber(h?.lng ?? h?.lon ?? h?.longitude ?? h?.location?.lng ?? h?.location?.lon),
-    distanceKm: toNumber(h?.distanceKm ?? h?.distance),
-    generalBeds: toNumber(h?.generalBeds ?? h?.availableBeds),
-    availableBeds: toNumber(h?.availableBeds ?? h?.generalBeds),
-    totalBeds: toNumber(h?.totalBeds),
-    icuBeds: toNumber(h?.icuBeds),
-    ventilators: toNumber(h?.ventilators),
+    category:
+      clean(h?.category ?? h?.type) ||
+      'Hospital',
+    phone:
+      clean(
+        h?.phone ??
+        h?.telephone ??
+        h?.contact ??
+        h?.emergencyLine
+      ) || null,
+    website:
+      clean(h?.website ?? h?.url) || null,
+    lat:
+      toNumber(
+        h?.lat ??
+        h?.latitude ??
+        h?.location?.lat
+      ),
+    lng:
+      toNumber(
+        h?.lng ??
+        h?.lon ??
+        h?.longitude ??
+        h?.location?.lng ??
+        h?.location?.lon
+      ),
+    distanceKm:
+      toNumber(
+        h?.distanceKm ??
+        h?.distance
+      ),
+    generalBeds:
+      toNumber(
+        h?.generalBeds ??
+        h?.availableBeds
+      ),
+    availableBeds:
+      toNumber(
+        h?.availableBeds ??
+        h?.generalBeds
+      ),
+    totalBeds:
+      toNumber(h?.totalBeds),
+    icuBeds:
+      toNumber(h?.icuBeds),
+    ventilators:
+      toNumber(h?.ventilators),
     bloodStock,
-    bloodAvailable: Array.isArray(h?.bloodAvailable) ? h.bloodAvailable : [],
-    doctors: Array.isArray(h?.doctors) ? h.doctors : [],
-    organs: Array.isArray(h?.organs) ? h.organs : [],
-    source
+    bloodAvailable:
+      Array.isArray(h?.bloodAvailable)
+        ? h.bloodAvailable
+        : [],
+    doctors:
+      Array.isArray(h?.doctors)
+        ? h.doctors
+        : [],
+    organs:
+      Array.isArray(h?.organs)
+        ? h.organs
+        : [],
+    source,
+    discoverySource:
+      h?.discoverySource || undefined,
+    cachedLocationOnly:
+      Boolean(h?.cachedLocationOnly)
   };
 }
 
-const seed = seedHospitals.map(h => normalizeHospital(h, 'pulsepoint-inventory'));
+const seed = seedHospitals.map(h =>
+  normalizeHospital(h, 'pulsepoint-inventory')
+);
 
 function validIndia(lat, lng) {
-  return Number.isFinite(lat) && Number.isFinite(lng) &&
-    lat >= 6 && lat <= 38.5 && lng >= 68 && lng <= 98;
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= 6 &&
+    lat <= 38.5 &&
+    lng >= 68 &&
+    lng <= 98
+  );
 }
 
 function haversineKm(lat1, lng1, lat2, lng2) {
   const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
+
+  const dLat =
+    (lat2 - lat1) *
+    Math.PI /
+    180;
+
+  const dLng =
+    (lng2 - lng1) *
+    Math.PI /
+    180;
+
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1 * Math.PI / 180) *
     Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return (
+    R *
+    2 *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1 - a)
+    )
+  );
 }
 
-async function fetchJson(url, options = {}, timeoutMs = 10000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+async function fetchJson(
+  url,
+  options = {},
+  timeoutMs = 10000
+) {
+  const controller =
+    new AbortController();
+
+  const timer =
+    setTimeout(
+      () => controller.abort(),
+      timeoutMs
+    );
 
   try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
+    const response =
+      await fetch(
+        url,
+        {
+          ...options,
+          signal:
+            controller.signal
+        }
+      );
+
     if (!response.ok) {
-      const err = new Error(`HTTP ${response.status}`);
-      err.status = response.status;
+      const err =
+        new Error(
+          `HTTP ${response.status}`
+        );
+
+      err.status =
+        response.status;
+
       throw err;
     }
+
     return await response.json();
+
   } catch (err) {
-    if (err?.name === 'AbortError') {
-      const timeout = new Error('REQUEST_TIMEOUT');
-      timeout.code = 'TIMEOUT';
+    if (
+      err?.name ===
+      'AbortError'
+    ) {
+      const timeout =
+        new Error(
+          'REQUEST_TIMEOUT'
+        );
+
+      timeout.code =
+        'TIMEOUT';
+
       throw timeout;
     }
+
     throw err;
+
   } finally {
     clearTimeout(timer);
   }
 }
 
-async function connectDB(uri = MONGO_URI) {
-  if (!uri || !MongoClient) return null;
-  if (mongoDb) return mongoDb;
+async function connectDB(
+  uri = MONGO_URI
+) {
+  if (
+    !uri ||
+    !MongoClient
+  ) {
+    return null;
+  }
+
+  if (mongoDb) {
+    return mongoDb;
+  }
 
   try {
-    mongoClient = new MongoClient(uri, { serverSelectionTimeoutMS: 8000 });
+    mongoClient =
+      new MongoClient(
+        uri,
+        {
+          serverSelectionTimeoutMS:
+            8000
+        }
+      );
+
     await mongoClient.connect();
-    mongoDb = mongoClient.db(DB_NAME);
-    console.log(`MongoDB connected: ${DB_NAME}`);
+
+    mongoDb =
+      mongoClient.db(
+        DB_NAME
+      );
+
+    console.log(
+      `MongoDB connected: ${DB_NAME}`
+    );
+
     return mongoDb;
+
   } catch (err) {
-    console.warn('MongoDB unavailable; continuing with public map data + local fallback:', err.message);
-    try { await mongoClient?.close(); } catch (_) {}
+    console.warn(
+      'MongoDB unavailable; continuing with public map data + local fallback:',
+      err.message
+    );
+
+    try {
+      await mongoClient?.close();
+    } catch (_) {}
+
     mongoClient = null;
     mongoDb = null;
+
     return null;
   }
 }
@@ -168,44 +347,116 @@ function getDatabase() {
   return mongoDb;
 }
 
-async function mongoHospitals(query = '') {
-  if (!mongoDb) return [];
+async function mongoHospitals(
+  query = ''
+) {
+  if (!mongoDb) {
+    return [];
+  }
 
   try {
-    const collection = mongoDb.collection(HOSPITAL_COLLECTION);
-    const q = clean(query);
+    const collection =
+      mongoDb.collection(
+        HOSPITAL_COLLECTION
+      );
+
+    const q =
+      clean(query);
+
     let docs;
 
     if (!q) {
-      docs = await collection.find({}).limit(250).toArray();
+      docs =
+        await collection
+          .find({})
+          .limit(250)
+          .toArray();
+
     } else {
-      const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(safe, 'i');
-      docs = await collection.find({
-        $or: [
-          { name: regex },
-          { hospitalName: regex },
-          { address: regex },
-          { city: regex },
-          { district: regex },
-          { state: regex },
-          { location: regex }
-        ]
-      }).limit(100).toArray();
+      const safe =
+        q.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          '\\$&'
+        );
+
+      const regex =
+        new RegExp(
+          safe,
+          'i'
+        );
+
+      docs =
+        await collection
+          .find({
+            $or: [
+              { name: regex },
+              { hospitalName: regex },
+              { address: regex },
+              { city: regex },
+              { district: regex },
+              { state: regex },
+              { location: regex },
+              { pincode: regex },
+              { pin: regex },
+              { postalCode: regex }
+            ]
+          })
+          .limit(100)
+          .toArray();
     }
 
-    return docs.map(h => normalizeHospital(h, 'mongodb'));
+    return docs.map(h =>
+      normalizeHospital(
+        h,
+        'mongodb'
+      )
+    );
+
   } catch (err) {
-    console.warn('MongoDB hospital lookup skipped:', err.message);
+    console.warn(
+      'MongoDB hospital lookup skipped:',
+      err.message
+    );
+
     return [];
   }
 }
 
 function placeVariants(place) {
-  const q = clean(place);
-  if (!q) return [];
+  const q =
+    clean(place);
 
-  const result = [q];
+  if (!q) {
+    return [];
+  }
+
+  const pin =
+    extractIndianPin(q);
+
+  const result =
+    [q];
+
+  // If user enters "Town 721101", also try the text part and PIN separately.
+  if (pin) {
+    const withoutPin =
+      clean(
+        q.replace(pin, '')
+      );
+
+    if (withoutPin) {
+      result.push(
+        `${withoutPin}, ${pin}, India`
+      );
+      result.push(
+        withoutPin
+      );
+    }
+
+    result.push(
+      `${pin}, India`
+    );
+  }
+
   const aliases = [
     [/\bmedinipur\b/i, 'Midnapore'],
     [/\bmidnapore\b/i, 'Medinipur'],
@@ -217,97 +468,394 @@ function placeVariants(place) {
     [/\bbangalore\b/i, 'Bengaluru']
   ];
 
-  for (const [pattern, replacement] of aliases) {
-    if (pattern.test(q)) result.push(q.replace(pattern, replacement));
+  for (
+    const [
+      pattern,
+      replacement
+    ]
+    of aliases
+  ) {
+    if (
+      pattern.test(q)
+    ) {
+      result.push(
+        q.replace(
+          pattern,
+          replacement
+        )
+      );
+    }
   }
 
-  return [...new Set(result.map(x => x.trim()).filter(Boolean))].slice(0, 3);
+  return [
+    ...new Set(
+      result
+        .map(x => x.trim())
+        .filter(Boolean)
+    )
+  ].slice(0, 6);
 }
 
-function geocodeScore(row, query) {
-  const display = normalizeText(row?.display_name);
-  const q = normalizeText(query);
-  const tokens = q.split(' ').filter(Boolean);
-  const type = clean(row?.addresstype ?? row?.type).toLowerCase();
+function geocodeScore(
+  row,
+  query,
+  pin = null
+) {
+  const display =
+    normalizeText(
+      row?.display_name
+    );
 
-  let score = Number(row?.importance || 0) * 10;
-  if (q && display.includes(q)) score += 100;
-  score += tokens.filter(t => display.includes(t)).length * 12;
+  const q =
+    normalizeText(query);
 
-  if (['city', 'town', 'municipality', 'village', 'suburb'].includes(type)) score += 35;
-  else if (['county', 'state_district'].includes(type)) score += 20;
-  else if (type === 'administrative') score += 8;
+  const tokens =
+    q
+      .split(' ')
+      .filter(Boolean);
+
+  const type =
+    clean(
+      row?.addresstype ??
+      row?.type
+    ).toLowerCase();
+
+  const rowPostcode =
+    clean(
+      row?.address?.postcode
+    );
+
+  let score =
+    Number(
+      row?.importance || 0
+    ) * 10;
+
+  if (
+    q &&
+    display.includes(q)
+  ) {
+    score += 100;
+  }
+
+  score +=
+    tokens
+      .filter(
+        token =>
+          display.includes(token)
+      )
+      .length *
+    12;
+
+  if (
+    pin &&
+    rowPostcode === pin
+  ) {
+    score += 160;
+  } else if (
+    pin &&
+    display.includes(pin)
+  ) {
+    score += 100;
+  }
+
+  if (
+    [
+      'city',
+      'town',
+      'municipality',
+      'village',
+      'suburb',
+      'postcode'
+    ].includes(type)
+  ) {
+    score += 35;
+  } else if (
+    [
+      'county',
+      'state_district'
+    ].includes(type)
+  ) {
+    score += 20;
+  } else if (
+    type ===
+    'administrative'
+  ) {
+    score += 8;
+  }
 
   return score;
 }
 
-async function geocodePlace(place) {
-  const q = clean(place);
-  if (!q) return null;
+async function fetchNominatimRows({
+  q = '',
+  pin = null
+}) {
+  const url =
+    new URL(
+      NOMINATIM
+    );
 
-  const cacheKey = normalizeText(q);
-  const fresh = cacheGet(geocodeCache, cacheKey, GEOCODE_TTL_MS);
-  if (fresh?.fresh) return fresh.value;
-  const stale = cacheGet(geocodeCache, cacheKey, GEOCODE_TTL_MS, true)?.value || null;
+  url.searchParams.set(
+    'format',
+    'jsonv2'
+  );
 
-  let sawSuccessfulResponse = false;
-  let lastError = null;
+  url.searchParams.set(
+    'limit',
+    '6'
+  );
 
-  for (const variant of placeVariants(q)) {
-    const url = new URL(NOMINATIM);
-    url.searchParams.set('q', variant);
-    url.searchParams.set('format', 'jsonv2');
-    url.searchParams.set('limit', '5');
-    url.searchParams.set('countrycodes', 'in');
-    url.searchParams.set('addressdetails', '1');
+  url.searchParams.set(
+    'countrycodes',
+    'in'
+  );
 
+  url.searchParams.set(
+    'addressdetails',
+    '1'
+  );
+
+  if (pin && !q) {
+    // Structured PIN search is more precise for pure 6-digit input.
+    url.searchParams.set(
+      'postalcode',
+      pin
+    );
+
+    url.searchParams.set(
+      'country',
+      'India'
+    );
+
+  } else {
+    url.searchParams.set(
+      'q',
+      q
+    );
+  }
+
+  return fetchJson(
+    url.toString(),
+    {
+      headers: {
+        'User-Agent':
+          'PulsePoint-EmergencyCare/5.0 (educational project)',
+        Accept:
+          'application/json',
+        'Accept-Language':
+          'en'
+      }
+    },
+    NOMINATIM_TIMEOUT_MS
+  );
+}
+
+async function geocodePlace(
+  place
+) {
+  const q =
+    clean(place);
+
+  if (!q) {
+    return null;
+  }
+
+  const pin =
+    extractIndianPin(q);
+
+  const cacheKey =
+    normalizeText(q);
+
+  const fresh =
+    cacheGet(
+      geocodeCache,
+      cacheKey,
+      GEOCODE_TTL_MS
+    );
+
+  if (fresh?.fresh) {
+    return fresh.value;
+  }
+
+  const stale =
+    cacheGet(
+      geocodeCache,
+      cacheKey,
+      GEOCODE_TTL_MS,
+      true
+    )?.value || null;
+
+  let successfulResponses =
+    0;
+
+  let lastError =
+    null;
+
+  const searchPlans = [];
+
+  // For a pure Indian PIN, try the structured postal-code lookup first.
+  if (
+    pin &&
+    q === pin
+  ) {
+    searchPlans.push({
+      q: '',
+      pin
+    });
+  }
+
+  for (
+    const variant
+    of placeVariants(q)
+  ) {
+    searchPlans.push({
+      q: variant,
+      pin
+    });
+  }
+
+  // Avoid duplicate requests.
+  const uniquePlans = [];
+  const seenPlans = new Set();
+
+  for (
+    const plan
+    of searchPlans
+  ) {
+    const key =
+      `${plan.q}|${plan.pin || ''}`;
+
+    if (
+      seenPlans.has(key)
+    ) {
+      continue;
+    }
+
+    seenPlans.add(key);
+    uniquePlans.push(plan);
+  }
+
+  for (
+    const plan
+    of uniquePlans
+  ) {
     try {
-      const rows = await fetchJson(url.toString(), {
-        headers: {
-          'User-Agent': 'PulsePoint-EmergencyCare/4.0 (educational project)',
-          Accept: 'application/json',
-          'Accept-Language': 'en'
-        }
-      }, NOMINATIM_TIMEOUT_MS);
+      const rows =
+        await fetchNominatimRows(
+          plan
+        );
 
-      sawSuccessfulResponse = true;
-      if (!Array.isArray(rows) || !rows.length) continue;
+      successfulResponses++;
 
-      const best = rows
-        .map(row => ({ row, score: geocodeScore(row, q) }))
-        .sort((a, b) => b.score - a.score)[0]?.row;
+      if (
+        !Array.isArray(rows) ||
+        !rows.length
+      ) {
+        continue;
+      }
 
-      if (!best) continue;
+      const best =
+        rows
+          .map(row => ({
+            row,
+            score:
+              geocodeScore(
+                row,
+                q,
+                pin
+              )
+          }))
+          .sort(
+            (a, b) =>
+              b.score -
+              a.score
+          )[0]?.row;
+
+      if (!best) {
+        continue;
+      }
+
       const value = {
-        lat: Number(best.lat),
-        lng: Number(best.lon),
-        displayName: best.display_name || variant
+        lat:
+          Number(
+            best.lat
+          ),
+        lng:
+          Number(
+            best.lon
+          ),
+        displayName:
+          best.display_name ||
+          q,
+        postcode:
+          best.address?.postcode ||
+          pin ||
+          null,
+        inputType:
+          pin
+            ? 'pincode-or-place'
+            : 'place'
       };
 
-      if (validIndia(value.lat, value.lng)) {
-        cacheSet(geocodeCache, cacheKey, value);
+      if (
+        validIndia(
+          value.lat,
+          value.lng
+        )
+      ) {
+        cacheSet(
+          geocodeCache,
+          cacheKey,
+          value
+        );
+
         return value;
       }
+
     } catch (err) {
-      lastError = err;
-      console.warn(`Geocoding failed for ${variant}:`, err.message);
+      lastError =
+        err;
+
+      console.warn(
+        'Geocoding attempt failed:',
+        plan,
+        err.message
+      );
     }
   }
 
-  if (stale) return stale;
-  if (sawSuccessfulResponse) return null;
+  if (stale) {
+    return stale;
+  }
+
+  if (
+    successfulResponses > 0
+  ) {
+    return null;
+  }
 
   throw serviceError(
-    'The place-name map service is temporarily unavailable. Please retry in a moment.',
+    'The place-name / PIN map service is temporarily unavailable. Please retry in a moment.',
     lastError
   );
 }
 
-function overpassQuery(lat, lng, radius) {
-  return `[out:json][timeout:12];(
-    nwr["amenity"="hospital"](around:${radius},${lat},${lng});
-    nwr["healthcare"="hospital"](around:${radius},${lat},${lng});
-  );out center tags qt;`;
+function overpassQuery(
+  lat,
+  lng,
+  radius
+) {
+  return `
+    [out:json][timeout:10];
+    (
+      nwr["amenity"="hospital"]
+        (around:${radius},${lat},${lng});
+
+      nwr["healthcare"="hospital"]
+        (around:${radius},${lat},${lng});
+    );
+    out center tags qt;
+  `;
 }
 
 function osmAddress(tags) {
@@ -322,275 +870,869 @@ function osmAddress(tags) {
     tags['addr:district'],
     tags['addr:state'],
     tags['addr:postcode']
-  ].filter(Boolean).join(', ');
+  ]
+    .filter(Boolean)
+    .join(', ');
 }
 
-async function overpassFrom(endpoint, lat, lng, radius) {
-  const started = Date.now();
-  const json = await fetchJson(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'PulsePoint-EmergencyCare/4.0 (educational project)'
-    },
-    body: new URLSearchParams({ data: overpassQuery(lat, lng, radius) }).toString()
-  }, OVERPASS_TIMEOUT_MS);
+async function overpassFrom(
+  endpoint,
+  lat,
+  lng,
+  radius
+) {
+  const started =
+    Date.now();
 
-  const elements = Array.isArray(json?.elements) ? json.elements : [];
-  const seen = new Set();
-  const hospitals = elements
-    .filter(item => {
-      const key = `${item.type}-${item.id}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .map(item => {
-      const t = item.tags || {};
-      return normalizeHospital({
-        id: `osm-${item.type}-${item.id}`,
-        name: t.name || t['name:en'] || t['name:bn'],
-        address: osmAddress(t),
-        phone: t.phone || t['contact:phone'] || t['contact:mobile'],
-        website: t.website || t['contact:website'],
-        lat: item.lat ?? item.center?.lat,
-        lng: item.lon ?? item.center?.lon
-      }, 'openstreetmap');
-    })
-    .filter(h => h.name !== 'Unnamed Hospital' && validIndia(h.lat, h.lng));
+  const json =
+    await fetchJson(
+      endpoint,
+      {
+        method:
+          'POST',
 
-  return { endpoint, hospitals, elapsedMs: Date.now() - started };
+        headers: {
+          'Content-Type':
+            'application/x-www-form-urlencoded',
+
+          'User-Agent':
+            'PulsePoint-EmergencyCare/5.0 (educational project)'
+        },
+
+        body:
+          new URLSearchParams({
+            data:
+              overpassQuery(
+                lat,
+                lng,
+                radius
+              )
+          }).toString()
+      },
+      OVERPASS_TIMEOUT_MS
+    );
+
+  const elements =
+    Array.isArray(
+      json?.elements
+    )
+      ? json.elements
+      : [];
+
+  const seen =
+    new Set();
+
+  const hospitals =
+    elements
+      .filter(item => {
+        const key =
+          `${item.type}-${item.id}`;
+
+        if (
+          seen.has(key)
+        ) {
+          return false;
+        }
+
+        seen.add(key);
+
+        return true;
+      })
+      .map(item => {
+        const t =
+          item.tags || {};
+
+        return normalizeHospital(
+          {
+            id:
+              `osm-${item.type}-${item.id}`,
+
+            name:
+              t.name ||
+              t['name:en'] ||
+              t['name:bn'],
+
+            address:
+              osmAddress(t),
+
+            phone:
+              t.phone ||
+              t['contact:phone'] ||
+              t['contact:mobile'],
+
+            website:
+              t.website ||
+              t['contact:website'],
+
+            lat:
+              item.lat ??
+              item.center?.lat,
+
+            lng:
+              item.lon ??
+              item.center?.lon
+          },
+          'openstreetmap'
+        );
+      })
+      .filter(
+        h =>
+          h.name !==
+            'Unnamed Hospital' &&
+          validIndia(
+            h.lat,
+            h.lng
+          )
+      );
+
+  return {
+    endpoint,
+    hospitals,
+    elapsedMs:
+      Date.now() -
+      started
+  };
 }
 
-async function osmHospitals(lat, lng, radiusMeters = 30000) {
-  if (!validIndia(lat, lng)) return [];
+async function osmHospitals(
+  lat,
+  lng,
+  radiusMeters = 8000
+) {
+  if (
+    !validIndia(
+      lat,
+      lng
+    )
+  ) {
+    return [];
+  }
 
-  const radius = Math.min(Math.max(Number(radiusMeters) || 30000, 1000), 50000);
-  const cacheKey = `${lat.toFixed(3)}:${lng.toFixed(3)}:${radius}`;
+  const radius =
+    Math.min(
+      Math.max(
+        Number(radiusMeters) ||
+        8000,
+        1000
+      ),
+      50000
+    );
 
-  // IMPORTANT: explicit hospital searches are LIVE-FIRST.
-  // We never return a fresh backend cache before attempting the internet.
-  // Stale cache is used only when every public provider is unreachable.
-  const stale = cacheGet(hospitalCache, cacheKey, HOSPITAL_TTL_MS, true)?.value || [];
+  const cacheKey =
+    `${lat.toFixed(3)}:${lng.toFixed(3)}:${radius}`;
 
-  const candidates = OVERPASS_ENDPOINTS.filter(endpoint =>
-    (endpointCooldown.get(endpoint) || 0) <= Date.now()
-  );
-  const endpoints = candidates.length ? candidates : OVERPASS_ENDPOINTS;
+  // LIVE-FIRST:
+  // cache is never returned before attempting the internet.
+  const stale =
+    cacheGet(
+      hospitalCache,
+      cacheKey,
+      HOSPITAL_TTL_MS,
+      true
+    )?.value || [];
 
-  let sawEmptyLiveResponse = false;
-  const errors = [];
+  const candidates =
+    OVERPASS_ENDPOINTS
+      .filter(
+        endpoint =>
+          (
+            endpointCooldown.get(
+              endpoint
+            ) || 0
+          ) <= Date.now()
+      );
 
-  const attempts = endpoints.map(async endpoint => {
-    try {
-      const result = await overpassFrom(endpoint, lat, lng, radius);
-      endpointCooldown.delete(endpoint);
+  const endpoints =
+    candidates.length
+      ? candidates
+      : OVERPASS_ENDPOINTS;
 
-      if (!result.hospitals.length) {
-        sawEmptyLiveResponse = true;
-        const empty = new Error('EMPTY_LIVE_RESULT');
-        empty.code = 'EMPTY_LIVE_RESULT';
-        throw empty;
+  let emptyLiveResponses =
+    0;
+
+  let hardFailures =
+    0;
+
+  const hardErrors = [];
+
+  const attempts =
+    endpoints.map(
+      async endpoint => {
+        try {
+          const result =
+            await overpassFrom(
+              endpoint,
+              lat,
+              lng,
+              radius
+            );
+
+          endpointCooldown
+            .delete(endpoint);
+
+          if (
+            !result.hospitals.length
+          ) {
+            emptyLiveResponses++;
+
+            const empty =
+              new Error(
+                'EMPTY_LIVE_RESULT'
+              );
+
+            empty.code =
+              'EMPTY_LIVE_RESULT';
+
+            throw empty;
+          }
+
+          return result;
+
+        } catch (err) {
+          if (
+            err?.code !==
+            'EMPTY_LIVE_RESULT'
+          ) {
+            hardFailures++;
+
+            hardErrors.push(
+              err
+            );
+
+            endpointCooldown.set(
+              endpoint,
+              Date.now() +
+              ENDPOINT_COOLDOWN_MS
+            );
+
+            console.warn(
+              `Overpass failed: ${endpoint}`,
+              err?.message || err
+            );
+          }
+
+          throw err;
+        }
       }
-
-      return result;
-    } catch (err) {
-      if (err?.code !== 'EMPTY_LIVE_RESULT') {
-        endpointCooldown.set(endpoint, Date.now() + ENDPOINT_COOLDOWN_MS);
-        errors.push(err);
-        console.warn(`Overpass failed: ${endpoint}`, err?.message || err);
-      }
-      throw err;
-    }
-  });
+    );
 
   try {
-    // Promise.any returns as soon as the FIRST provider returns a non-empty LIVE result.
-    const winner = await Promise.any(attempts);
-    const live = winner.hospitals.map(h => ({
-      ...h,
-      source: 'openstreetmap',
-      discoverySource: 'openstreetmap-live',
-      cachedLocationOnly: false
-    }));
-    cacheSet(hospitalCache, cacheKey, live);
+    // Returns immediately when the first provider gives a real hospital list.
+    const winner =
+      await Promise.any(
+        attempts
+      );
+
+    const live =
+      winner.hospitals.map(
+        h => ({
+          ...h,
+          source:
+            'openstreetmap',
+          discoverySource:
+            'openstreetmap-live',
+          cachedLocationOnly:
+            false
+        })
+      );
+
+    cacheSet(
+      hospitalCache,
+      cacheKey,
+      live
+    );
+
     return live;
+
   } catch (aggregate) {
-    // At least one provider answered successfully but found nothing.
-    if (sawEmptyLiveResponse) {
-      cacheSet(hospitalCache, cacheKey, []);
+    // Promise.any rejects only after ALL providers have finished.
+    // Trust "empty" only if at least two independent providers agreed,
+    // or every provider returned a successful empty result.
+    const verifiedEmpty =
+      emptyLiveResponses >= 2 ||
+      (
+        emptyLiveResponses === endpoints.length &&
+        endpoints.length > 0
+      );
+
+    if (verifiedEmpty) {
+      cacheSet(
+        hospitalCache,
+        cacheKey,
+        []
+      );
+
       return [];
     }
 
-    // Every live provider failed. Only now may we fall back to old locations.
+    // One provider said empty but the others failed:
+    // do NOT falsely claim there are no hospitals.
     if (stale.length) {
-      console.warn('All live Overpass providers failed; using stale location cache only.');
-      return stale.map(h => ({
-        ...h,
-        source: 'openstreetmap',
-        discoverySource: 'openstreetmap-cache',
-        cachedLocationOnly: true,
-        availableBeds: null,
-        generalBeds: null,
-        totalBeds: null,
-        icuBeds: null,
-        ventilators: null,
-        bloodStock: null,
-        bloodAvailable: []
-      }));
+      console.warn(
+        'Live providers could not verify the result; using stale hospital locations only.'
+      );
+
+      return stale.map(
+        h => ({
+          ...h,
+          source:
+            'openstreetmap',
+          discoverySource:
+            'openstreetmap-cache',
+          cachedLocationOnly:
+            true,
+          availableBeds:
+            null,
+          generalBeds:
+            null,
+          totalBeds:
+            null,
+          icuBeds:
+            null,
+          ventilators:
+            null,
+          bloodStock:
+            null,
+          bloodAvailable:
+            []
+        })
+      );
     }
 
     throw serviceError(
-      'Public hospital map services are temporarily unavailable. Please retry in a moment.',
-      errors[0] || aggregate
+      'Public hospital map services could not verify a live result. Please retry in a moment.',
+      hardErrors[0] ||
+      aggregate
     );
   }
 }
 
-function sameHospital(a, b) {
-  const an = normalizeText(a.name);
-  const bn = normalizeText(b.name);
-  if (!an || !bn) return false;
+function sameHospital(
+  a,
+  b
+) {
+  const an =
+    normalizeText(
+      a.name
+    );
 
-  if (an === bn) {
-    if (a.lat == null || a.lng == null || b.lat == null || b.lng == null) return true;
-    return haversineKm(a.lat, a.lng, b.lat, b.lng) < 1.5;
+  const bn =
+    normalizeText(
+      b.name
+    );
+
+  if (
+    !an ||
+    !bn
+  ) {
+    return false;
   }
 
-  if (a.lat != null && a.lng != null && b.lat != null && b.lng != null) {
-    if (haversineKm(a.lat, a.lng, b.lat, b.lng) < 0.25) {
-      const aw = new Set(an.split(' ').filter(w => w.length > 3));
-      return bn.split(' ').filter(w => aw.has(w)).length >= 2;
+  if (
+    an === bn
+  ) {
+    if (
+      a.lat == null ||
+      a.lng == null ||
+      b.lat == null ||
+      b.lng == null
+    ) {
+      return true;
+    }
+
+    return (
+      haversineKm(
+        a.lat,
+        a.lng,
+        b.lat,
+        b.lng
+      ) < 1.5
+    );
+  }
+
+  if (
+    a.lat != null &&
+    a.lng != null &&
+    b.lat != null &&
+    b.lng != null
+  ) {
+    if (
+      haversineKm(
+        a.lat,
+        a.lng,
+        b.lat,
+        b.lng
+      ) < 0.25
+    ) {
+      const aw =
+        new Set(
+          an
+            .split(' ')
+            .filter(
+              word =>
+                word.length > 3
+            )
+        );
+
+      return (
+        bn
+          .split(' ')
+          .filter(
+            word =>
+              aw.has(word)
+          )
+          .length >= 2
+      );
     }
   }
 
   return false;
 }
 
-function mergeHospital(base, incoming) {
-  const incomingInventory = ['mongodb', 'pulsepoint-inventory'].includes(incoming.source);
+function mergeHospital(
+  base,
+  incoming
+) {
+  const incomingInventory =
+    [
+      'mongodb',
+      'pulsepoint-inventory'
+    ].includes(
+      incoming.source
+    );
+
   if (!incomingInventory) {
     return {
       ...incoming,
       ...base,
-      phone: base.phone || incoming.phone,
-      website: base.website || incoming.website
+      phone:
+        base.phone ||
+        incoming.phone,
+      website:
+        base.website ||
+        incoming.website
     };
   }
 
-  const merged = { ...base };
-  for (const [key, value] of Object.entries(incoming)) {
-    if (value !== null && value !== undefined && value !== '') merged[key] = value;
+  const merged =
+    { ...base };
+
+  for (
+    const [
+      key,
+      value
+    ]
+    of Object.entries(
+      incoming
+    )
+  ) {
+    if (
+      value !== null &&
+      value !== undefined &&
+      value !== ''
+    ) {
+      merged[key] =
+        value;
+    }
   }
-  merged.lat = base.lat ?? incoming.lat;
-  merged.lng = base.lng ?? incoming.lng;
-  merged.address = base.address || incoming.address;
-  merged.source = incoming.source;
+
+  merged.lat =
+    base.lat ??
+    incoming.lat;
+
+  merged.lng =
+    base.lng ??
+    incoming.lng;
+
+  merged.address =
+    base.address ||
+    incoming.address;
+
+  merged.source =
+    incoming.source;
+
   return merged;
 }
 
 function dedupe(list) {
   const result = [];
-  for (const item of list) {
-    if (!item?.name) continue;
-    const index = result.findIndex(existing => sameHospital(existing, item));
-    if (index < 0) result.push(item);
-    else result[index] = mergeHospital(result[index], item);
+
+  for (
+    const item
+    of list
+  ) {
+    if (!item?.name) {
+      continue;
+    }
+
+    const index =
+      result.findIndex(
+        existing =>
+          sameHospital(
+            existing,
+            item
+          )
+      );
+
+    if (
+      index < 0
+    ) {
+      result.push(item);
+
+    } else {
+      result[index] =
+        mergeHospital(
+          result[index],
+          item
+        );
+    }
   }
+
   return result;
 }
 
-function withDistance(list, lat, lng) {
+function withDistance(
+  list,
+  lat,
+  lng
+) {
   return list
-    .filter(h => validIndia(h.lat, h.lng))
-    .map(h => ({
-      ...h,
-      distanceKm: Number(haversineKm(lat, lng, h.lat, h.lng).toFixed(2))
-    }));
+    .filter(
+      h =>
+        validIndia(
+          h.lat,
+          h.lng
+        )
+    )
+    .map(
+      h => ({
+        ...h,
+        distanceKm:
+          Number(
+            haversineKm(
+              lat,
+              lng,
+              h.lat,
+              h.lng
+            ).toFixed(2)
+          )
+      })
+    );
 }
 
 async function inventoryHospitals() {
-  return dedupe([...seed, ...(await mongoHospitals(''))]);
+  return dedupe([
+    ...seed,
+    ...(
+      await mongoHospitals('')
+    )
+  ]);
 }
 
-function enrichLiveHospital(liveHospital, inventoryHospital) {
-  if (!inventoryHospital) return liveHospital;
+function enrichLiveHospital(
+  liveHospital,
+  inventoryHospital
+) {
+  if (!inventoryHospital) {
+    return liveHospital;
+  }
 
   return {
     ...liveHospital,
-    phone: liveHospital.phone || inventoryHospital.phone || null,
-    website: liveHospital.website || inventoryHospital.website || null,
-    availableBeds: inventoryHospital.availableBeds ?? liveHospital.availableBeds ?? null,
-    generalBeds: inventoryHospital.generalBeds ?? liveHospital.generalBeds ?? null,
-    totalBeds: inventoryHospital.totalBeds ?? liveHospital.totalBeds ?? null,
-    icuBeds: inventoryHospital.icuBeds ?? liveHospital.icuBeds ?? null,
-    ventilators: inventoryHospital.ventilators ?? liveHospital.ventilators ?? null,
-    bloodStock: inventoryHospital.bloodStock ?? liveHospital.bloodStock ?? null,
-    bloodAvailable: inventoryHospital.bloodAvailable?.length
-      ? inventoryHospital.bloodAvailable
-      : (liveHospital.bloodAvailable || []),
-    doctors: inventoryHospital.doctors?.length
-      ? inventoryHospital.doctors
-      : (liveHospital.doctors || []),
-    organs: inventoryHospital.organs?.length
-      ? inventoryHospital.organs
-      : (liveHospital.organs || []),
-    inventorySource: inventoryHospital.source
+
+    phone:
+      liveHospital.phone ||
+      inventoryHospital.phone ||
+      null,
+
+    website:
+      liveHospital.website ||
+      inventoryHospital.website ||
+      null,
+
+    availableBeds:
+      inventoryHospital.availableBeds ??
+      liveHospital.availableBeds ??
+      null,
+
+    generalBeds:
+      inventoryHospital.generalBeds ??
+      liveHospital.generalBeds ??
+      null,
+
+    totalBeds:
+      inventoryHospital.totalBeds ??
+      liveHospital.totalBeds ??
+      null,
+
+    icuBeds:
+      inventoryHospital.icuBeds ??
+      liveHospital.icuBeds ??
+      null,
+
+    ventilators:
+      inventoryHospital.ventilators ??
+      liveHospital.ventilators ??
+      null,
+
+    bloodStock:
+      inventoryHospital.bloodStock ??
+      liveHospital.bloodStock ??
+      null,
+
+    bloodAvailable:
+      inventoryHospital.bloodAvailable?.length
+        ? inventoryHospital.bloodAvailable
+        : (
+          liveHospital.bloodAvailable ||
+          []
+        ),
+
+    doctors:
+      inventoryHospital.doctors?.length
+        ? inventoryHospital.doctors
+        : (
+          liveHospital.doctors ||
+          []
+        ),
+
+    organs:
+      inventoryHospital.organs?.length
+        ? inventoryHospital.organs
+        : (
+          liveHospital.organs ||
+          []
+        ),
+
+    inventorySource:
+      inventoryHospital.source
   };
 }
 
-async function searchNearbyHospitals(latValue, lngValue, radiusMeters = 30000, limit = 30) {
-  const lat = Number(latValue);
-  const lng = Number(lngValue);
-  if (!validIndia(lat, lng)) throw new Error('Invalid Indian latitude/longitude');
+function buildRadiusPlan(
+  requestedRadius
+) {
+  const requested =
+    Number(
+      requestedRadius
+    );
 
-  const requested = Math.min(Math.max(Number(radiusMeters) || 30000, 1000), 50000);
-  const maxResults = Math.min(Math.max(Number(limit) || 30, 1), 100);
+  const plan =
+    [...ADAPTIVE_RADII_METERS];
 
-  // Step 1: fetch hospital LOCATIONS from the internet every time.
-  let live = await osmHospitals(lat, lng, requested);
-
-  // Step 2: if the live result is sparse, make one wider live internet request.
-  if (live.length < 3 && requested < 50000 && !live.some(h => h.cachedLocationOnly)) {
-    const wider = await osmHospitals(lat, lng, 50000);
-    live = dedupe([...live, ...wider]);
+  if (
+    Number.isFinite(requested) &&
+    requested > 0 &&
+    requested <= 50000
+  ) {
+    plan.push(
+      requested
+    );
   }
 
-  let discovered = withDistance(live, lat, lng)
-    .filter(h => h.distanceKm <= 50)
-    .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
-
-  // If internet failed and we only have stale locations, NEVER attach old bed/ICU stock.
-  if (discovered.some(h => h.cachedLocationOnly)) {
-    return discovered.slice(0, maxResults);
-  }
-
-  // Step 3: local/Mongo data is ENRICHMENT ONLY.
-  // It is no longer appended as a hospital discovery source.
-  const inventory = await inventoryHospitals();
-  discovered = discovered.map(liveHospital => {
-    const match = inventory.find(localHospital => sameHospital(liveHospital, localHospital));
-    return enrichLiveHospital(liveHospital, match);
-  });
-
-  return discovered.slice(0, maxResults);
+  return [
+    ...new Set(
+      plan
+        .map(
+          radius =>
+            Math.min(
+              Math.max(
+                radius,
+                1000
+              ),
+              50000
+            )
+        )
+    )
+  ].sort(
+    (a, b) =>
+      a - b
+  );
 }
 
-async function searchAllIndia(query = '') {
-  const q = clean(query);
+async function searchNearbyHospitals(
+  latValue,
+  lngValue,
+  radiusMeters = 30000,
+  limit = 30
+) {
+  const lat =
+    Number(
+      latValue
+    );
 
-  // Empty query is used only for the initial PulsePoint directory/staff UI.
-  // Explicit area searches below are internet-first.
-  if (!q) return inventoryHospitals();
+  const lng =
+    Number(
+      lngValue
+    );
 
-  const place = await geocodePlace(q);
-  if (!place) {
-    const err = new Error(`Location not found: ${q}`);
-    err.code = 'LOCATION_NOT_FOUND';
-    throw err;
+  if (
+    !validIndia(
+      lat,
+      lng
+    )
+  ) {
+    throw new Error(
+      'Invalid Indian latitude/longitude'
+    );
   }
 
-  return searchNearbyHospitals(place.lat, place.lng, 30000, 40);
+  const maxResults =
+    Math.min(
+      Math.max(
+        Number(limit) ||
+        30,
+        1
+      ),
+      100
+    );
+
+  const radiusPlan =
+    buildRadiusPlan(
+      radiusMeters
+    );
+
+  let live = [];
+  let usedCacheOnly = false;
+
+  for (
+    const radius
+    of radiusPlan
+  ) {
+    const found =
+      await osmHospitals(
+        lat,
+        lng,
+        radius
+      );
+
+    if (
+      found.some(
+        h =>
+          h.cachedLocationOnly
+      )
+    ) {
+      usedCacheOnly = true;
+
+      live =
+        dedupe([
+          ...live,
+          ...found
+        ]);
+
+      // Cache fallback means live services failed.
+      // Do not keep issuing wider queries that may add delay.
+      break;
+    }
+
+    live =
+      dedupe([
+        ...live,
+        ...found
+      ]);
+
+    if (
+      live.length >=
+      MIN_USEFUL_RESULTS
+    ) {
+      break;
+    }
+  }
+
+  let discovered =
+    withDistance(
+      live,
+      lat,
+      lng
+    )
+      .filter(
+        h =>
+          h.distanceKm <= 50
+      )
+      .sort(
+        (a, b) =>
+          (
+            a.distanceKm ??
+            Infinity
+          ) -
+          (
+            b.distanceKm ??
+            Infinity
+          )
+      );
+
+  if (
+    usedCacheOnly ||
+    discovered.some(
+      h =>
+        h.cachedLocationOnly
+    )
+  ) {
+    return discovered
+      .slice(
+        0,
+        maxResults
+      );
+  }
+
+  // Stored data is enrichment only.
+  // It never invents hospital discovery results.
+  const inventory =
+    await inventoryHospitals();
+
+  discovered =
+    discovered.map(
+      liveHospital => {
+        const match =
+          inventory.find(
+            localHospital =>
+              sameHospital(
+                liveHospital,
+                localHospital
+              )
+          );
+
+        return enrichLiveHospital(
+          liveHospital,
+          match
+        );
+      }
+    );
+
+  return discovered
+    .slice(
+      0,
+      maxResults
+    );
+}
+
+async function searchAllIndia(
+  query = ''
+) {
+  const q =
+    clean(query);
+
+  // Empty query is used by initial directory / staff UI only.
+  // Explicit place/PIN searches below always go through geocoding + live OSM.
+  if (!q) {
+    return inventoryHospitals();
+  }
+
+  const place =
+    await geocodePlace(q);
+
+  if (!place) {
+    throw locationNotFoundError(
+      q
+    );
+  }
+
+  return searchNearbyHospitals(
+    place.lat,
+    place.lng,
+    30000,
+    40
+  );
 }
 
 module.exports = {
@@ -599,5 +1741,6 @@ module.exports = {
   searchAllIndia,
   searchNearbyHospitals,
   normalizeHospital,
-  haversineKm
+  haversineKm,
+  extractIndianPin
 };
