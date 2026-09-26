@@ -10,6 +10,12 @@
   let hospitals = [];
   let originalHospitals = [];
   let searchTimer = null;
+  let activeSearchController = null;
+
+  const SEARCH_TIMEOUT_MS = 70000;
+  const GPS_TIMEOUT_MS = 70000;
+  const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
+  const SEARCH_CACHE_PREFIX = "pulsepoint_hospital_cache_v2:";
 
   const $ = (id) => document.getElementById(id);
 
@@ -318,23 +324,140 @@
       </div>`;
   }
 
-  async function fetchJson(url, timeoutMs = 25000) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
+  function cacheKeyForSearch(key) {
+    return SEARCH_CACHE_PREFIX + String(key || "").trim().toLowerCase();
+  }
+
+  function saveResultCache(key, list) {
     try {
-      const response = await fetch(url, {
-        headers: { "Accept": "application/json" },
-        signal: controller.signal
-      });
+      sessionStorage.setItem(
+        cacheKeyForSearch(key),
+        JSON.stringify({
+          time: Date.now(),
+          data: list
+        })
+      );
+    } catch (_) {}
+  }
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      return await response.json();
-    } finally {
-      clearTimeout(timeout);
+  function readResultCache(key) {
+    try {
+      const raw = sessionStorage.getItem(cacheKeyForSearch(key));
+      if (!raw) return null;
+
+      const parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.data)) return null;
+
+      const ageMs = Date.now() - Number(parsed.time || 0);
+
+      return {
+        data: parsed.data,
+        ageMs,
+        fresh: ageMs < SEARCH_CACHE_TTL_MS
+      };
+    } catch (_) {
+      return null;
     }
+  }
+
+  async function fetchJson(
+    url,
+    timeoutMs = 25000,
+    {
+      retries = 0,
+      signal = null
+    } = {}
+  ) {
+    let lastError = null;
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      const controller = new AbortController();
+      let timedOut = false;
+      let externalAbort = null;
+
+      if (signal) {
+        if (signal.aborted) {
+          const cancelled = new Error("REQUEST_CANCELLED");
+          cancelled.code = "CANCELLED";
+          throw cancelled;
+        }
+
+        externalAbort = () => controller.abort();
+        signal.addEventListener("abort", externalAbort, { once: true });
+      }
+
+      const timeout = setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, timeoutMs);
+
+      try {
+        const response = await fetch(url, {
+          headers: { "Accept": "application/json" },
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          const error = new Error(`HTTP ${response.status}`);
+          error.status = response.status;
+          throw error;
+        }
+
+        return await response.json();
+      } catch (error) {
+        if (signal?.aborted) {
+          const cancelled = new Error("REQUEST_CANCELLED");
+          cancelled.code = "CANCELLED";
+          throw cancelled;
+        }
+
+        if (timedOut) {
+          const timeoutError = new Error("REQUEST_TIMEOUT");
+          timeoutError.code = "TIMEOUT";
+          lastError = timeoutError;
+        } else {
+          lastError = error;
+        }
+
+        const transient =
+          lastError?.code === "TIMEOUT" ||
+          lastError instanceof TypeError ||
+          [429, 502, 503, 504].includes(lastError?.status);
+
+        if (!transient || attempt >= retries) {
+          throw lastError;
+        }
+
+        await wait(900 + attempt * 700);
+      } finally {
+        clearTimeout(timeout);
+        if (signal && externalAbort) {
+          signal.removeEventListener("abort", externalAbort);
+        }
+      }
+    }
+
+    throw lastError || new Error("REQUEST_FAILED");
+  }
+
+  function friendlySearchError(error) {
+    if (error?.code === "TIMEOUT") {
+      return "The map data service is taking too long. Please retry — a backup provider will be tried automatically.";
+    }
+
+    if (error?.status === 429) {
+      return "The public map service is temporarily busy. Please wait a few seconds and retry.";
+    }
+
+    if ([502, 503, 504].includes(error?.status)) {
+      return "The hospital lookup service is temporarily busy. Please retry in a moment.";
+    }
+
+    return "Hospital search could not complete. Check your connection and retry.";
   }
 
   async function checkHealth() {
@@ -442,33 +565,81 @@
     const q = String(query || "").trim();
     if (q.length < 2) return;
 
+    if (activeSearchController) {
+      activeSearchController.abort();
+    }
+
+    const controller = new AbortController();
+    activeSearchController = controller;
+
+    const cached = readResultCache(`text:${q}`);
+
     setLoading(`Searching hospitals near ${q}…`);
-    setGpsStatus(`🔎 Searching hospitals near ${q}…`);
+    setGpsStatus(
+      `🔎 Searching near ${q}. If the first public map server is slow, PulsePoint will retry automatically…`
+    );
 
     try {
       const result = await fetchJson(
         api(`/hospitals?search=${encodeURIComponent(q)}`),
-        35000
+        SEARCH_TIMEOUT_MS,
+        {
+          retries: 1,
+          signal: controller.signal
+        }
       );
 
-      hospitals = (result.data || []).map(normalizeHospital)
-        .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+      if (controller.signal.aborted) return;
 
+      hospitals = (result.data || [])
+        .map(normalizeHospital)
+        .sort(
+          (a, b) =>
+            (a.distanceKm ?? Infinity) -
+            (b.distanceKm ?? Infinity)
+        );
+
+      saveResultCache(`text:${q}`, hospitals);
       saveSearchHistory(q);
       updateLocationCopy(q);
       refreshVisibleData();
 
       setGpsStatus(
         hospitals.length
-          ? `✅ Found ${hospitals.length} hospital(s) near ${q}.`
-          : `No hospitals found near ${q}.`
+          ? `✅ Found ${hospitals.length} hospital(s) around ${q} — nearest first.`
+          : `⚠️ No mapped hospitals were found around ${q}. Try a nearby town/city name or Use my location.`
       );
 
-      $("section-hospitals")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      $("section-hospitals")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
     } catch (error) {
-      console.error(error);
-      setGpsStatus("⚠️ Hospital search failed. Please retry.");
-      renderHospitals([]);
+      if (error?.code === "CANCELLED") return;
+
+      console.error("Hospital search error:", error);
+
+      if (cached?.data?.length) {
+        hospitals = cached.data.map(normalizeHospital);
+        updateLocationCopy(q);
+        refreshVisibleData();
+
+        const minutes = Math.max(
+          1,
+          Math.round(cached.ageMs / 60000)
+        );
+
+        setGpsStatus(
+          `⚠️ Live map lookup is busy. Showing your last successful ${q} result from about ${minutes} minute(s) ago.`
+        );
+      } else {
+        setGpsStatus(`⚠️ ${friendlySearchError(error)}`);
+        renderHospitals([]);
+      }
+    } finally {
+      if (activeSearchController === controller) {
+        activeSearchController = null;
+      }
     }
   }
 
@@ -476,71 +647,168 @@
     const btn = $("btnGpsCalc");
 
     if (!navigator.geolocation) {
-      setGpsStatus("⚠️ This browser does not support location access.");
+      setGpsStatus(
+        "⚠️ This browser does not support location access."
+      );
       return;
     }
 
-    const oldHtml = btn?.innerHTML;
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Locating…`;
+    if (activeSearchController) {
+      activeSearchController.abort();
     }
 
-    setGpsStatus("📍 Getting your current location…");
+    const oldHtml = btn?.innerHTML;
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML =
+        `<i class="fa-solid fa-spinner fa-spin"></i> Locating…`;
+    }
+
+    setGpsStatus(
+      "📍 Getting your current location…"
+    );
 
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         const { latitude, longitude } = coords;
-        setLoading("Finding the nearest hospitals…");
-        setGpsStatus("🔎 Finding hospitals closest to your current location…");
+
+        const locationCacheKey =
+          `gps:${latitude.toFixed(3)},${longitude.toFixed(3)}`;
+
+        const cached =
+          readResultCache(locationCacheKey);
+
+        const controller = new AbortController();
+        activeSearchController = controller;
+
+        setLoading(
+          "Finding the nearest hospitals…"
+        );
+
+        setGpsStatus(
+          "🔎 Searching nearby hospitals. Backup map servers will be tried automatically if needed…"
+        );
 
         try {
           const result = await fetchJson(
-            api(`/hospitals/nearby?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(longitude)}&radius=30000&limit=30`),
-            35000
+            api(
+              `/hospitals/nearby?lat=${encodeURIComponent(latitude)}` +
+              `&lng=${encodeURIComponent(longitude)}` +
+              `&radius=30000&limit=30`
+            ),
+            GPS_TIMEOUT_MS,
+            {
+              retries: 1,
+              signal: controller.signal
+            }
           );
 
-          hospitals = (result.data || []).map(normalizeHospital)
-            .filter((h) => h.lat != null && h.lng != null)
-            .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+          if (controller.signal.aborted) return;
 
-          $("hospitalSearch") && ($("hospitalSearch").value = "");
-          updateLocationCopy("Your current location");
+          hospitals = (result.data || [])
+            .map(normalizeHospital)
+            .filter(
+              h =>
+                h.lat != null &&
+                h.lng != null
+            )
+            .sort(
+              (a, b) =>
+                (a.distanceKm ?? Infinity) -
+                (b.distanceKm ?? Infinity)
+            );
+
+          saveResultCache(
+            locationCacheKey,
+            hospitals
+          );
+
+          if ($("hospitalSearch")) {
+            $("hospitalSearch").value = "";
+          }
+
+          updateLocationCopy(
+            "Your current location"
+          );
+
           refreshVisibleData();
 
           setGpsStatus(
             hospitals.length
               ? `✅ ${hospitals.length} nearby hospital(s) found — closest first.`
-              : "No hospitals were found in the current search radius."
+              : "⚠️ No mapped hospitals were found in the current search area."
           );
 
-          $("section-hospitals")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          $("section-hospitals")?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
         } catch (error) {
-          console.error(error);
-          setGpsStatus("⚠️ Could not fetch nearby hospitals. Please retry.");
-          renderHospitals([]);
+          if (error?.code === "CANCELLED") return;
+
+          console.error(
+            "Location hospital search error:",
+            error
+          );
+
+          if (cached?.data?.length) {
+            hospitals =
+              cached.data.map(normalizeHospital);
+
+            updateLocationCopy(
+              "Your current location"
+            );
+
+            refreshVisibleData();
+
+            setGpsStatus(
+              "⚠️ Live lookup is busy. Showing the last successful nearby result for this location."
+            );
+          } else {
+            setGpsStatus(
+              `⚠️ ${friendlySearchError(error)}`
+            );
+            renderHospitals([]);
+          }
         } finally {
+          if (activeSearchController === controller) {
+            activeSearchController = null;
+          }
+
           if (btn) {
             btn.disabled = false;
             btn.innerHTML = oldHtml;
           }
         }
       },
-      (error) => {
-        console.error(error);
+      error => {
         if (btn) {
           btn.disabled = false;
           btn.innerHTML = oldHtml;
         }
 
         const messages = {
-          1: "Location permission was denied. Allow location access in your browser.",
-          2: "Your location is currently unavailable.",
-          3: "Location request timed out. Please retry."
+          1:
+            "Location permission was denied. Allow location access in your browser settings.",
+          2:
+            "Your current location is unavailable. Try again outdoors or search your area manually.",
+          3:
+            "Location detection timed out. Please retry."
         };
-        setGpsStatus(`⚠️ ${messages[error.code] || "Could not get your location."}`);
+
+        setGpsStatus(
+          `⚠️ ${
+            messages[error.code] ||
+            "Could not get your location."
+          }`
+        );
       },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 30000
+      }
     );
   }
 
@@ -585,7 +853,7 @@
           }
 
           if (q.length >= 2) searchByArea(q);
-        }, 700);
+        }, 900);
       }, true);
 
       search.addEventListener("keydown", (event) => {
@@ -598,20 +866,6 @@
       }, true);
     }
   }
-
-  window.PulsePointHospitalSearch = {
-    getHospitals() {
-      return hospitals.map(h => ({ ...h }));
-    },
-    updateInventoryLocal(id, patch) {
-      hospitals = hospitals.map(h => h.id === id ? { ...h, ...patch } : h);
-      originalHospitals = originalHospitals.map(h => h.id === id ? { ...h, ...patch } : h);
-      refreshVisibleData();
-    },
-    reload() {
-      return initialLoad();
-    }
-  };
 
   window.PulsePointHospitalSearch = {
     getHospitals() {
