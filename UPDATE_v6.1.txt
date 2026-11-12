@@ -1,0 +1,25 @@
+ARPAN LEARNING SUITE — ULTIMATE v6.1 POLISH + PERFORMANCE PATCH
+
+What changed
+- Daily Motivation moved directly below the student nameplate so it is visible immediately.
+- Restored animated sparkles/light sweep around the student nameplate.
+- Added lightweight ambient background graphics without external image files.
+- Daily Mission and Personal Study Coach made substantially more compact.
+- Home page shortened: weekly goal, leaderboard, streak, XP, timer, profile and subjects are now inside a collapsed “More tools & insights” panel.
+- Removed expensive full-card backdrop blur while preserving the glass/premium look.
+- Replaced per-card 3D mouse listeners + MutationObserver with a lightweight delegated hover effect.
+- Fixed an initial-load duplicate progress/leaderboard fetch.
+- Leaderboard loading is deferred until browser idle time / More tools is opened, so core student content appears sooner.
+- Streak update now runs in parallel with core data loading.
+- Service-worker cache bumped to v6.1.
+
+Deployment
+1. Extract this folder.
+2. Replace/upload files in the SAME GitHub repository root where index.html currently lives.
+3. Commit/push normally. Do not create an extra nested folder in the repository.
+4. Firestore rules are unchanged from Ultimate v6. If v6 rules are already published, you do NOT need to publish them again for this patch.
+5. After GitHub Pages deploys, hard refresh once (Ctrl+Shift+R). On installed PWA, close/reopen; if it still shows the old shell, reinstall the PWA once.
+
+Important
+- Existing Firebase config and database structure are unchanged.
+- Existing student data is not migrated or deleted.

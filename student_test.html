@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Live Test</title>
+<style>
+body{font-family:system-ui,"Noto Sans Bengali",sans-serif;background:#f6f8fb;margin:0;color:#172033}
+.wrap{max-width:900px;margin:auto;padding:16px}.card{background:#fff;border:1px solid #dfe5ef;border-radius:16px;padding:18px;margin:14px 0}
+input{width:100%;padding:12px;border:1px solid #ccd5e2;border-radius:10px;margin:5px 0 10px;box-sizing:border-box}
+button{padding:11px 16px;border:0;border-radius:10px;font-weight:700;background:#3157d5;color:white}
+.q{padding:14px 0;border-bottom:1px solid #e7ebf2}.topic{font-size:12px;color:#3157d5;margin-bottom:6px}
+.opt{display:block;border:1px solid #dfe5ef;border-radius:10px;padding:10px;margin:7px 0}.muted{color:#69758a;font-size:14px}
+.top{position:sticky;top:0;background:#f6f8fb;padding:8px 0;z-index:3}.bar{height:9px;background:#e6eaf2;border-radius:99px;overflow:hidden}.fill{height:100%;background:#3157d5;width:0}
+.hidden{display:none}.ok{background:#eaf8ef;border:1px solid #b9e2c9;padding:16px;border-radius:12px}
+</style><link rel="stylesheet" href="refresh.css?v=10"></head>
+<body><div class="wrap">
+<div class="card"><h1>🧪 Chemistry Unit 1 — Test 1</h1><div class="muted">Class XII · Bengali MCQ · Live autosave</div></div>
+<div id="startCard" class="card">
+<label>নাম</label><input id="name" placeholder="Student name">
+<label>রোল / ID</label><input id="roll" placeholder="Roll / ID">
+<button id="startBtn">Test শুরু করুন</button><div id="msg" class="muted" style="margin-top:10px"></div>
+</div>
+<div id="test" class="hidden">
+<div class="top"><div class="card" style="margin:0"><div class="bar"><div id="fill" class="fill"></div></div><div id="status" class="muted" style="margin-top:7px">0 / 40 answered · 00:00</div></div></div>
+<div class="card"><form id="form"></form><button id="submitBtn" type="button">Submit Test</button></div>
+</div>
+<div id="done" class="card hidden"><div class="ok"><b>✅ Test submitted successfully.</b><br>তোমার উত্তর teacher dashboard-এ চলে গেছে।</div></div>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyCo4BYFrLMH72P8_4ZA4lcVoOMCQsMUDtQ",
+  authDomain: "student-live-tests.firebaseapp.com",
+  projectId: "student-live-tests",
+  storageBucket: "student-live-tests.firebasestorage.app",
+  messagingSenderId: "449736017165",
+  appId: "1:449736017165:web:ffb5e5880717930f345c44",
+  measurementId: "G-4K9XESXJ9J"
+};
+const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
+const TEST_ID="chem_unit1_test1";
+const QUESTIONS=[{"t": "দ্রবণে গ্যাসের দ্রাব্যতা", "q": "তাপমাত্রা বৃদ্ধি করলে সাধারণত তরলে গ্যাসের দ্রাব্যতা কীভাবে পরিবর্তিত হয়?", "o": ["বাড়ে", "কমে", "অপরিবর্তিত থাকে", "প্রথমে বাড়ে, পরে কমে"]}, {"t": "দ্রবণে গ্যাসের দ্রাব্যতা", "q": "Henry-এর সূত্র অনুযায়ী নির্দিষ্ট তাপমাত্রায় তরলে গ্যাসের দ্রাব্যতা কোনটির সঙ্গে সমানুপাতিক?", "o": ["গ্যাসের আংশিক চাপ", "তরলের আয়তন", "দ্রাবকের আণবিক ভর", "গ্যাসের ঘনত্বের বর্গ"]}, {"t": "কঠিন দ্রবণ", "q": "নিচের কোনটি কঠিন দ্রবণ (solid solution)-এর উদাহরণ?", "o": ["বায়ু", "পিতল (Brass)", "লবণ জল", "দুধ"]}, {"t": "বাষ্পচাপ ও Raoult-এর সূত্র", "q": "Raoult-এর সূত্রে কোনো উদ্বায়ী উপাদানের আংশিক বাষ্পচাপ সমান—", "o": ["বিশুদ্ধ উপাদানের বাষ্পচাপ × তার mole fraction", "মোট চাপ × তাপমাত্রা", "mole fraction ÷ বিশুদ্ধ বাষ্পচাপ", "বিশুদ্ধ বাষ্পচাপ + mole fraction"]}, {"t": "বাষ্পচাপ ও Raoult-এর সূত্র", "q": "একটি অউদ্বায়ী দ্রব পদার্থ বিশুদ্ধ দ্রাবকে যোগ করলে দ্রাবকের বাষ্পচাপ—", "o": ["বাড়ে", "কমে", "অপরিবর্তিত থাকে", "শূন্য হয়"]}, {"t": "আপেক্ষিক বাষ্পচাপ হ্রাস", "q": "অতি dilute দ্রবণে আপেক্ষিক বাষ্পচাপ হ্রাস প্রায় সমান—", "o": ["দ্রাবকের mole fraction", "দ্রবের mole fraction", "মোলারিটির বর্গ", "তাপমাত্রা"]}, {"t": "সমষ্টিগত ধর্ম", "q": "নিচের কোনটি colligative property নয়?", "o": ["বাষ্পচাপের আপেক্ষিক হ্রাস", "স্ফুটনাঙ্ক বৃদ্ধি", "হিমাঙ্ক অবনমন", "সান্দ্রতা (viscosity)"]}, {"t": "স্ফুটনাঙ্ক বৃদ্ধি", "q": "অউদ্বায়ী দ্রব পদার্থ যোগ করলে দ্রবণের স্ফুটনাঙ্ক সাধারণত—", "o": ["কমে", "বাড়ে", "একই থাকে", "0°C হয়"]}, {"t": "স্ফুটনাঙ্ক বৃদ্ধি", "q": "স্ফুটনাঙ্ক বৃদ্ধির সঠিক সম্পর্ক কোনটি?", "o": ["ΔTb = Kb m", "ΔTb = Kf m", "ΔTb = m/Kb", "ΔTb = Kb/M"]}, {"t": "হিমাঙ্ক অবনমন", "q": "অউদ্বায়ী দ্রব পদার্থ যোগ করলে দ্রবণের হিমাঙ্ক—", "o": ["বাড়ে", "কমে", "অপরিবর্তিত থাকে", "স্ফুটনাঙ্কের সমান হয়"]}, {"t": "হিমাঙ্ক অবনমন", "q": "হিমাঙ্ক অবনমনের সঠিক সম্পর্ক—", "o": ["ΔTf = Kb m", "ΔTf = Kf m", "ΔTf = Kf/m", "ΔTf = m/Kf"]}, {"t": "অভিস্রবণ চাপ", "q": "অভিস্রবণ চাপ (osmotic pressure)-এর সমীকরণ কোনটি?", "o": ["π = CRT", "π = C/RT", "π = RT/C", "π = Kf m"]}, {"t": "অভিস্রবণ", "q": "Semipermeable membrane-এর মাধ্যমে solvent কোন দিক থেকে কোন দিকে যায়?", "o": ["ঘন দ্রবণ থেকে dilute দ্রবণে", "বিশুদ্ধ দ্রাবক/দিলিউট দ্রবণ থেকে ঘন দ্রবণে", "দ্রব থেকে দ্রাবকে নয়", "শুধু গ্যাসে ঘটে"]}, {"t": "আণবিক ভর নির্ণয়", "q": "উচ্চ আণবিক ভরের পদার্থের molar mass নির্ণয়ে কোন colligative property বেশি সুবিধাজনক?", "o": ["Osmotic pressure", "শুধু বাষ্পচাপ", "Surface tension", "Viscosity"]}, {"t": "van't Hoff factor", "q": "van't Hoff factor i-এর সাধারণ সংজ্ঞা কোনটি?", "o": ["Observed colligative property / calculated colligative property", "Calculated / observed", "Molarity / molality", "Pressure / temperature"]}, {"t": "van't Hoff factor", "q": "দ্রব পদার্থ সম্পূর্ণ dissociate করলে সাধারণত i-এর মান—", "o": ["1-এর কম", "1-এর সমান", "1-এর বেশি", "সবসময় 0"]}, {"t": "van't Hoff factor", "q": "দ্রব পদার্থ association করলে সাধারণত i-এর মান—", "o": ["1-এর কম", "1-এর বেশি", "সবসময় 2", "অসীম"]}, {"t": "অস্বাভাবিক আণবিক ভর", "q": "Colligative property থেকে অস্বাভাবিক molar mass পাওয়ার প্রধান কারণ কী হতে পারে?", "o": ["দ্রবের association বা dissociation", "শুধু দ্রাবকের রং", "পাত্রের আকার", "আলো"]}, {"t": "সংখ্যাত্মক ধারণা", "q": "একই দ্রাবকে সমান molality-র glucose ও urea দ্রবণের ΔTf (ideal অবস্থায়) কেমন হবে?", "o": ["Glucose-এর বেশি", "Urea-এর বেশি", "সমান", "তথ্য অপর্যাপ্ত"]}, {"t": "সংখ্যাত্মক ধারণা", "q": "0.10 m NaCl সম্পূর্ণ dissociate করলে ideal ভাবে effective particle molality প্রায় কত?", "o": ["0.05 m", "0.10 m", "0.20 m", "1.0 m"]}, {"t": "কলয়েড", "q": "কলয়েডীয় কণার আকার সাধারণত কোন পরিসরে থাকে?", "o": ["1 nm-এর কম", "প্রায় 1–1000 nm", "1 cm-এর বেশি", "শুধু 1 mm"]}, {"t": "দ্রবণ-কলয়েড-সাসপেনশন", "q": "নিচের কোনটিতে কণাগুলি সাধারণ filter paper দিয়ে সহজে পৃথক করা যায়?", "o": ["True solution", "Colloid", "Suspension", "সবকটিতে"]}, {"t": "দ্রবণ-কলয়েড-সাসপেনশন", "q": "True solution-এ দ্রব কণার আকার সাধারণত—", "o": ["1 nm-এর কম", "1–1000 nm", "1000 nm-এর বেশি", "1 m"]}, {"t": "Lyophilic/Lyophobic", "q": "Lyophilic colloid বলতে বোঝায়—", "o": ["dispersion medium-এর প্রতি বেশি আকর্ষণযুক্ত colloid", "medium-এর প্রতি কোনো আকর্ষণ নেই", "শুধু ধাতব colloid", "শুধু gas"]}, {"t": "Lyophilic/Lyophobic", "q": "Lyophobic colloid সাধারণত lyophilic colloid-এর তুলনায়—", "o": ["অধিক স্থিতিশীল", "কম স্থিতিশীল", "সবসময় true solution", "কোনো Tyndall effect দেয় না"]}, {"t": "Multimolecular colloid", "q": "Multimolecular colloid কীভাবে গঠিত হয়?", "o": ["অনেক ছোট atom/molecule একত্রিত হয়ে colloidal-size aggregate তৈরি করে", "একটি মাত্র বিশাল অণু দ্বারা", "শুধু ion দ্বারা", "শুধু gas bubble দ্বারা"]}, {"t": "Tyndall effect", "q": "Tyndall effect-এর কারণ—", "o": ["কলয়েড কণার দ্বারা আলোর scattering", "আলোর সম্পূর্ণ absorption", "শুধু reflection", "osmosis"]}, {"t": "Brownian movement", "q": "Brownian movement বলতে বোঝায়—", "o": ["কলয়েড কণার অনিয়মিত zig-zag গতি", "কণার স্থির থাকা", "শুধু নিচে বসে যাওয়া", "electric current"]}, {"t": "Electrophoresis", "q": "Electrophoresis-এ কী ঘটে?", "o": ["বিদ্যুৎক্ষেত্রে charged colloidal particles বিপরীত electrode-এর দিকে চলে", "solvent ফুটে যায়", "কণার আকার শূন্য হয়", "শুধু neutral gas তৈরি হয়"]}, {"t": "Coagulation", "q": "Colloidal solution-এ coagulation বলতে বোঝায়—", "o": ["colloidal particles-এর aggregation/precipitation", "দ্রাবকের evaporation মাত্র", "অণুর ionization", "boiling"]}, {"t": "Coagulation", "q": "Lyophobic sol-এ electrolyte যোগ করলে coagulation হওয়ার প্রধান কারণ—", "o": ["কণার charge neutralization", "তাপমাত্রা সবসময় 0°C হওয়া", "solvent বৃদ্ধি", "molecular mass শূন্য হওয়া"]}, {"t": "Emulsion", "q": "Emulsion হলো—", "o": ["এক তরল অন্য অমিশ্রণীয় তরলে dispersed থাকা colloidal system", "solid in gas", "gas in solid", "true solution only"]}, {"t": "Emulsion", "q": "Oil-in-water emulsion-এ dispersed phase কোনটি?", "o": ["জল", "তেল", "বায়ু", "কঠিন লবণ"]}, {"t": "Emulsion", "q": "Water-in-oil emulsion-এ dispersion medium কোনটি?", "o": ["জল", "তেল", "বায়ু", "কোনোটিই নয়"]}, {"t": "Emulsifier", "q": "Emulsifying agent-এর প্রধান কাজ কী?", "o": ["Emulsion-কে স্থিতিশীল করা", "সব তরলকে ফুটিয়ে তোলা", "হিমাঙ্ক বাড়ানো", "molar mass কমানো"]}, {"t": "বাষ্পচাপ", "q": "একই তাপমাত্রায় বিশুদ্ধ দ্রাবকের তুলনায় অউদ্বায়ী দ্রবযুক্ত দ্রবণের বাষ্পচাপ কম হওয়ার কারণ—", "o": ["পৃষ্ঠে দ্রাবক অণুর mole fraction কমে", "দ্রব অণু সবসময় বাষ্পীভূত হয়", "দ্রাবকের molar mass শূন্য হয়", "চাপের কোনো ভূমিকা নেই"]}, {"t": "Colligative property", "q": "Colligative property প্রধানত কোন বিষয়ের উপর নির্ভর করে?", "o": ["দ্রব কণার প্রকৃতির উপর", "দ্রব কণার সংখ্যার উপর", "দ্রবণের রঙের উপর", "পাত্রের আকৃতির উপর"]}, {"t": "Osmotic pressure numerical", "q": "একই T-তে দুটি dilute দ্রবণের molarity যথাক্রমে 0.10 M ও 0.20 M; non-electrolyte হলে কোনটির osmotic pressure বেশি?", "o": ["0.10 M", "0.20 M", "দুটির সমান", "কোনোটিই নয়"]}, {"t": "van't Hoff numerical", "q": "কোনো দ্রবের জন্য স্বাভাবিকভাবে ΔTf = 1.0 K হওয়ার কথা, কিন্তু observed ΔTf = 2.0 K। i কত?", "o": ["0.5", "1", "2", "4"]}, {"t": "সমন্বিত ধারণা", "q": "নিচের কোন জোড়াটি সঠিকভাবে মেলানো?", "o": ["Tyndall effect — আলোর scattering", "Brownian movement — osmosis", "Electrophoresis — boiling", "Coagulation — vapour pressure বৃদ্ধি"]}];
+let attemptRef=null,startMs=null,timer=null,answers={};
+
+const form=document.getElementById("form");
+form.innerHTML=QUESTIONS.map((x,i)=>`<div class="q"><div class="topic">${x.t}</div><b>${i+1}. ${x.q}</b>${x.o.map((op,j)=>`<label class="opt"><input type="radio" name="q${i}" value="${j}"> ${String.fromCharCode(65+j)}. ${op}</label>`).join("")}</div>`).join("");
+
+function updateStatus(){
+ const n=Object.keys(answers).length;
+ const secs=startMs?Math.floor((Date.now()-startMs)/1000):0;
+ document.getElementById("status").textContent=`${n} / ${QUESTIONS.length} answered · ${String(Math.floor(secs/60)).padStart(2,"0")}:${String(secs%60).padStart(2,"0")}`;
+ document.getElementById("fill").style.width=(n/QUESTIONS.length*100)+"%";
+}
+document.getElementById("startBtn").onclick=async()=>{
+ const name=document.getElementById("name").value.trim(), roll=document.getElementById("roll").value.trim();
+ if(!name)return alert("নাম লিখুন।");
+ try{
+  document.getElementById("msg").textContent="Connecting...";
+  const cred=await signInAnonymously(auth);
+  const attemptId=crypto.randomUUID();
+  attemptRef=doc(db,"attempts",attemptId);
+  await setDoc(attemptRef,{studentUid:cred.user.uid,studentName:name,roll:roll||"",testId:TEST_ID,status:"in_progress",progress:0,answers:{},startedAt:serverTimestamp(),lastUpdated:serverTimestamp()});
+  startMs=Date.now(); timer=setInterval(updateStatus,1000);
+  document.getElementById("startCard").classList.add("hidden");document.getElementById("test").classList.remove("hidden");
+ }catch(e){document.getElementById("msg").textContent="Connection failed: "+e.message;}
+};
+form.addEventListener("change",async(e)=>{
+ if(!attemptRef||e.target.type!=="radio")return;
+ answers[e.target.name]=Number(e.target.value); updateStatus();
+ try{await updateDoc(attemptRef,{answers,progress:Object.keys(answers).length,lastUpdated:serverTimestamp()});}catch(err){console.error(err);}
+});
+document.getElementById("submitBtn").onclick=async()=>{
+ if(!attemptRef)return;
+ const unanswered=QUESTIONS.length-Object.keys(answers).length;
+ if(unanswered>0&&!confirm(`${unanswered}টি প্রশ্ন unanswered. তবুও submit করবে?`))return;
+ if(!confirm("Final submit করতে নিশ্চিত?"))return;
+ clearInterval(timer);
+ const durationSeconds=Math.floor((Date.now()-startMs)/1000);
+ await updateDoc(attemptRef,{status:"submitted",progress:Object.keys(answers).length,answers,durationSeconds,submittedAt:serverTimestamp(),lastUpdated:serverTimestamp()});
+ document.getElementById("test").classList.add("hidden");document.getElementById("done").classList.remove("hidden");
+};
+</script></body></html>

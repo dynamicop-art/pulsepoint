@@ -1,0 +1,26 @@
+ARPAN LEARNING SUITE — NOVA v7
+
+Competition-grade free upgrade focused on intelligence, focus, visual identity and speed.
+
+NEW CORE SYSTEMS
+- NOVA Adaptive Engine: local readiness score + highest-impact Next Best Action.
+- Rescue Plan: compact recovery sequence generated from weak topics, deadlines and readiness.
+- Focus Capsule: distraction-free 15/25/45 minute focus environment with optional generated deep-noise audio.
+- Local Study Memory: Focus Capsule seconds stored only in the browser; 21-day heatmap combines focus time and submitted tests.
+- Exam Readiness Engine: recent accuracy, topic coverage, consistency and confidence calibration combined into an explainable study signal.
+- Learning Constellation: interactive data-driven topic graph; tap a node to jump into focused practice.
+- Quick Find Actions: Command palette now launches Focus Capsule, Smart Feed, Chapter Boss and Next Best Action.
+- Futuristic visual layer: lightweight NOVA scanning glow, animated readiness ring, cursor aura on capable desktop devices, focus orbit.
+
+PRIVACY / COST
+- No new paid API, server or Firebase collection required.
+- Focus time and heatmap are localStorage-only on that browser/device.
+- Readiness is explicitly an estimate, not a predicted guaranteed exam mark.
+- Existing Firebase config/data model stays intact.
+
+DEPLOYMENT
+1. Upload/replace this folder's files in the same GitHub repository root.
+2. Commit/push.
+3. Firestore rules are unchanged from Ultimate v6/v6.1; no republish is needed if those rules are already live.
+4. Hard refresh once after GitHub Pages deploys (Ctrl+Shift+R).
+5. Installed PWA: close/reopen once; if the old shell persists, reinstall once.

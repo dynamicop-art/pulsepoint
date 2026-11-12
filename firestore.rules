@@ -1,0 +1,271 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn(){ return request.auth != null; }
+    function isTeacher(){ return signedIn() && request.auth.token.email == "arpanalaps64@gmail.com"; }
+    function myProfile(){ return get(/databases/$(database)/documents/users/$(request.auth.uid)); }
+    function myClass(){ return myProfile().data.classId; }
+
+    match /invites/{email} {
+      allow read: if isTeacher() || (signedIn() && request.auth.token.email == email);
+      allow create, update, delete: if isTeacher();
+    }
+
+    match /users/{uid} {
+      allow read: if isTeacher() || (signedIn() && uid == request.auth.uid);
+      allow create: if signedIn() && uid == request.auth.uid
+        && exists(/databases/$(database)/documents/invites/$(request.auth.token.email))
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.role == "student"
+        && get(/databases/$(database)/documents/invites/$(request.auth.token.email)).data.active == true
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.classId == get(/databases/$(database)/documents/invites/$(request.auth.token.email)).data.classId
+        && request.resource.data.className == get(/databases/$(database)/documents/invites/$(request.auth.token.email)).data.className
+        && request.resource.data.name == get(/databases/$(database)/documents/invites/$(request.auth.token.email)).data.name
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.keys().hasOnly(['uid','email','name','classId','className','role','createdAt']);
+      // Students may only ever touch their OWN doc, and only these three
+      // self-service fields. Every other field (name/class/role/etc) stays teacher-only.
+      function validAvatar(){
+        return !('avatarData' in request.resource.data.diff(resource.data).affectedKeys())
+          || (request.resource.data.avatarData is string
+              && request.resource.data.avatarData.size() < 210000
+              && (request.resource.data.avatarData == "" || request.resource.data.avatarData.matches('^data:image/.*')));
+      }
+      function validBookmarks(){
+        return !('bookmarks' in request.resource.data.diff(resource.data).affectedKeys())
+          || (request.resource.data.bookmarks is list && request.resource.data.bookmarks.size() < 500);
+      }
+      function validStreak(){
+        return !('streak' in request.resource.data.diff(resource.data).affectedKeys())
+          || (request.resource.data.streak is map && request.resource.data.streak.count is int
+              && request.resource.data.streak.count >= 0 && request.resource.data.streak.count < 100000);
+      }
+      allow update: if isTeacher() || (
+        signedIn() && uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['avatarData','bookmarks','streak'])
+        && validAvatar() && validBookmarks() && validStreak()
+      );
+      allow delete: if isTeacher();
+    }
+
+    match /subjects/{id} {
+      allow read: if isTeacher() || (signedIn() && resource.data.classId == myClass());
+      allow write: if isTeacher();
+    }
+
+    match /notes/{id} {
+      allow read: if isTeacher() || (signedIn() && resource.data.classId == myClass());
+      allow write: if isTeacher();
+    }
+
+    match /tests/{id} {
+      allow read: if isTeacher() || (signedIn() && resource.data.classId == myClass() && resource.data.published == true);
+      allow write: if isTeacher();
+    }
+
+    match /answerKeys/{id} {
+      allow read, write: if isTeacher();
+    }
+
+    match /attempts/{id} {
+      // v5.3 uses one immutable document per attempt. The legacy ID remains
+      // accepted during deployment so an already-open v5.2 page does not fail.
+      function validLegacyAttemptCreate(){
+        return id == (request.resource.data.testId + '_' + request.auth.uid)
+          && request.resource.data.keys().hasOnly([
+            'uid','studentName','classId','testId','testTitle','subjectId',
+            'status','progress','answers','markedForReview','confidence','answerTimeline','startedAt'
+          ]);
+      }
+      function validMultiAttemptCreate(){
+        return request.resource.data.keys().hasAll(['attemptId','attemptToken','attemptNumber','isRetake'])
+          && request.resource.data.keys().hasOnly([
+            'attemptId','attemptToken','attemptNumber','isRetake','uid','studentName',
+            'classId','testId','testTitle','subjectId','status','progress','answers',
+            'markedForReview','confidence','answerTimeline','startedAt'
+          ])
+          && request.resource.data.attemptId == id
+          && request.resource.data.attemptToken is string
+          && request.resource.data.attemptToken.size() >= 12
+          && request.resource.data.attemptToken.size() <= 64
+          && request.resource.data.attemptToken.matches('^[A-Za-z0-9]+$')
+          && id == (request.resource.data.testId + '_' + request.auth.uid + '_' + request.resource.data.attemptToken)
+          && request.resource.data.attemptNumber is int
+          && request.resource.data.attemptNumber > 0
+          && request.resource.data.attemptNumber < 100000
+          && request.resource.data.isRetake is bool;
+      }
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.classId == myClass()
+        && (validLegacyAttemptCreate() || validMultiAttemptCreate())
+        && exists(/databases/$(database)/documents/tests/$(request.resource.data.testId))
+        && get(/databases/$(database)/documents/tests/$(request.resource.data.testId)).data.published == true
+        && get(/databases/$(database)/documents/tests/$(request.resource.data.testId)).data.classId == myClass()
+        && request.resource.data.subjectId == get(/databases/$(database)/documents/tests/$(request.resource.data.testId)).data.subjectId
+        && request.resource.data.testTitle == get(/databases/$(database)/documents/tests/$(request.resource.data.testId)).data.title
+        && request.resource.data.studentName == myProfile().data.name
+        && request.resource.data.status == "in_progress"
+        && request.resource.data.startedAt == request.time
+        && request.resource.data.answers is map
+        && request.resource.data.answers.size() == 0
+        && request.resource.data.markedForReview is list
+        && request.resource.data.markedForReview.size() == 0
+        && (!('confidence' in request.resource.data) || (request.resource.data.confidence is map && request.resource.data.confidence.size() == 0))
+        && (!('answerTimeline' in request.resource.data) || (request.resource.data.answerTimeline is list && request.resource.data.answerTimeline.size() == 0))
+        && request.resource.data.progress is int
+        && request.resource.data.progress == 0
+        && !request.resource.data.keys().hasAny(['score','total','percentage','gradedAt','topicStats','review','submittedAt','autoSubmitted']);
+
+      // Full attempts (including saved answers) stay private.
+      allow read: if isTeacher()
+        || (signedIn() && resource.data.uid == request.auth.uid);
+
+      allow update: if isTeacher() || (
+        signedIn()
+        && resource.data.uid == request.auth.uid
+        && resource.data.status == "in_progress"
+        && (request.resource.data.status == "in_progress" || request.resource.data.status == "submitted")
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.testId == resource.data.testId
+        && request.resource.data.classId == resource.data.classId
+        && request.resource.data.studentName == resource.data.studentName
+        && request.resource.data.testTitle == resource.data.testTitle
+        && request.resource.data.subjectId == resource.data.subjectId
+        && request.resource.data.answers is map
+        && request.resource.data.answers.size() <= 500
+        && request.resource.data.markedForReview is list
+        && request.resource.data.markedForReview.size() <= 500
+        && (!('confidence' in request.resource.data) || (request.resource.data.confidence is map && request.resource.data.confidence.size() <= 500))
+        && (!('answerTimeline' in request.resource.data) || (request.resource.data.answerTimeline is list && request.resource.data.answerTimeline.size() <= 600))
+        && request.resource.data.progress is int
+        && request.resource.data.progress == request.resource.data.answers.size()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'answers','progress','markedForReview','confidence','answerTimeline','lastUpdated','status','submittedAt','autoSubmitted'
+        ])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastUpdated'])
+            || request.resource.data.lastUpdated == request.time)
+        && (
+          (request.resource.data.status == "in_progress"
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['submittedAt','autoSubmitted']))
+          || (request.resource.data.status == "submitted"
+            && request.resource.data.submittedAt == request.time
+            && request.resource.data.autoSubmitted is bool)
+        )
+      );
+
+      allow delete: if isTeacher();
+    }
+
+    // Sanitized scores for class leaderboards; never contains answers or email.
+    match /leaderboardEntries/{id} {
+      allow read: if isTeacher() || (signedIn() && resource.data.classId == myClass());
+      // v5.5: once a test is hidden for deletion, no admin tab/session can
+      // recreate a leaderboard row while the linked attempts are being removed.
+      allow create, update: if isTeacher()
+        && request.resource.data.testId is string
+        && exists(/databases/$(database)/documents/tests/$(request.resource.data.testId))
+        && get(/databases/$(database)/documents/tests/$(request.resource.data.testId)).data.published == true;
+      allow delete: if isTeacher();
+    }
+
+    match /announcements/{id} {
+      allow read: if isTeacher() || (signedIn() && resource.data.classId == myClass());
+      allow write: if isTeacher();
+    }
+
+    match /assignments/{id} {
+      allow read: if isTeacher() || (signedIn() && resource.data.classId == myClass());
+      allow write: if isTeacher();
+    }
+
+    // Doc id convention: {assignmentId}_{uid} so a student can only ever
+    // create/update the completion record that matches their own uid.
+    match /assignmentStatus/{id} {
+      allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create, update: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.classId == myClass()
+        && id == (request.resource.data.assignmentId + '_' + request.auth.uid)
+        && request.resource.data.keys().hasOnly(['uid','assignmentId','classId','done','doneAt'])
+        && request.resource.data.done is bool && request.resource.data.doneAt == request.time
+        && exists(/databases/$(database)/documents/assignments/$(request.resource.data.assignmentId))
+        && get(/databases/$(database)/documents/assignments/$(request.resource.data.assignmentId)).data.classId == myClass();
+      allow delete: if isTeacher();
+    }
+
+    match /doubts/{id} {
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.classId == myClass()
+        && request.resource.data.status == "open"
+        && request.resource.data.question is string
+        && request.resource.data.question.size() > 0
+        && request.resource.data.question.size() < 3000;
+      allow read: if isTeacher() || (signedIn() && resource.data.uid == request.auth.uid);
+      // Only the teacher may answer / change status.
+      allow update: if isTeacher();
+      allow delete: if isTeacher();
+    }
+
+    // v12: opt-in public identity contains no email or private test data.
+    match /classProfiles/{uid} {
+      allow read: if isTeacher() || (signedIn() && resource.data.classId == myClass());
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid','classId','name','avatarData','updatedAt'])
+        && request.resource.data.uid == uid && request.resource.data.classId == myClass()
+        && request.resource.data.name == myProfile().data.name
+        && request.resource.data.avatarData is string && request.resource.data.avatarData.size() < 30000
+        && (request.resource.data.avatarData == '' || request.resource.data.avatarData.matches('^data:image/(jpeg|png|webp);base64,.*'))
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isTeacher() || (signedIn() && request.auth.uid == uid);
+    }
+    // Atomic message + cooldown write: one message per account per 3 seconds.
+    match /chatLimits/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['sentAt','messageId'])
+        && request.resource.data.sentAt == request.time && request.resource.data.messageId is string;
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['sentAt','messageId'])
+        && request.resource.data.sentAt == request.time && request.resource.data.messageId is string
+        && request.time >= resource.data.sentAt + duration.value(3, 's');
+    }
+    match /classChat/{classId} {
+      function member(){return isTeacher() || (signedIn() && myClass() == classId);}
+      function canPost(){return isTeacher() || !exists(/databases/$(database)/documents/classChat/$(classId)/members/$(request.auth.uid))
+        || get(/databases/$(database)/documents/classChat/$(classId)/members/$(request.auth.uid)).data.muted != true;}
+      match /messages/{messageId} {
+        allow read: if member();
+        allow create: if member() && canPost()
+          && request.resource.data.keys().hasOnly(['uid','name','text','createdAt'])
+          && request.resource.data.uid == request.auth.uid
+          && ((isTeacher() && request.resource.data.name == 'Teacher') || (!isTeacher() && request.resource.data.name == myProfile().data.name))
+          && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000
+          && request.resource.data.createdAt == request.time
+          && getAfter(/databases/$(database)/documents/chatLimits/$(request.auth.uid)).data.sentAt == request.time
+          && getAfter(/databases/$(database)/documents/chatLimits/$(request.auth.uid)).data.messageId == messageId;
+        allow delete: if isTeacher() || (member() && resource.data.uid == request.auth.uid);
+      }
+      match /members/{uid} {
+        allow read: if isTeacher() || (member() && request.auth.uid == uid);
+        allow write: if isTeacher();
+      }
+      match /reports/{reportId} {
+        allow read, delete: if isTeacher();
+        allow create: if member() && !isTeacher()
+          && request.resource.data.keys().hasOnly(['messageId','reporterUid','reason','createdAt'])
+          && request.resource.data.reporterUid == request.auth.uid
+          && request.resource.data.messageId is string
+          && reportId == request.resource.data.messageId + '_' + request.auth.uid
+          && exists(/databases/$(database)/documents/classChat/$(classId)/messages/$(request.resource.data.messageId))
+          && request.resource.data.reason is string && request.resource.data.reason.size() > 0 && request.resource.data.reason.size() <= 200
+          && request.resource.data.createdAt == request.time;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

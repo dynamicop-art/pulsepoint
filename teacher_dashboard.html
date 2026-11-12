@@ -1,0 +1,58 @@
+<!doctype html><html lang="bn"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Teacher Live Dashboard</title>
+<style>
+body{font-family:system-ui,"Noto Sans Bengali",sans-serif;background:#f6f8fb;margin:0;color:#172033}.wrap{max-width:1150px;margin:auto;padding:16px}
+.card{background:white;border:1px solid #dfe5ef;border-radius:16px;padding:18px;margin:14px 0}
+input{width:100%;padding:11px;border:1px solid #ccd5e2;border-radius:10px;margin:5px 0 10px;box-sizing:border-box}
+button{padding:10px 14px;border:0;border-radius:9px;font-weight:700;background:#3157d5;color:white}.secondary{background:#edf1f7;color:#24324a}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{background:#f8faff;padding:12px;border-radius:12px;text-align:center}
+table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid #e5eaf2;text-align:left}th{background:#f8faff}
+.hidden{display:none}.live{color:#0b8a4a;font-weight:700}.done{color:#3157d5;font-weight:700}.muted{color:#6b7488;font-size:13px}
+@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}table{font-size:13px}}
+</style><link rel="stylesheet" href="refresh.css?v=10"></head><body><div class="wrap">
+<div class="card"><h1>👩‍🏫 Teacher Live Dashboard</h1><div class="muted">Chemistry Unit 1 · Realtime Firestore monitoring</div></div>
+<div id="login" class="card"><label>Teacher email</label><input id="email" type="email"><label>Password</label><input id="password" type="password"><button id="loginBtn">Login</button><div id="loginMsg" class="muted"></div></div>
+<div id="dash" class="hidden">
+<div class="card grid"><div class="stat"><b id="total">0</b><div>Total attempts</div></div><div class="stat"><b id="active">0</b><div>Live now</div></div><div class="stat"><b id="submitted">0</b><div>Submitted</div></div><div class="stat"><b id="avg">—</b><div>Average score</div></div></div>
+<div class="card"><button id="logoutBtn" class="secondary">Logout</button> <button id="csvBtn">Export CSV</button></div>
+<div class="card"><div style="overflow:auto"><table><thead><tr><th>Student</th><th>Roll</th><th>Status</th><th>Progress</th><th>Time</th><th>Score</th><th>Details</th></tr></thead><tbody id="tbody"></tbody></table></div></div>
+<div id="details" class="card hidden"></div></div></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyCo4BYFrLMH72P8_4ZA4lcVoOMCQsMUDtQ",
+  authDomain: "student-live-tests.firebaseapp.com",
+  projectId: "student-live-tests",
+  storageBucket: "student-live-tests.firebasestorage.app",
+  messagingSenderId: "449736017165",
+  appId: "1:449736017165:web:ffb5e5880717930f345c44",
+  measurementId: "G-4K9XESXJ9J"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const TEST_ID="chem_unit1_test1",ANSWERS=[1, 0, 1, 0, 1, 1, 3, 1, 0, 1, 1, 0, 1, 0, 0, 2, 0, 0, 2, 2, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 0],TOPICS=["দ্রবণে গ্যাসের দ্রাব্যতা", "দ্রবণে গ্যাসের দ্রাব্যতা", "কঠিন দ্রবণ", "বাষ্পচাপ ও Raoult-এর সূত্র", "বাষ্পচাপ ও Raoult-এর সূত্র", "আপেক্ষিক বাষ্পচাপ হ্রাস", "সমষ্টিগত ধর্ম", "স্ফুটনাঙ্ক বৃদ্ধি", "স্ফুটনাঙ্ক বৃদ্ধি", "হিমাঙ্ক অবনমন", "হিমাঙ্ক অবনমন", "অভিস্রবণ চাপ", "অভিস্রবণ", "আণবিক ভর নির্ণয়", "van't Hoff factor", "van't Hoff factor", "van't Hoff factor", "অস্বাভাবিক আণবিক ভর", "সংখ্যাত্মক ধারণা", "সংখ্যাত্মক ধারণা", "কলয়েড", "দ্রবণ-কলয়েড-সাসপেনশন", "দ্রবণ-কলয়েড-সাসপেনশন", "Lyophilic/Lyophobic", "Lyophilic/Lyophobic", "Multimolecular colloid", "Tyndall effect", "Brownian movement", "Electrophoresis", "Coagulation", "Coagulation", "Emulsion", "Emulsion", "Emulsion", "Emulsifier", "বাষ্পচাপ", "Colligative property", "Osmotic pressure numerical", "van't Hoff numerical", "সমন্বিত ধারণা"];
+let attempts=[],unsub=null;
+function scoreAttempt(a){let score=0,answered=0;for(let i=0;i<ANSWERS.length;i++){const v=a.answers?.["q"+i];if(v!==undefined){answered++;if(Number(v)===ANSWERS[i])score++;}}return{score,answered,pct:Math.round(score/ANSWERS.length*100)};}
+function fmt(sec){if(sec==null)return"—";return String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0");}
+function elapsed(a){if(a.durationSeconds!=null)return a.durationSeconds;if(a.startedAt?.toDate)return Math.max(0,Math.floor((Date.now()-a.startedAt.toDate().getTime())/1000));return null;}
+function render(){
+ let submittedScores=[];
+ document.getElementById("tbody").innerHTML=attempts.map((a,idx)=>{const s=scoreAttempt(a);if(a.status==="submitted")submittedScores.push(s.score);return `<tr><td>${a.studentName||"—"}</td><td>${a.roll||"—"}</td><td class="${a.status==="submitted"?"done":"live"}">${a.status==="submitted"?"Submitted":"● Live"}</td><td>${s.answered}/${ANSWERS.length}</td><td>${fmt(elapsed(a))}</td><td>${a.status==="submitted"?s.score+"/"+ANSWERS.length:"Hidden"}</td><td><button data-i="${idx}" class="detailBtn">View</button></td></tr>`;}).join("");
+ document.getElementById("total").textContent=attempts.length;document.getElementById("active").textContent=attempts.filter(a=>a.status!=="submitted").length;document.getElementById("submitted").textContent=attempts.filter(a=>a.status==="submitted").length;document.getElementById("avg").textContent=submittedScores.length?(submittedScores.reduce((x,y)=>x+y,0)/submittedScores.length).toFixed(1)+"/"+ANSWERS.length:"—";
+ document.querySelectorAll(".detailBtn").forEach(b=>b.onclick=()=>showDetails(Number(b.dataset.i)));
+}
+function showDetails(i){
+ const a=attempts[i],s=scoreAttempt(a),by={};
+ TOPICS.forEach((t,idx)=>{if(!by[t])by[t]={c:0,n:0};by[t].n++;if(a.answers?.["q"+idx]!==undefined&&Number(a.answers["q"+idx])===ANSWERS[idx])by[t].c++;});
+ const rows=Object.entries(by).map(([t,v])=>`<tr><td>${t}</td><td>${v.c}/${v.n}</td><td>${Math.round(v.c/v.n*100)}%</td></tr>`).join("");
+ document.getElementById("details").innerHTML=`<h3>${a.studentName} — Details</h3><p><b>Status:</b> ${a.status} · <b>Progress:</b> ${s.answered}/${ANSWERS.length} · <b>Score:</b> ${a.status==="submitted"?s.score+"/"+ANSWERS.length:"hidden until submit"}</p><table><thead><tr><th>Topic</th><th>Correct</th><th>Accuracy</th></tr></thead><tbody>${rows}</tbody></table>`;
+ document.getElementById("details").classList.remove("hidden");
+}
+document.getElementById("loginBtn").onclick=async()=>{try{await signInWithEmailAndPassword(auth,document.getElementById("email").value.trim(),document.getElementById("password").value);}catch(e){document.getElementById("loginMsg").textContent=e.message;}};
+document.getElementById("logoutBtn").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,user=>{if(user){document.getElementById("login").classList.add("hidden");document.getElementById("dash").classList.remove("hidden");const q=query(collection(db,"attempts"),where("testId","==",TEST_ID));unsub=onSnapshot(q,snap=>{attempts=snap.docs.map(d=>({id:d.id,...d.data()}));attempts.sort((a,b)=>(b.startedAt?.seconds||0)-(a.startedAt?.seconds||0));render();});}else{if(unsub)unsub();document.getElementById("dash").classList.add("hidden");document.getElementById("login").classList.remove("hidden");}});
+setInterval(()=>{if(attempts.length)render();},1000);
+document.getElementById("csvBtn").onclick=()=>{const rows=[["Name","Roll","Status","Answered","Score","Percentage","Duration"]];attempts.forEach(a=>{const s=scoreAttempt(a);rows.push([a.studentName||"",a.roll||"",a.status,s.answered,a.status==="submitted"?s.score:"",a.status==="submitted"?s.pct:"",elapsed(a)??""]);});const csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(blob),x=document.createElement("a");x.href=u;x.download="chem_unit1_test1_results.csv";x.click();URL.revokeObjectURL(u);};
+</script></body></html>

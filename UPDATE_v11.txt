@@ -1,0 +1,29 @@
+PREMIUM LEARNING SPACE — v11
+
+A shorter Home
+Home now has exactly three main panels: a focus launcher, today's shortcuts and daily missions. The interface keeps the existing data and controls; tools are relocated instead of deleted.
+
+Where everything lives
+- Home: daily starter challenge, 10-minute focus shortcut, seven-day focus activity, assignment/test shortcuts and missions.
+- My Desk: saved checklist, quick notes, calendar export, study coach and focus/break timer.
+- Updates: notices and daily motivation.
+- Progress: performance snapshot, existing analytics, weekly goal, leaderboard, streak and learning level.
+- Notes: existing notes/flashcards plus subjects.
+- Profile: profile picture settings. Clicking your avatar opens this section.
+- Tests, Assignments, Revision, History, Games and Doubts retain their existing functions.
+
+Navigation and design
+Desktop sidebar; compact tablet navigation; mobile bottom navigation with all other destinations in More. Restrained lavender, sage and neutral surfaces. Existing large avatar is balanced with a shorter header. Calm mode reduces animation and hides dashboard distractions; Exit calm mode restores them.
+
+Engagement
+A daily rotating recall challenge, a one-click 10-minute focus session, timer status visible across sections and a seven-day activity strip. Focus activity is saved on this browser per account. Timer completion is self-directed study time, not proof of learning or extra exam points. Break sessions do not count. Timer uses elapsed wall-clock time and corrects itself when returning from a background tab. Leaving/reloading the page resets the active timer. Activity, checklist and notes are not cloud-synced.
+
+Deployment
+Upload all files inside Student-Live-Test-main to your existing website folder, including premium.css and premium-shell.js. No Firebase config/rules migration is required. Service-worker cache version is updated. After deployment reload the page; if an older version remains visible, close and reopen the website.
+
+Validation
+- All inline HTML JavaScript and the new layout script pass syntax checks.
+- DOM fixture checks: every original ID preserved exactly once; moved tools have correct destinations; Home has three panels; calm mode toggles.
+- Timer logic checks: elapsed-time correction, pause/resume, completion and exclusion of breaks.
+- Existing study-desk tests: save/restore, per-account isolation, safe task text, completion, calendar escaping/year rollover, storage failure.
+- Browser rendering and live Firebase authentication/database operations have not been verified in this environment. Check on your deployed site, including mobile light/dark modes.

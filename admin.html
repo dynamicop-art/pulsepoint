@@ -1,0 +1,563 @@
+<!doctype html><html lang="bn"><head>
+<script>try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#4c1d95"><meta name="color-scheme" content="light dark">
+<title>Teacher Admin</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236d28d9'/%3E%3Cstop offset='1' stop-color='%230891b2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='url(%23g)'/%3E%3Ctext x='50' y='66' font-size='52' font-family='Poppins,sans-serif' font-weight='700' fill='%23fff' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css?v=9.0-stable"><link rel="stylesheet" href="refresh.css?v=10"></head>
+<body>
+<button id="themeBtn" class="theme-fab" type="button" title="Switch theme">🌙</button>
+<div class="wrap">
+<section class="hero topbar"><div><div class="brand-line"><span class="brand-dot"></span> Arpan Learning Suite</div><h1>Teacher Command Center</h1><p>Students, subjects, notes, assessments এবং live performance — সব এক clean workspace থেকে manage করুন।</p></div><button id="logout" class="secondary">Logout</button></section>
+
+<section id="loginCard" class="card"><span class="pill gold">🔐 Teacher only</span><h2>Admin Login</h2>
+<input id="email" type="email" placeholder="Teacher email"><input id="pass" type="password" placeholder="Password">
+<button id="doLogin">Login</button><p id="msg" class="muted"></p></section>
+
+<div id="app" class="hidden">
+<nav class="nav admin-nav">
+<button class="active" data-tab="dashboard">📊 Dashboard</button>
+<button data-tab="students">👥 Students</button><button data-tab="subjects">📘 Subjects</button>
+<button data-tab="notes">📝 Notes</button><button data-tab="tests">🧪 Tests</button>
+<button data-tab="importer">⚡ Import Test</button><button data-tab="results">Live Results</button>
+<button data-tab="announcements">📣 Notices</button><button data-tab="assignments">📌 Assignments</button>
+<button data-tab="doubts">💬 Doubts</button>
+<button id="adminMoreNavBtn" class="mobile-more" type="button" aria-controls="adminMoreNavSheet" aria-expanded="false">☰ More</button>
+</nav>
+
+<section id="dashboard" class="tab">
+<div class="statgrid">
+<div class="stat"><b id="stStudents">0</b>Students</div><div class="stat"><b id="stSubjects">0</b>Subjects</div>
+<div class="stat"><b id="stTests">0</b>Tests</div><div class="stat"><b id="stLive">0</b>Live attempts</div>
+<div class="stat"><b id="stDoubts">0</b>Open doubts</div><div class="stat"><b id="stAssign">0</b>Assignments</div>
+<div class="stat"><b id="stAvg">—</b>Class Average</div><div class="stat"><b id="stTop">—</b>Top Performer</div>
+</div>
+<div class="card"><h2>Quick workflow</h2><a class="btn secondary" href="community.html">◌ Class chat & moderation</a><p>1) Student allow করুন → 2) Subject তৈরি করুন → 3) Notes/Test publish করুন → 4) Live Result দেখুন। Notice/Assignment/Doubts যেকোনো সময় manage করা যাবে।</p></div>
+<div class="card"><h2>🎯 Revision Priority</h2><p class="muted">যাদের graded average 60%-এর নিচে, তাদের জন্য আগে revision support plan করো। এটি student-দের দেখানো হয় না।</p><div id="revisionPriority"><p class="muted">Graded results এলে summary দেখা যাবে।</p></div></div>
+</section>
+
+<section id="students" class="tab card hidden"><h2>👥 Allow Student</h2>
+<div class="row"><input id="invName" placeholder="Student name"><input id="invEmail" type="email" placeholder="Student email"></div>
+<div class="row"><input id="invClassId" placeholder="Class ID: class5 / class12"><input id="invClassName" placeholder="Display: Class V / Class XII"></div>
+<button id="addInvite">Add / Update Student</button><div id="inviteList"></div></section>
+
+<section id="subjects" class="tab card hidden"><h2>📘 Subjects</h2>
+<p class="muted">একই Class-এ একই Subject name দ্বিতীয়বার save করা যাবে না।</p>
+<div class="row"><input id="subName" placeholder="Subject name"><select id="subClassId" aria-label="Select class for subject"><option value="">Select Class</option></select></div>
+<button id="addSubject">Add Subject</button><p id="subMsg" class="muted"></p><div id="subjectList"></div></section>
+
+<section id="notes" class="tab card hidden"><h2>📝 Notes Publisher</h2>
+<div class="row"><input id="noteTitle" placeholder="Note title"><select id="noteClassId" aria-label="Select class for note"><option value="">Select Class</option></select><select id="noteSubjectId" aria-label="Select subject for note"><option value="">Select Class first</option></select><input id="noteChapter" placeholder="Chapter (optional)"></div>
+<textarea id="noteContent" placeholder="বাংলায় short note / formula / explanation paste করুন..."></textarea>
+<label class="muted">Optional tiny PDF/image, maximum 80 KB</label><input id="noteFile" type="file" accept=".pdf,image/*">
+<button id="addNote">Publish Note</button><p id="noteMsg" class="muted"></p><div id="noteList"></div></section>
+
+<section id="tests" class="tab card hidden"><h2>🧪 Manual Test Creator</h2>
+<div class="row"><input id="testTitle" placeholder="Test title"><select id="testClassId" aria-label="Select class for test"><option value="">Select Class</option></select><select id="testSubjectId" aria-label="Select subject for test"><option value="">Select Class first</option></select><input id="testChapter" placeholder="Unit / Chapter name" aria-label="Unit or chapter name"><input id="testDuration" type="number" value="30" min="1" placeholder="Minutes"></div>
+<div id="questionEditor"></div><button id="addQ" class="secondary">+ Add Question</button> <button id="saveTest">Save & Publish</button><p id="testMsg" class="muted"></p>
+<hr><div class="test-catalog-title"><div><span class="section-kicker">PUBLISHED TEST LIBRARY</span><h2>🔎 Find Tests Quickly</h2><p class="muted">Class → Subject → Unit/Chapter নির্বাচন করুন। All Classes রাখলে সব test grouped অবস্থায় দেখা যাবে।</p></div><span id="adminTestCount" class="pill">0 tests</span></div>
+<div class="filter-bar test-catalog-filters"><select id="adminTestClassFilter" aria-label="Filter tests by class"><option value="">All Classes</option></select><select id="adminTestSubjectFilter" aria-label="Filter tests by subject" disabled><option value="">Select Class first</option></select><select id="adminTestUnitFilter" aria-label="Filter tests by unit or chapter" disabled><option value="">Select Subject first</option></select><input id="adminTestSearch" type="search" placeholder="🔍 Search test title..."><button id="adminTestClear" type="button" class="secondary">Reset</button></div>
+<p id="adminTestScope" class="filter-scope" role="status">All published tests</p><p id="adminTestActionMsg" class="muted" role="status"></p><div id="testList" class="test-catalog"></div></section>
+
+<section id="importer" class="tab card hidden">
+<span class="pill">⚡ Fastest method</span><h2>Copy-Paste Test Import</h2>
+<p class="muted">Class ও Subject এখানে select করলে pasted block-এর CLASS/SUBJECT_ID automatically replace হবে। একাধিক TEST block-এ একই selection apply হবে।</p>
+<div class="item selector-panel"><h3>🎯 Import Destination</h3><div class="row"><select id="importClass" aria-label="Select class for imported test"><option value="">Select Class</option></select><select id="importSubject" aria-label="Select subject for imported test"><option value="">Select Class first</option></select></div></div>
+<div class="item"><h3>🤖 Free Test Prompt Helper</h3><div class="row"><select id="aiClass" aria-label="Select class for AI prompt"><option value="">Select Class</option></select><select id="aiSubject" aria-label="Select subject for AI prompt"><option value="">Select Class first</option></select><input id="aiTopic" placeholder="Topic"><input id="aiCount" type="number" min="3" max="30" value="10"></div><button id="aiTestPrompt" class="secondary">Copy Prompt & Open ChatGPT</button></div>
+<textarea id="importBox" style="min-height:360px" placeholder="Paste complete test block here..."></textarea>
+<div class="row"><input id="adminImportFile" type="file" accept=".txt,.md,text/plain,text/markdown" aria-label="Import test file"><button id="previewImport">Preview Import</button><button id="loadSample" class="secondary">Load Sample</button></div>
+<div id="importPreview"></div>
+<button id="publishImport" class="hidden">✅ Publish Imported Test</button><p id="importMsg" class="muted"></p>
+</section>
+
+<section id="results" class="tab card hidden"><h2>📊 Live Results</h2>
+<p class="muted">সব retake এখানে থাকবে; leaderboard ও official summary-তে প্রত্যেক student-এর প্রথম submitted attempt-ই গণনা হবে। Reset করলে সেই student-এর ওই test-এর সব attempts এবং leaderboard row মুছে যাবে।</p>
+<div class="filter-bar"><input id="attemptSearch" placeholder="Search student or test"><select id="attemptStatusFilter" aria-label="Filter attempts by status"><option value="">All statuses</option><option value="in_progress">In progress</option><option value="submitted">Submitted</option></select><button id="exportCsv" class="secondary">⬇️ Export CSV</button></div><p id="attemptActionMsg" class="muted" role="status"></p><div id="attemptList"></div><hr><button id="purgeSubmitted" class="danger">🗑 Delete all submitted attempts + leaderboard rows</button></section>
+
+<section id="announcements" class="tab card hidden"><h2>📣 Notice Board</h2>
+<p class="muted">এখানে যা পাবলিশ করবে সেটা সেই Class-এর সব ছাত্রছাত্রীর Home tab-এ দেখা যাবে।</p>
+<div class="row"><input id="annTitle" placeholder="Notice title"><select id="annClassId" aria-label="Select class for notice"><option value="">Select Class</option></select></div>
+<textarea id="annContent" placeholder="Notice টেক্সট লিখুন..."></textarea>
+<button id="addAnn">Publish Notice</button><p id="annMsg" class="muted"></p><div id="annList"></div></section>
+
+<section id="assignments" class="tab card hidden"><h2>📌 Homework / Assignments</h2>
+<div class="row"><input id="asgTitle" placeholder="Assignment title"><select id="asgClassId" aria-label="Select class for assignment"><option value="">Select Class</option></select><select id="asgSubjectId" aria-label="Select subject for assignment"><option value="">Select Class first</option></select><input id="asgDue" type="date"></div>
+<textarea id="asgDesc" placeholder="কী করতে হবে তার বিবরণ..."></textarea>
+<button id="addAsg">Publish Assignment</button><p id="asgMsg" class="muted"></p><div id="asgList"></div></section>
+
+<section id="doubts" class="tab card hidden"><h2>💬 Doubt Box</h2>
+<p class="muted">ছাত্রছাত্রীরা যেসব প্রশ্ন পাঠিয়েছে, এখান থেকে reply দিন।</p>
+<div id="doubtList"></div></section>
+
+<div id="adminMoreNavSheet" class="nav-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="adminMoreNavTitle" aria-hidden="true"><button id="closeAdminMoreNav" class="nav-sheet-backdrop" type="button" aria-label="Close menu"></button><div class="nav-sheet-card"><div class="nav-sheet-head"><b id="adminMoreNavTitle">Teacher Tools</b><button id="closeAdminMoreNavTop" type="button" class="secondary" aria-label="Close teacher tools">✕</button></div><div class="nav-sheet-grid"><button data-admin-tab="subjects">📘<span>Subjects</span></button><button data-admin-tab="notes">📝<span>Notes</span></button><button data-admin-tab="importer">⚡<span>Import Test</span></button><button data-admin-tab="results">📈<span>Results</span></button><button data-admin-tab="announcements">📣<span>Notices</span></button><button data-admin-tab="assignments">📌<span>Assignments</span></button><button data-admin-tab="doubts">💬<span>Doubts</span></button></div></div></div>
+</div></div>
+
+<script type="module">
+let mountCardTilt=()=>{},mountButtonRipples=()=>{},mountHeroSparkle=()=>{};try{const fx=await import("./effects.js");({mountCardTilt,mountButtonRipples,mountHeroSparkle}=fx);mountHeroSparkle();mountCardTilt();mountButtonRipples();}catch(e){console.warn("Optional effects unavailable",e);}
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getFirestore,collection,doc,setDoc,addDoc,getDocs,getDoc,query,where,onSnapshot,updateDoc,deleteDoc,serverTimestamp,runTransaction,writeBatch} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {firebaseConfig,TEACHER_EMAIL} from "./config.js";
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
+let adminInvites=[],adminSubjects=[],adminTests=[],adminTestsLoaded=false;
+const deletingTestIds=new Set(),editingTestIds=new Set();
+const CLASS_SELECT_IDS=["subClassId","noteClassId","testClassId","importClass","aiClass","annClassId","asgClassId"];
+const SUBJECT_LINKS=[["noteClassId","noteSubjectId"],["testClassId","testSubjectId"],["importClass","importSubject"],["aiClass","aiSubject"],["asgClassId","asgSubjectId"]];
+
+function normalizedSubjectName(name){return String(name||"").normalize("NFKC").trim().replace(/\s+/g," ").toLowerCase();}
+function cleanedTestTitle(name){return String(name||"").normalize("NFKC").trim().replace(/\s+/g," ");}
+function normalizedTestTitle(name){return cleanedTestTitle(name).toLocaleLowerCase();}
+function cleanedUnitName(name){return String(name||"").normalize("NFKC").trim().replace(/\s+/g," ");}
+function normalizedUnitKey(name){return (cleanedUnitName(name)||"Uncategorized").toLocaleLowerCase();}
+function displayUnitName(name){return cleanedUnitName(name)||"Uncategorized";}
+function naturalCompare(a,b){return String(a||"").localeCompare(String(b||""),undefined,{numeric:true,sensitivity:"base"});}
+function stableHash(text){let hash=2166136261;for(let i=0;i<text.length;i++)hash=Math.imul(hash^text.charCodeAt(i),16777619);return (hash>>>0).toString(36);}
+async function deterministicSubjectId(classId,name){
+ const source=`${classId}\u001f${name}`;
+ try{
+  const bytes=new TextEncoder().encode(source),digest=await crypto.subtle.digest("SHA-256",bytes);
+  return "subject_"+[...new Uint8Array(digest)].slice(0,12).map(x=>x.toString(16).padStart(2,"0")).join("");
+ }catch{return `subject_${stableHash(source)}`;}
+}
+function availableClasses(){
+ const classes=new Map();
+ adminInvites.filter(x=>x.active!==false).forEach(x=>{
+  const id=String(x.classId||"").trim();if(!id)return;
+  const name=String(x.className||id).trim()||id;
+  classes.set(id,{value:id,label:name===id?id:`${name} — ${id}`});
+ });
+ adminSubjects.forEach(x=>{
+  const id=String(x.classId||"").trim();if(id&&!classes.has(id))classes.set(id,{value:id,label:id});
+ });
+ adminTests.forEach(x=>{
+  const id=String(x.classId||"").trim();if(id&&!classes.has(id))classes.set(id,{value:id,label:id});
+ });
+ return [...classes.values()].sort((a,b)=>a.label.localeCompare(b.label,undefined,{numeric:true,sensitivity:"base"}));
+}
+function replaceSelectOptions(id,placeholder,items){
+ const select=$(id);if(!select)return;
+ const previous=select.value;select.replaceChildren(new Option(placeholder,""));
+ items.forEach(item=>select.add(new Option(item.label,item.value)));
+ if(items.some(item=>item.value===previous))select.value=previous;
+ else if(items.length===1)select.value=items[0].value;
+ else select.value="";
+}
+function refreshSubjectSelect(classSelectId,subjectSelectId){
+ const classId=$(classSelectId)?.value||"";
+ const subjects=adminSubjects.filter(x=>x.classId===classId).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),undefined,{numeric:true,sensitivity:"base"})).map(x=>({value:x.id,label:x.name||x.id}));
+ const placeholder=!classId?"Select Class first":subjects.length?"Select Subject":"No Subject in this Class";
+ replaceSelectOptions(subjectSelectId,placeholder,subjects);
+}
+function refreshAdminSelectors(){
+ const classes=availableClasses(),placeholder=classes.length?"Select Class":"Add a Student/Class first";
+ CLASS_SELECT_IDS.forEach(id=>replaceSelectOptions(id,placeholder,classes));
+ SUBJECT_LINKS.forEach(([classId,subjectId])=>refreshSubjectSelect(classId,subjectId));
+}
+function bindAdminSelectors(){
+ SUBJECT_LINKS.forEach(([classId,subjectId])=>{
+  const select=$(classId);if(select&&!select.dataset.subjectLinkBound){select.dataset.subjectLinkBound="1";select.addEventListener("change",()=>refreshSubjectSelect(classId,subjectId));}
+ });
+}
+function selectedSubjectFor(classId,subjectId){return adminSubjects.find(x=>x.id===subjectId&&x.classId===classId)||null;}
+function requireClassSubject(classId,subjectId){
+ if(!classId)throw new Error("একটি Class select করুন।");
+ if(!subjectId)throw new Error("একটি Subject select করুন।");
+ const subject=selectedSubjectFor(classId,subjectId);
+ if(!subject)throw new Error("এই Class-এর জন্য valid Subject select করুন।");
+ return subject;
+}
+function adminClassLabel(classId){return availableClasses().find(x=>x.value===classId)?.label||classId||"Unknown Class";}
+function adminSubjectLabel(subjectId){return adminSubjects.find(x=>x.id===subjectId)?.name||subjectId||"Unknown Subject";}
+function replaceFilterOptions(id,placeholder,items,preferred){
+ const select=$(id),wanted=preferred===undefined?select.value:preferred;select.replaceChildren(new Option(placeholder,""));
+ items.forEach(item=>select.add(new Option(item.label,item.value)));select.value=items.some(item=>item.value===wanted)?wanted:"";
+}
+function unitFilterItems(items){
+ const units=new Map();items.forEach(test=>{const key=normalizedUnitKey(test.chapter);if(!units.has(key))units.set(key,displayUnitName(test.chapter));});
+ return [...units].map(([value,label])=>({value,label})).sort((a,b)=>naturalCompare(a.label,b.label));
+}
+function refreshAdminTestFilters({resetSubject=false,resetUnit=false}={}){
+ const classItems=[...new Set(adminTests.map(t=>String(t.classId||"").trim()).filter(Boolean))].map(value=>({value,label:adminClassLabel(value)})).sort((a,b)=>naturalCompare(a.label,b.label));
+ replaceFilterOptions("adminTestClassFilter","All Classes",classItems);
+ const classId=$("adminTestClassFilter").value,subjectItems=classId?[...new Set(adminTests.filter(t=>t.classId===classId).map(t=>t.subjectId).filter(Boolean))].map(value=>({value,label:adminSubjectLabel(value)})).sort((a,b)=>naturalCompare(a.label,b.label)):[];
+ replaceFilterOptions("adminTestSubjectFilter",classId?"All Subjects":"Select Class first",subjectItems,resetSubject?"":undefined);$("adminTestSubjectFilter").disabled=!classId||!subjectItems.length;
+ const subjectId=$("adminTestSubjectFilter").value,unitItems=classId&&subjectId?unitFilterItems(adminTests.filter(t=>t.classId===classId&&t.subjectId===subjectId)):[];
+ replaceFilterOptions("adminTestUnitFilter",subjectId?"All Units / Chapters":"Select Subject first",unitItems,resetUnit?"":undefined);$("adminTestUnitFilter").disabled=!subjectId||!unitItems.length;
+ renderAdminTestList();
+}
+function filteredAdminTests(){
+ const classId=$("adminTestClassFilter").value,subjectId=$("adminTestSubjectFilter").value,unit=$("adminTestUnitFilter").value,q=$("adminTestSearch").value.trim().toLocaleLowerCase();
+ return adminTests.filter(t=>(!classId||t.classId===classId)&&(!subjectId||t.subjectId===subjectId)&&(!unit||normalizedUnitKey(t.chapter)===unit)&&(!q||`${t.title||""} ${displayUnitName(t.chapter)} ${adminSubjectLabel(t.subjectId)} ${adminClassLabel(t.classId)}`.toLocaleLowerCase().includes(q))).sort((a,b)=>naturalCompare(`${adminClassLabel(a.classId)}\u0000${adminSubjectLabel(a.subjectId)}\u0000${displayUnitName(a.chapter)}\u0000${a.title}`,`${adminClassLabel(b.classId)}\u0000${adminSubjectLabel(b.subjectId)}\u0000${displayUnitName(b.chapter)}\u0000${b.title}`));
+}
+function renderAdminTestList(){
+ const list=filteredAdminTests(),groups=new Map();list.forEach(test=>{const key=`${test.classId}\u001f${test.subjectId}\u001f${normalizedUnitKey(test.chapter)}`;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(test);});
+ $("adminTestCount").textContent=`${list.length} / ${adminTests.length} tests`;
+ const classId=$("adminTestClassFilter").value,subjectId=$("adminTestSubjectFilter").value,unit=$("adminTestUnitFilter").value,unitLabel=unit?$("adminTestUnitFilter").selectedOptions[0]?.textContent||unit:"All Units";$("adminTestScope").textContent=`Showing: ${classId?adminClassLabel(classId):"All Classes"} · ${subjectId?adminSubjectLabel(subjectId):"All Subjects"} · ${unitLabel}`;
+ $("testList").innerHTML=[...groups.values()].map(items=>{const first=items[0],unitName=displayUnitName(first.chapter);return `<section class="test-catalog-group"><div class="test-group-head"><div><span class="pill">${esc(adminClassLabel(first.classId))}</span> <span class="pill teal">${esc(adminSubjectLabel(first.subjectId))}</span><h3>${esc(unitName)}</h3></div><span class="pill gold">${items.length} exam${items.length===1?"":"s"}</span></div><div class="test-card-grid">${items.map(t=>`<article class="test-library-card"><div class="topbar"><div><b>${esc(t.title||"Untitled Test")}</b><small class="muted">${t.published===false?"Hidden from students":"Published"} · ${esc(adminDate(t.createdAt))}</small></div><div class="test-card-badges"><span class="pill">${Number(t.questionCount)||t.questions?.length||0} Q</span>${t.published===false?'<span class="pill gold">Hidden</span>':""}</div></div><div class="test-meta-line"><span>⏱ ${Number(t.durationMinutes)||0} min</span><span>🧩 ${esc(unitName)}</span></div><details><summary>Test ID</summary><code>${esc(t.id)}</code></details><div class="test-card-actions"><button type="button" class="secondary edit-published-test" data-id="${esc(t.id)}" ${deletingTestIds.has(t.id)||editingTestIds.has(t.id)?"disabled":""}>✏️ Edit Name</button><button type="button" class="danger delete-published-test" data-id="${esc(t.id)}" ${deletingTestIds.has(t.id)||editingTestIds.has(t.id)?"disabled":""}>🗑 Delete Test</button></div></article>`).join("")}</div></section>`;}).join("")||"<div class='catalog-empty'><b>No matching tests</b><span>Filter change করুন অথবা Reset চাপুন।</span></div>";
+ document.querySelectorAll(".edit-published-test").forEach(button=>{button.onclick=()=>editPublishedTestName(button.dataset.id,button);});
+ document.querySelectorAll(".delete-published-test").forEach(button=>{button.onclick=()=>deletePublishedTest(button.dataset.id,button);});
+}
+$("adminTestClassFilter").onchange=()=>refreshAdminTestFilters({resetSubject:true,resetUnit:true});
+$("adminTestSubjectFilter").onchange=()=>refreshAdminTestFilters({resetUnit:true});
+$("adminTestUnitFilter").onchange=renderAdminTestList;$("adminTestSearch").oninput=renderAdminTestList;
+$("adminTestClear").onclick=()=>{$("adminTestClassFilter").value="";$("adminTestSearch").value="";refreshAdminTestFilters({resetSubject:true,resetUnit:true});};
+bindAdminSelectors();
+
+function applyThemeBtn(){const dark=document.documentElement.getAttribute("data-theme")==="dark";$("themeBtn").textContent=dark?"☀️":"🌙";const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=dark?"#150f28":"#4c1d95";}
+applyThemeBtn();
+$("themeBtn").onclick=()=>{
+ const dark=document.documentElement.getAttribute("data-theme")==="dark";
+ if(dark){document.documentElement.removeAttribute("data-theme");localStorage.setItem("theme","light");}
+ else{document.documentElement.setAttribute("data-theme","dark");localStorage.setItem("theme","dark");}
+ applyThemeBtn();
+};
+
+$("doLogin").onclick=async()=>{try{const c=await signInWithEmailAndPassword(auth,$("email").value.trim(),$("pass").value);if((c.user.email||"").toLowerCase()!==TEACHER_EMAIL.toLowerCase()){await signOut(auth);throw new Error("Teacher account required.");}}catch(e){$("msg").textContent=e.message;}};
+$("logout").onclick=async()=>{
+ const btn=$("logout");if(btn.disabled)return;btn.disabled=true;btn.textContent="Logging out...";
+ const forceReset=setTimeout(()=>{btn.disabled=false;btn.textContent="Logout";},4000);
+ try{await signOut(auth);}
+ catch(e){console.error("logout error:",e);}
+ finally{clearTimeout(forceReset);btn.disabled=false;btn.textContent="Logout";}
+};
+
+onAuthStateChanged(auth,u=>{
+ const ok=!!u&&(u.email||"").toLowerCase()===TEACHER_EMAIL.toLowerCase();
+ $("loginCard").classList.toggle("hidden",ok);$("app").classList.toggle("hidden",!ok);
+ if(ok){loadAll().catch(console.error);listenAttempts();}
+});
+
+const ADMIN_MORE_TABS=new Set(["subjects","notes","importer","results","announcements","assignments","doubts"]);
+function closeAdminMoreNav(){$("adminMoreNavSheet").classList.add("hidden");$("adminMoreNavSheet").setAttribute("aria-hidden","true");$("adminMoreNavBtn").setAttribute("aria-expanded","false");}
+function openAdminTab(tabId,{scroll=true}={}){
+ const panel=$(tabId);if(!panel)return;
+ document.querySelectorAll(".tab").forEach(t=>t.classList.add("hidden"));panel.classList.remove("hidden");
+ document.querySelectorAll(".admin-nav button[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tabId));
+ $("adminMoreNavBtn").classList.toggle("active",ADMIN_MORE_TABS.has(tabId));closeAdminMoreNav();
+ if(scroll)requestAnimationFrame(()=>window.scrollTo({top:Math.max(0,$("app").offsetTop-8),behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"}));
+}
+document.querySelectorAll(".admin-nav button[data-tab]").forEach(b=>b.onclick=()=>openAdminTab(b.dataset.tab));
+$("adminMoreNavBtn").onclick=()=>{$("adminMoreNavSheet").classList.remove("hidden");$("adminMoreNavSheet").setAttribute("aria-hidden","false");$("adminMoreNavBtn").setAttribute("aria-expanded","true");$("adminMoreNavSheet").querySelector("[data-admin-tab]")?.focus();};
+$("closeAdminMoreNav").onclick=closeAdminMoreNav;$("closeAdminMoreNavTop").onclick=closeAdminMoreNav;
+document.querySelectorAll("[data-admin-tab]").forEach(b=>b.onclick=()=>openAdminTab(b.dataset.adminTab));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAdminMoreNav();});
+
+$("addInvite").onclick=async()=>{
+ const email=$("invEmail").value.trim().toLowerCase(),name=$("invName").value.trim(),classId=$("invClassId").value.trim();
+ if(!email||!name||!classId)return alert("Name, email, class ID required.");
+ await setDoc(doc(db,"invites",email),{email,name,classId,className:$("invClassName").value.trim()||classId,active:true,updatedAt:serverTimestamp()},{merge:true});
+ await loadInvites();
+};
+
+$("addSubject").onclick=async()=>{
+ const name=$("subName").value.trim(),classId=$("subClassId").value.trim(),message=$("subMsg"),button=$("addSubject");
+ try{
+  if(!name)throw new Error("Subject name লিখুন।");if(!classId)throw new Error("একটি Class select করুন।");
+  button.disabled=true;message.textContent="Checking...";
+  const normalizedName=normalizedSubjectName(name),existing=await getDocs(query(collection(db,"subjects"),where("classId","==",classId)));
+  const duplicate=existing.docs.find(d=>normalizedSubjectName(d.data().name)===normalizedName);
+  if(duplicate)throw new Error(`এই Class-এ “${duplicate.data().name}” আগে থেকেই আছে।`);
+  const subjectId=await deterministicSubjectId(classId,normalizedName),subjectRef=doc(db,"subjects",subjectId),collision=await getDoc(subjectRef);
+  if(collision.exists())throw new Error("Subject ID conflict হয়েছে—নামটি একটু আলাদাভাবে লিখুন।");
+  await setDoc(subjectRef,{name,classId,normalizedName,createdAt:serverTimestamp()});
+  $("subName").value="";message.textContent="✅ Subject added.";await loadSubjects();
+ }catch(e){message.textContent=e.message;}finally{button.disabled=false;}
+};
+
+async function fileToDataUrl(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});}
+$("addNote").onclick=async()=>{
+ try{
+  const title=$("noteTitle").value.trim(),classId=$("noteClassId").value.trim(),subjectId=$("noteSubjectId").value.trim(),chapter=$("noteChapter").value.trim();
+  if(!title)throw new Error("Note title লিখুন।");requireClassSubject(classId,subjectId);
+  let attachmentData="",attachmentName="",attachmentType="";
+  const f=$("noteFile").files[0];
+  if(f){if(f.size>80*1024)throw new Error("Attachment must be 80 KB or smaller.");attachmentData=await fileToDataUrl(f);attachmentName=f.name;attachmentType=f.type;}
+  await addDoc(collection(db,"notes"),{title,classId,subjectId,chapter,content:$("noteContent").value.trim(),attachmentData,attachmentName,attachmentType,createdAt:serverTimestamp()});
+  $("noteMsg").textContent="✅ Note published.";await loadNotes();
+ }catch(e){$("noteMsg").textContent=e.message;}
+};
+
+let qCount=0;
+function addQuestion(data={}){
+ const d=document.createElement("div");d.className="item qedit";
+ d.innerHTML=`<b>Question</b><input class="qq" placeholder="Question" value="${esc(data.q||"")}"><input class="topic" placeholder="Topic" value="${esc(data.topic||"")}"><div class="grid2">${[0,1,2,3].map(j=>`<input class="op${j}" placeholder="Option ${String.fromCharCode(65+j)}" value="${esc(data.o?.[j]||"")}">`).join("")}</div><label>Correct</label><select class="ans"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select><textarea class="explanation" placeholder="Short explanation shown after grading (recommended)">${esc(data.explanation||"")}</textarea><button type="button" class="danger rem">Remove</button>`;
+ d.querySelector(".ans").value=String(data.a??0);d.querySelector(".rem").onclick=()=>d.remove();$("questionEditor").appendChild(d);
+}
+function esc(s){return String(s).replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;");}
+$("addQ").onclick=()=>addQuestion();addQuestion();
+
+$("saveTest").onclick=async()=>{
+ try{
+  const classId=$("testClassId").value.trim(),subjectId=$("testSubjectId").value.trim();requireClassSubject(classId,subjectId);
+  const publicQs=[],answers=[];
+  document.querySelectorAll(".qedit").forEach(d=>{
+   const q=d.querySelector(".qq").value.trim(),o=[0,1,2,3].map(j=>d.querySelector(".op"+j).value.trim()),topic=d.querySelector(".topic").value.trim(),explanation=d.querySelector(".explanation").value.trim();
+   if(q&&o.every(Boolean)){publicQs.push({q,o,topic,explanation});answers.push(Number(d.querySelector(".ans").value));}
+  });
+  if(!publicQs.length)throw new Error("At least one complete question required.");
+  await saveTestData({title:$("testTitle").value.trim(),classId,subjectId,chapter:$("testChapter").value,durationMinutes:Number($("testDuration").value)||30,questions:publicQs,answers});
+  $("testTitle").value="";$("testChapter").value="";$("testMsg").textContent="✅ Test published and added to the filtered library.";await loadTests();
+ }catch(e){$("testMsg").textContent=e.message;}
+};
+
+async function saveTestData(t){
+ if(!t.title)throw new Error("Test title required.");requireClassSubject(t.classId,t.subjectId);const chapter=cleanedUnitName(t.chapter);if(!chapter)throw new Error("Unit / Chapter name required—এটাই filter-এর মূল category।");
+ const publicQuestions=t.questions.map(q=>({q:q.q,o:q.o,topic:q.topic||"General"})),explanations=t.questions.map(q=>q.explanation||"");
+ const r=await addDoc(collection(db,"tests"),{title:t.title,classId:t.classId,subjectId:t.subjectId,chapter,durationMinutes:t.durationMinutes||30,published:true,questionCount:publicQuestions.length,questions:publicQuestions,createdAt:serverTimestamp()});
+ await setDoc(doc(db,"answerKeys",r.id),{answers:t.answers,explanations,createdAt:serverTimestamp()});
+ return r.id;
+}
+
+// ---------- SUPER EASY TEST IMPORT ----------
+const SAMPLE=`TEST: Chemistry Unit 1 - Test 2
+CLASS: automatic-from-dropdown
+SUBJECT_ID: automatic-from-dropdown
+CHAPTER: Liquid State
+DURATION: 30
+
+---
+Q: Henry-এর সূত্র অনুযায়ী গ্যাসের দ্রাব্যতা কোনটির সঙ্গে সমানুপাতিক?
+A: গ্যাসের আংশিক চাপ
+B: তরলের আয়তন
+C: দ্রাবকের ভর
+D: পাত্রের আকার
+ANSWER: A
+TOPIC: Henry's Law
+
+---
+Q: অউদ্বায়ী দ্রব যোগ করলে দ্রাবকের বাষ্পচাপ কী হয়?
+A: বাড়ে
+B: কমে
+C: একই থাকে
+D: শূন্য হয়
+ANSWER: B
+TOPIC: Vapour Pressure`;
+
+let parsedImports=[];
+function invalidateImportPreview(){parsedImports=[];$("publishImport").classList.add("hidden");$("importPreview").innerHTML="";$("importMsg").textContent="";}
+$("loadSample").onclick=()=>{$("importBox").value=SAMPLE;invalidateImportPreview();};
+$("adminImportFile").onchange=async e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>1024*1024){$("importMsg").textContent="File 1 MB-এর মধ্যে রাখুন।";e.target.value="";return;}try{$("importBox").value=await f.text();invalidateImportPreview();$("importMsg").textContent=`✅ ${f.name} loaded — Preview Import চাপুন।`;}catch{$("importMsg").textContent="File পড়া যায়নি।";}finally{e.target.value="";}};
+$("importBox").addEventListener("input",invalidateImportPreview);
+["importClass","importSubject"].forEach(id=>$(id).addEventListener("change",invalidateImportPreview));
+
+function normalizeImportText(raw){return String(raw||"").replace(/\r/g,"").replace(/```(?:text|txt|markdown|md)?/gi,"").replace(/```/g,"").replace(/^\s*#{1,6}\s+/gm,"").replace(/\u00a0/g," ").trim();}
+function parseImport(raw,classId,subjectId){
+ const clean=normalizeImportText(raw),lines=clean.split("\n"),meta={};
+ lines.forEach(line=>{const m=line.trim().match(/^(TEST|CHAPTER|DURATION|CLASS|SUBJECT_ID)\s*[:\-]\s*(.+)$/i);if(m)meta[m[1].toUpperCase()]=m[2].trim();});
+ const records=[];let cur=null,last=null;const push=()=>{if(cur){records.push(cur);cur=null;last=null;}};
+ for(const original of lines){const line=original.trim();if(!line)continue;if(/^[-–—_]{3,}$/.test(line)){push();continue;}
+  let m=line.match(/^(?:[-*•]\s*)?(?:\d+\s*[.)-]\s*)?(?:Q(?:UESTION)?(?:\s*\d+)?|প্রশ্ন(?:\s*\d+)?)\s*[:.)-]\s*(.+)$/i);if(m){push();cur={Q:m[1].trim()};last="Q";continue;}
+  m=line.match(/^(?:[-*•]\s*)?\(?([A-D])\)?\s*[).:\-]\s*(.+)$/i);if(m){cur??={};cur[m[1].toUpperCase()]=m[2].trim();last=m[1].toUpperCase();continue;}
+  m=line.match(/^(?:[-*•]\s*)?(?:ANSWER|ANS|CORRECT\s*ANSWER)\s*[:\-]\s*(.+)$/i);if(m){cur??={};cur.ANSWER=m[1].trim();last="ANSWER";continue;}
+  m=line.match(/^(?:[-*•]\s*)?(?:TOPIC)\s*[:\-]\s*(.+)$/i);if(m){cur??={};cur.TOPIC=m[1].trim();last="TOPIC";continue;}
+  m=line.match(/^(?:[-*•]\s*)?(?:EXPLANATION|EXPLAIN|WHY)\s*[:\-]\s*(.+)$/i);if(m){cur??={};cur.EXPLANATION=m[1].trim();last="EXPLANATION";continue;}
+  if(cur&&last&&["Q","A","B","C","D","TOPIC","EXPLANATION"].includes(last))cur[last]=`${cur[last]||""} ${line}`.trim();
+ }
+ push();const questions=[],answers=[],errors=[];
+ records.forEach((vals,idx)=>{const opts=[vals.A,vals.B,vals.C,vals.D],ans=String(vals.ANSWER||"").trim(),match=ans.match(/(?:OPTION\s*)?([A-D])/i),ai=match?"ABCD".indexOf(match[1].toUpperCase()):-1,topic=(vals.TOPIC||meta.CHAPTER||"General").trim();if(!vals.Q||opts.some(x=>!x)||ai<0)errors.push(`Question ${idx+1}: Q/A/B/C/D/ANSWER incomplete.`);else{questions.push({q:vals.Q,o:opts,topic,explanation:vals.EXPLANATION||""});answers.push(ai);}});
+ const data={title:meta.TEST||"",classId,subjectId,chapter:meta.CHAPTER||"",durationMinutes:Number(meta.DURATION)||30,questions,answers};
+ if(!data.title)errors.push("TEST missing.");if(!cleanedUnitName(data.chapter))errors.push("CHAPTER missing—Unit/Chapter filter-এর জন্য এটি required.");if(!classId)errors.push("Import Destination Class select করুন।");if(!subjectId)errors.push("Import Destination Subject select করুন।");if(classId&&subjectId&&!selectedSubjectFor(classId,subjectId))errors.push("Selected Subject এই Class-এর নয়।");if(!questions.length)errors.push("No valid questions found.");if(data.durationMinutes<1||data.durationMinutes>240)errors.push("DURATION must be 1–240 minutes.");if(questions.length>100)errors.push("Maximum 100 questions per test.");
+ return {data,errors};
+}
+
+$("previewImport").onclick=()=>{
+ const classId=$("importClass").value.trim(),subjectId=$("importSubject").value.trim(),normalized=normalizeImportText($("importBox").value),chunks=normalized.split(/\n(?=\s*TEST\s*[:\-])/i).map(x=>x.trim()).filter(Boolean),results=chunks.map(raw=>parseImport(raw,classId,subjectId));
+ parsedImports=results.every(r=>!r.errors.length)?results.map(r=>r.data):[];
+ $("importPreview").innerHTML=results.map((p,i)=>p.errors.length?`<div class="item preview-bad"><h3>❌ Test ${i+1}</h3>${p.errors.map(e=>`<div>${esc(e)}</div>`).join("")}</div>`:`<div class="item preview-ok"><h3>✅ ${esc(p.data.title)}</h3><p>${esc(p.data.classId)} · ${esc(selectedSubjectFor(p.data.classId,p.data.subjectId)?.name||p.data.subjectId)} · ${p.data.questions.length} questions · ${p.data.durationMinutes} min</p></div>`).join("")||"<p class='muted'>No test block found.</p>";
+ $("publishImport").classList.toggle("hidden",!parsedImports.length);
+};
+$("publishImport").onclick=async()=>{
+ try{if(!parsedImports.length)throw new Error("Preview first.");for(const data of parsedImports)await saveTestData(data);$("importMsg").textContent=`✅ ${parsedImports.length} test(s) published.`;parsedImports=[];$("publishImport").classList.add("hidden");await loadTests();}
+ catch(e){$("importMsg").textContent=e.message;}
+};
+
+$("aiTestPrompt").onclick=async()=>{const cls=$("aiClass").value.trim(),subject=$("aiSubject").value.trim(),topic=$("aiTopic").value.trim(),count=Math.min(30,Math.max(3,Number($("aiCount").value)||10));if(!cls||!subject||!topic)return alert("Class, Subject এবং Topic select/enter করুন।");requireClassSubject(cls,subject);const prompt=`Create ${count} MCQ questions for ${cls} on ${topic}. Return only this exact website format:\nTEST: ${topic} Test\nCLASS: ${cls}\nSUBJECT_ID: ${subject}\nCHAPTER: ${topic}\nDURATION: 30\n\n---\nQ: question\nA: option\nB: option\nC: option\nD: option\nANSWER: A\nTOPIC: ${topic}\nEXPLANATION: one short Bengali explanation of why the answer is correct`;try{await navigator.clipboard.writeText(prompt);}catch{window.prompt("Copy this prompt:",prompt);}window.open("https://chatgpt.com/","_blank","noopener,noreferrer");};
+
+async function loadInvites(){const s=await getDocs(collection(db,"invites"));adminInvites=s.docs.map(d=>({id:d.id,...d.data()}));$("inviteList").innerHTML=adminInvites.map(x=>`<div class="item"><b>${esc(x.name)}</b> · ${esc(x.id)}<br><span class="muted">${esc(x.className)} (${esc(x.classId)})</span></div>`).join("");$("stStudents").textContent=s.size;refreshAdminSelectors();}
+async function loadSubjects(){const s=await getDocs(collection(db,"subjects"));adminSubjects=s.docs.map(d=>({id:d.id,...d.data()}));$("subjectList").innerHTML=adminSubjects.sort((a,b)=>`${a.classId} ${a.name}`.localeCompare(`${b.classId} ${b.name}`,undefined,{numeric:true,sensitivity:"base"})).map(x=>`<div class="item"><b>${esc(x.name)}</b><br><span class="muted">Class: ${esc(x.classId)} · automatic ID: ${esc(x.id)}</span></div>`).join("");$("stSubjects").textContent=s.size;refreshAdminSelectors();}
+async function loadNotes(){const s=await getDocs(collection(db,"notes"));$("noteList").innerHTML=s.docs.map(d=>`<div class="item"><b>${esc(d.data().title)}</b>${d.data().chapter?` <span class="pill teal">${esc(d.data().chapter)}</span>`:""}<br><span class="muted">${esc(d.data().classId)} · ${esc(d.data().subjectId)}</span></div>`).join("");}
+async function loadTests(){const s=await getDocs(collection(db,"tests"));adminTests=s.docs.map(d=>({id:d.id,...d.data()}));adminTestsLoaded=true;$("stTests").textContent=s.size;refreshAdminSelectors();refreshAdminTestFilters();queueAttemptLifecycle();}
+
+$("addAnn").onclick=async()=>{
+ const title=$("annTitle").value.trim(),classId=$("annClassId").value.trim(),content=$("annContent").value.trim();
+ if(!title||!classId||!content)return $("annMsg").textContent="Title, Class ও notice text দিন।";
+ await addDoc(collection(db,"announcements"),{title,classId,content,createdAt:serverTimestamp()});
+ $("annTitle").value="";$("annContent").value="";$("annMsg").textContent="✅ Notice published.";await loadAnnouncements();
+};
+async function loadAnnouncements(){const s=await getDocs(collection(db,"announcements"));$("annList").innerHTML=s.docs.map(d=>`<div class="item"><span class="pill">${esc(d.data().classId)}</span><b>${esc(d.data().title)}</b><p class="muted">${esc(d.data().content)}</p></div>`).join("")||"<p class='muted'>No notices yet.</p>";}
+
+$("addAsg").onclick=async()=>{
+ const title=$("asgTitle").value.trim(),classId=$("asgClassId").value.trim(),subjectId=$("asgSubjectId").value.trim(),dueDate=$("asgDue").value,description=$("asgDesc").value.trim();
+ try{if(!title)throw new Error("Assignment title লিখুন।");requireClassSubject(classId,subjectId);}catch(e){return $("asgMsg").textContent=e.message;}
+ await addDoc(collection(db,"assignments"),{title,classId,subjectId,dueDate,description,createdAt:serverTimestamp()});
+ $("asgTitle").value="";$("asgDesc").value="";$("asgMsg").textContent="✅ Assignment published.";await loadAssignments();
+};
+async function loadAssignments(){const s=await getDocs(collection(db,"assignments"));$("stAssign").textContent=s.size;$("asgList").innerHTML=s.docs.map(d=>`<div class="item"><span class="pill">${esc(d.data().classId)}</span><b>${esc(d.data().title)}</b><p class="muted">Due: ${esc(d.data().dueDate||"—")} · ${esc(d.data().description||"")}</p></div>`).join("")||"<p class='muted'>No assignments yet.</p>";}
+
+let doubtUnsub=null;
+function listenDoubts(){
+ if(doubtUnsub)doubtUnsub();
+ doubtUnsub=onSnapshot(collection(db,"doubts"),snap=>{
+  const items=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  $("stDoubts").textContent=items.filter(x=>x.status==="open").length;
+  $("doubtList").innerHTML=items.map(x=>`<div class="item"><div class="topbar"><div><b>${esc(x.studentName||"Student")}</b> <span class="muted">(${esc(x.classId)})</span></div><span class="pill ${x.status==='open'?'gold':''}">${esc(x.status)}</span></div><p>${esc(x.question)}</p>${x.answer?`<div class="notice">Reply: ${esc(x.answer)}</div>`:`<textarea class="replyBox" data-id="${esc(x.id)}" placeholder="Reply লিখুন..."></textarea><button class="secondary sendReply" data-id="${esc(x.id)}">Send Reply</button>`}</div>`).join("")||"<p class='muted'>No doubts yet.</p>";
+  document.querySelectorAll(".sendReply").forEach(b=>b.onclick=async()=>{
+   const id=b.dataset.id,box=document.querySelector(`.replyBox[data-id="${id}"]`),answer=box.value.trim();
+   if(!answer)return;
+   await updateDoc(doc(db,"doubts",id),{answer,status:"answered",answeredAt:serverTimestamp()});
+  });
+ });
+}
+
+async function loadAll(){
+ const first=await Promise.allSettled([loadInvites(),loadSubjects()]);first.filter(x=>x.status==="rejected").forEach(x=>console.error(x.reason));refreshAdminSelectors();
+ const rest=await Promise.allSettled([loadNotes(),loadTests(),loadAnnouncements(),loadAssignments()]);rest.filter(x=>x.status==="rejected").forEach(x=>console.error(x.reason));listenDoubts();
+}
+
+let latestAttempts=[],attemptUnsub=null,attemptProcessing=false,attemptProcessQueued=false;
+const suppressedLeaderboardGroups=new Set(),suppressedTestIds=new Set();
+function attemptGroupKey(uid,testId){return `${testId}::${uid}`;}
+function timestampParts(value){return [Number(value?.seconds||0),Number(value?.nanoseconds||0)];}
+function compareTimestamp(a,b){const [as,an]=timestampParts(a),[bs,bn]=timestampParts(b);return as-bs||an-bn;}
+function compareSubmittedAttempts(a,b){return compareTimestamp(a.submittedAt,b.submittedAt)||compareTimestamp(a.startedAt,b.startedAt)||String(a.id).localeCompare(String(b.id));}
+function attemptGroups(list,status="submitted"){const groups=new Map();list.filter(a=>a.status===status&&a.uid&&a.testId).forEach(a=>{const key=attemptGroupKey(a.uid,a.testId);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(a);});groups.forEach(items=>items.sort(compareSubmittedAttempts));return groups;}
+function officialSubmittedAttempts(list=latestAttempts){return [...attemptGroups(list).values()].map(items=>items[0]).filter(Boolean);}
+function displayAttemptNumbers(list=latestAttempts){const numbers=new Map(),groups=new Map();list.forEach(a=>{const key=attemptGroupKey(a.uid,a.testId);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(a);});groups.forEach(items=>items.sort((a,b)=>compareTimestamp(a.startedAt,b.startedAt)||String(a.id).localeCompare(String(b.id))).forEach((a,i)=>numbers.set(a.id,i+1)));return numbers;}
+function adminDate(value){const [seconds]=timestampParts(value);return seconds?new Date(seconds*1000).toLocaleString("en-IN"):"—";}
+
+async function gradeAttempt(a){
+ const [key,testDoc]=await Promise.all([getDoc(doc(db,"answerKeys",a.testId)),getDoc(doc(db,"tests",a.testId))]);
+ if(!key.exists()||!testDoc.exists())return false;
+ const ans=Array.isArray(key.data().answers)?key.data().answers:[],explanations=key.data().explanations||[];if(!ans.length)return false;
+ const qs=testDoc.data().questions||[];let score=0;const topicStats={},review=[];
+ for(let i=0;i<ans.length;i++){
+  const correct=Number(a.answers?.["q"+i])===Number(ans[i]);if(correct)score++;
+  const topic=(qs[i]&&qs[i].topic)||"General";if(!topicStats[topic])topicStats[topic]={correct:0,total:0};topicStats[topic].total++;if(correct)topicStats[topic].correct++;
+  review.push({q:qs[i]?.q||`Question ${i+1}`,o:qs[i]?.o||[],topic,explanation:explanations[i]||"",chosenIdx:a.answers?.["q"+i]??null,correctIdx:Number(ans[i]),isCorrect:correct});
+ }
+ const patch={score,total:ans.length,percentage:Math.round(score/ans.length*100),topicStats,review,gradedAt:serverTimestamp()};await updateDoc(doc(db,"attempts",a.id),patch);Object.assign(a,patch);return true;
+}
+async function ensureFirstLeaderboardEntry(group){
+ const first=[...group].sort(compareSubmittedAttempts)[0];if(!first||first.score==null||first.total==null)return;
+ const groupKey=attemptGroupKey(first.uid,first.testId);if(suppressedTestIds.has(first.testId)||suppressedLeaderboardGroups.has(groupKey))return;
+ const ref=doc(db,"leaderboardEntries",`${first.testId}_${first.uid}`),activeIds=new Set(group.map(a=>a.id));
+ const payload={testId:first.testId,classId:first.classId,uid:first.uid,studentName:first.studentName||"Student",score:first.score,total:first.total,percentage:first.percentage,submittedAt:first.submittedAt||serverTimestamp(),sourceAttemptId:first.id,attemptNumber:1,firstAttemptOnly:true,lockedAt:serverTimestamp()};
+ await runTransaction(db,async transaction=>{
+  const current=await transaction.get(ref);
+  if(!current.exists()){transaction.set(ref,payload);return;}
+  const data=current.data(),source=data.sourceAttemptId;
+  if(source&&!activeIds.has(source)){transaction.set(ref,payload);return;}
+  if(!source&&compareTimestamp(first.submittedAt,data.submittedAt)<0)transaction.set(ref,payload);
+ });
+}
+async function processAttemptLifecycle(){
+ if(!adminTestsLoaded){attemptProcessQueued=true;return;}
+ if(attemptProcessing){attemptProcessQueued=true;return;}attemptProcessing=true;
+ try{
+  do{
+   attemptProcessQueued=false;const working=latestAttempts.map(a=>({...a})),validTestIds=new Set(adminTests.filter(t=>t.published===true).map(t=>t.id));
+   for(const a of working.filter(x=>validTestIds.has(x.testId)&&x.status==="submitted"&&x.score==null)){try{await gradeAttempt(a);}catch(e){console.error("grading failed",a.id,e);}}
+   for(const [groupKey,group] of attemptGroups(working)){const testId=group[0]?.testId;if(testId&&validTestIds.has(testId)&&!suppressedTestIds.has(testId)&&!suppressedLeaderboardGroups.has(groupKey)){try{await ensureFirstLeaderboardEntry(group);}catch(e){console.error("leaderboard sync failed",groupKey,e);}}}
+  }while(attemptProcessQueued);
+ }finally{attemptProcessing=false;renderAttempts();}
+}
+function queueAttemptLifecycle(){processAttemptLifecycle().catch(e=>console.error("attempt lifecycle error:",e));}
+async function waitForAttemptProcessor(){for(let i=0;attemptProcessing&&i<200;i++)await new Promise(resolve=>setTimeout(resolve,25));}
+async function deleteReferences(refs){for(let i=0;i<refs.length;i+=400){const batch=writeBatch(db);refs.slice(i,i+400).forEach(ref=>batch.delete(ref));await batch.commit();}}
+async function updateReferences(refs,patch){for(let i=0;i<refs.length;i+=400){const batch=writeBatch(db);refs.slice(i,i+400).forEach(ref=>batch.update(ref,patch));await batch.commit();}}
+
+async function editPublishedTestName(testId,button){
+ const test=adminTests.find(item=>item.id===testId);if(!test||deletingTestIds.has(testId)||editingTestIds.has(testId))return;
+ const entered=prompt("Edit test name (maximum 120 characters):",test.title||"");if(entered===null)return;
+ const newTitle=cleanedTestTitle(entered),oldTitle=cleanedTestTitle(test.title)||"Untitled Test";
+ if(!newTitle)return $("adminTestActionMsg").textContent="⚠️ Test name cannot be empty.";
+ if(newTitle.length>120)return $("adminTestActionMsg").textContent="⚠️ Test name must be 120 characters or fewer.";
+ const duplicate=adminTests.find(item=>item.id!==testId&&item.classId===test.classId&&item.subjectId===test.subjectId&&normalizedUnitKey(item.chapter)===normalizedUnitKey(test.chapter)&&normalizedTestTitle(item.title)===normalizedTestTitle(newTitle));
+ if(duplicate)return $("adminTestActionMsg").textContent=`⚠️ “${newTitle}” already exists in this Class, Subject and Unit. Use a distinct test name.`;
+
+ editingTestIds.add(testId);button.disabled=true;button.textContent="Saving…";$("adminTestActionMsg").textContent="Updating test name and linked history…";let titleSaved=false,linkedAttempts=0;
+ try{
+  await updateDoc(doc(db,"tests",testId),{title:newTitle,updatedAt:serverTimestamp()});titleSaved=true;test.title=newTitle;renderAdminTestList();
+  const attempts=await getDocs(query(collection(db,"attempts"),where("testId","==",testId)));linkedAttempts=attempts.size;
+  await updateReferences(attempts.docs.map(d=>d.ref),{testTitle:newTitle});latestAttempts.filter(a=>a.testId===testId).forEach(a=>a.testTitle=newTitle);
+  $("adminTestActionMsg").textContent=normalizedTestTitle(oldTitle)===normalizedTestTitle(newTitle)?`✅ Test name unchanged; ${linkedAttempts} linked attempt label(s) synchronized.`:`✅ Test renamed from “${oldTitle}” to “${newTitle}”; ${linkedAttempts} linked attempt label(s) synchronized.`;
+  refreshAdminTestFilters();renderAttempts();
+ }catch(e){
+  console.error("test rename failed",e);$("adminTestActionMsg").textContent=titleSaved?`⚠️ Test name changed to “${newTitle}”, but some history labels could not sync. Open Edit Name and press OK again to retry.`:"⚠️ Test name update failed: "+e.message;
+ }finally{editingTestIds.delete(testId);renderAdminTestList();}
+}
+
+async function deletePublishedTest(testId,button){
+ const test=adminTests.find(item=>item.id===testId);if(!test||deletingTestIds.has(testId)||editingTestIds.has(testId))return;
+ deletingTestIds.add(testId);button.disabled=true;button.textContent="Checking…";$("adminTestActionMsg").textContent="Checking linked attempts and leaderboard data…";
+ const blockedGroups=new Set();let hidden=false,deletedAttempts=0,deletedLeaderboardRows=0;
+ const suppressGroup=a=>{if(!a?.uid)return;const key=attemptGroupKey(a.uid,testId);blockedGroups.add(key);suppressedLeaderboardGroups.add(key);};
+ try{
+  const [attemptPreview,leaderboardPreview]=await Promise.all([
+   getDocs(query(collection(db,"attempts"),where("testId","==",testId))),
+   getDocs(query(collection(db,"leaderboardEntries"),where("testId","==",testId)))
+  ]),inProgress=attemptPreview.docs.filter(d=>d.data().status==="in_progress").length;
+  const confirmed=confirm(`Delete this test permanently?\n\n${test.title||"Untitled Test"}\n${adminClassLabel(test.classId)} · ${adminSubjectLabel(test.subjectId)} · ${displayUnitName(test.chapter)}\n\nThis will also delete:\n• Answer key\n• ${attemptPreview.size} attempt(s), including ${inProgress} in-progress\n• ${leaderboardPreview.size} leaderboard row(s)\n\nThis action cannot be undone.`);
+  if(!confirmed){$("adminTestActionMsg").textContent="Deletion cancelled.";return;}
+  suppressedTestIds.add(testId);attemptPreview.docs.forEach(d=>suppressGroup(d.data()));latestAttempts.filter(a=>a.testId===testId).forEach(suppressGroup);
+  await waitForAttemptProcessor();button.textContent="Deleting…";$("adminTestActionMsg").textContent="Hiding test and safely deleting linked data…";
+
+  await updateDoc(doc(db,"tests",testId),{published:false});hidden=true;test.published=false;renderAdminTestList();
+  const attempts=await getDocs(query(collection(db,"attempts"),where("testId","==",testId)));attempts.docs.forEach(d=>suppressGroup(d.data()));
+  await deleteReferences(attempts.docs.map(d=>d.ref));deletedAttempts=attempts.size;latestAttempts=latestAttempts.filter(a=>a.testId!==testId);
+  const leaderboard=await getDocs(query(collection(db,"leaderboardEntries"),where("testId","==",testId)));
+  await deleteReferences(leaderboard.docs.map(d=>d.ref));deletedLeaderboardRows=leaderboard.size;
+  const finish=writeBatch(db);finish.delete(doc(db,"answerKeys",testId));finish.delete(doc(db,"tests",testId));await finish.commit();
+
+  adminTests=adminTests.filter(item=>item.id!==testId);$("stTests").textContent=adminTests.length;$("stLive").textContent=latestAttempts.filter(a=>a.status==="in_progress").length;
+  $("adminTestActionMsg").textContent=`✅ “${test.title||"Untitled Test"}” deleted with its answer key, ${deletedAttempts} attempt(s) and ${deletedLeaderboardRows} leaderboard row(s).`;
+  refreshAdminSelectors();refreshAdminTestFilters();renderAttempts();
+ }catch(e){
+  console.error("test deletion failed",e);
+  $("adminTestActionMsg").textContent=hidden?"⚠️ Cleanup could not finish. The test is hidden from students; press Delete Test again to safely retry.":"⚠️ Test delete failed: "+e.message;
+ }finally{
+  blockedGroups.forEach(key=>suppressedLeaderboardGroups.delete(key));suppressedTestIds.delete(testId);deletingTestIds.delete(testId);renderAdminTestList();queueAttemptLifecycle();
+ }
+}
+
+function listenAttempts(){
+ if(attemptUnsub)attemptUnsub();
+ attemptUnsub=onSnapshot(collection(db,"attempts"),snap=>{latestAttempts=snap.docs.map(d=>({id:d.id,...d.data()}));$("stLive").textContent=latestAttempts.filter(a=>a.status==="in_progress").length;renderAttempts();queueAttemptLifecycle();},err=>{$("attemptActionMsg").textContent="⚠️ Attempts load failed: "+err.message;console.error(err);});
+}
+function renderAttempts(){
+ const q=($("attemptSearch")?.value||"").trim().toLowerCase(),status=$("attemptStatusFilter")?.value||"",numbers=displayAttemptNumbers(),officialIds=new Set(officialSubmittedAttempts().map(a=>a.id));
+ const list=[...latestAttempts].filter(a=>(!status||a.status===status)&&(!q||`${a.studentName||""} ${a.testTitle||""} ${a.classId||""}`.toLowerCase().includes(q))).sort((a,b)=>compareTimestamp(b.startedAt,a.startedAt)||String(b.id).localeCompare(String(a.id)));
+ $("attemptList").innerHTML=list.map(a=>{const number=numbers.get(a.id)||Number(a.attemptNumber)||1,official=officialIds.has(a.id),inProgress=a.status==="in_progress";return `<div class="item attempt-admin-card"><div class="topbar"><div><b>${esc(a.studentName||a.uid)}</b><br><span class="muted">${esc(a.testTitle||a.testId)} · ${esc(a.classId||"")}</span></div><div><span class="pill ${inProgress?"gold":"teal"}">${esc(a.status)}</span> <span class="pill ${official?"gold":""}">${official?"Official first":`Attempt #${number}`}</span></div></div><p>Progress: ${Number(a.progress)||0}${a.score!=null?` · <b>Score ${Number(a.score)}/${Number(a.total)} (${Number(a.percentage)}%)</b>`:" · Grading pending"}<br><span class="muted">Started: ${esc(adminDate(a.startedAt))}${a.submittedAt?` · Submitted: ${esc(adminDate(a.submittedAt))}`:""}</span></p><div class="attempt-actions"><button class="danger delete-attempt" data-id="${esc(a.id)}">${inProgress?"🗑 Delete In-progress":"🗑 Delete Attempt"}</button><button class="secondary reset-student-test" data-uid="${esc(a.uid)}" data-test="${esc(a.testId)}">↻ Full Reset Student/Test</button></div></div>`;}).join("")||"<p class='muted'>No matching attempts.</p>";
+ document.querySelectorAll(".delete-attempt").forEach(b=>b.onclick=async()=>{b.disabled=true;await deleteSingleAttempt(b.dataset.id);});
+ document.querySelectorAll(".reset-student-test").forEach(b=>b.onclick=async()=>{b.disabled=true;await resetStudentTest(b.dataset.uid,b.dataset.test);});
+ const graded=officialSubmittedAttempts().filter(a=>a.percentage!=null);$("stAvg").textContent=graded.length?Math.round(graded.reduce((s,a)=>s+Number(a.percentage),0)/graded.length)+"%":"—";const top=[...graded].sort((a,b)=>Number(b.percentage)-Number(a.percentage))[0];$("stTop").textContent=top?top.studentName||"Student":"—";
+ const byStudent={};graded.forEach(a=>{if(!byStudent[a.uid])byStudent[a.uid]={name:a.studentName||"Student",sum:0,n:0};byStudent[a.uid].sum+=Number(a.percentage);byStudent[a.uid].n++;});const priority=Object.values(byStudent).map(v=>({name:v.name,avg:Math.round(v.sum/v.n),tests:v.n})).filter(v=>v.avg<60).sort((a,b)=>a.avg-b.avg).slice(0,8);$("revisionPriority").innerHTML=priority.length?priority.map(v=>`<div class="priority-row"><span><b>${esc(v.name)}</b><small>${v.tests} official test(s)</small></span><strong>${v.avg}%</strong></div>`).join(""):"<p class='muted'>✅ বর্তমানে 60%-এর নিচে কোনো official average নেই।</p>";
+}
+async function deleteSingleAttempt(id){
+ const attempt=latestAttempts.find(a=>a.id===id);if(!attempt)return;if(!confirm(`${attempt.studentName||"Student"}-এর এই ${attempt.status} attempt delete করবেন?`)){renderAttempts();return;}
+ const groupKey=attemptGroupKey(attempt.uid,attempt.testId);suppressedLeaderboardGroups.add(groupKey);$("attemptActionMsg").textContent="Deleting attempt...";
+ try{
+  await waitForAttemptProcessor();const refs=[doc(db,"attempts",id)];
+  if(attempt.status==="submitted"){const entryRef=doc(db,"leaderboardEntries",`${attempt.testId}_${attempt.uid}`),entry=await getDoc(entryRef),first=attemptGroups(latestAttempts).get(groupKey)?.[0];if(entry.exists()&&(entry.data().sourceAttemptId===id||(!entry.data().sourceAttemptId&&first?.id===id)))refs.push(entryRef);}
+  await deleteReferences(refs);latestAttempts=latestAttempts.filter(a=>a.id!==id);$("attemptActionMsg").textContent="✅ Attempt deleted.";
+ }catch(e){$("attemptActionMsg").textContent="⚠️ Delete failed: "+e.message;}finally{suppressedLeaderboardGroups.delete(groupKey);$("stLive").textContent=latestAttempts.filter(a=>a.status==="in_progress").length;renderAttempts();queueAttemptLifecycle();}
+}
+async function resetStudentTest(uid,testId){
+ const known=latestAttempts.find(a=>a.uid===uid&&a.testId===testId),label=`${known?.studentName||"Student"} — ${known?.testTitle||testId}`;if(!confirm(`${label}\n\nসব in-progress/submitted attempts, results এবং leaderboard row permanently reset করবেন?`)){renderAttempts();return;}
+ const groupKey=attemptGroupKey(uid,testId);suppressedLeaderboardGroups.add(groupKey);$("attemptActionMsg").textContent="Resetting student/test...";
+ try{
+  await waitForAttemptProcessor();const snapshot=await getDocs(query(collection(db,"attempts"),where("uid","==",uid))),attemptRefs=snapshot.docs.filter(d=>d.data().testId===testId).map(d=>d.ref);await deleteReferences([...attemptRefs,doc(db,"leaderboardEntries",`${testId}_${uid}`)]);latestAttempts=latestAttempts.filter(a=>!(a.uid===uid&&a.testId===testId));$("attemptActionMsg").textContent=`✅ Reset complete. ${attemptRefs.length} attempt(s) removed; next submission will become the official first attempt.`;
+ }catch(e){$("attemptActionMsg").textContent="⚠️ Reset failed: "+e.message;}finally{suppressedLeaderboardGroups.delete(groupKey);$("stLive").textContent=latestAttempts.filter(a=>a.status==="in_progress").length;renderAttempts();queueAttemptLifecycle();}
+}
+$("attemptSearch").oninput=renderAttempts;$("attemptStatusFilter").onchange=renderAttempts;
+$("exportCsv").onclick=()=>{if(!latestAttempts.length)return alert("No results to export.");const numbers=displayAttemptNumbers(),official=new Set(officialSubmittedAttempts().map(a=>a.id)),rows=[["Student","Test","Class","Attempt","Official First","Status","Score","Total","Percentage","Started","Submitted"],...latestAttempts.map(a=>[a.studentName,a.testTitle,a.classId,numbers.get(a.id)||a.attemptNumber||1,official.has(a.id)?"Yes":"No",a.status,a.score??"",a.total??"",a.percentage??"",adminDate(a.startedAt),adminDate(a.submittedAt)])];const csv=rows.map(r=>r.map(v=>{let value=String(v??"");if(/^[=+\-@]/.test(value))value="'"+value;return `"${value.replaceAll('"','""')}"`;}).join(",")).join("\n"),url=URL.createObjectURL(new Blob([csv],{type:"text/csv"})),link=document.createElement("a");link.href=url;link.download=`results-${new Date().toISOString().slice(0,10)}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+$("purgeSubmitted").onclick=async()=>{
+ if(!confirm("Delete ALL submitted attempts/results and their leaderboard rows? In-progress attempts will remain."))return;
+ const snapshot=await getDocs(query(collection(db,"attempts"),where("status","==","submitted"))),docs=snapshot.docs,groups=new Map();docs.forEach(d=>{const a=d.data();groups.set(attemptGroupKey(a.uid,a.testId),{uid:a.uid,testId:a.testId});});groups.forEach((_,key)=>suppressedLeaderboardGroups.add(key));$("attemptActionMsg").textContent="Deleting submitted data...";
+ try{await waitForAttemptProcessor();const leaderboardRefs=[...groups.values()].map(({uid,testId})=>doc(db,"leaderboardEntries",`${testId}_${uid}`));await deleteReferences([...docs.map(d=>d.ref),...leaderboardRefs]);latestAttempts=latestAttempts.filter(a=>a.status!=="submitted");$("attemptActionMsg").textContent=`✅ ${docs.length} submitted attempt(s) and matching leaderboard rows deleted.`;}catch(e){$("attemptActionMsg").textContent="⚠️ Bulk delete failed: "+e.message;}finally{groups.forEach((_,key)=>suppressedLeaderboardGroups.delete(key));renderAttempts();queueAttemptLifecycle();}
+};
+</script></body></html>

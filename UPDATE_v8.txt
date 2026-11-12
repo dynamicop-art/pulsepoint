@@ -1,0 +1,45 @@
+AETHER v8 — Neural Learning Interface
+=====================================
+
+WHAT CHANGED
+- Complete student-facing visual reinvention (not a skin on the old dashboard)
+- Daily Launch Sequence after login: motivation + readiness + next action + pressure + momentum
+- AETHER Neural Cockpit with reactive Readiness Reactor and live Learning Pulse radar
+- Learning Twin: local, explainable projections for the next high-impact study action
+- Warp Sprint: 3-minute / 5-question pressure-training mode using existing reviewed/adaptive questions
+- Voice Pilot: hands-free navigation on browsers that expose Web Speech Recognition
+- 3 visual modes: Aurora / Ion / Solar (palette button)
+- Procedural neural background field (no image/video dependency)
+- Desktop spatial navigation rail + compact mobile bottom dock
+- Reactive cockpit telemetry graphics and upgraded knowledge-constellation visuals
+- Existing Focus Capsule, Adaptive Practice, Mistake DNA, Confidence Intelligence, Exam Replay,
+  Chapter Boss, Duels, Viva, PWA, Quick Find, teacher/admin flows remain available
+- Sound remains opt-in and uses Web Audio; no audio files or paid service
+
+PERFORMANCE BUDGET
+- Neural canvas throttled to ~30fps, lower node density on mobile/touch
+- Cockpit telemetry canvas throttled to ~20fps and pauses when hidden/not visible
+- Reduced-motion preference disables non-essential motion
+- No additional backend, paid API, image pack or video payload
+
+DEPLOYMENT
+1. Extract this folder.
+2. Upload/replace the FILES INSIDE this folder into the same GitHub repository root where index.html currently lives.
+3. Commit/push and let GitHub Pages redeploy.
+4. Hard refresh once (Ctrl+Shift+R) because Service Worker cache is now arpan-learning-suite-v8-aether-shell.
+5. Existing Ultimate v6/v6.1/v7 Firestore rules are compatible with these v8 front-end additions; no new collection is required.
+6. Smoke test: login -> Launch Sequence -> Home cockpit -> Warp Sprint -> Focus Capsule -> Tests -> submit/grade normal test.
+
+NOTES
+- Voice Pilot depends on browser Web Speech Recognition support and is intentionally optional.
+- Learning Twin projections are study-planning estimates, not promised exam scores.
+- Warp Sprint is local practice and does not modify official leaderboard scores.
+
+
+V8.1 MOBILE STABILITY PATCH
+- Corrected CSS specificity conflicts that allowed desktop AETHER layout rules to override phone rules.
+- Phone landing page is now guaranteed one-column.
+- Student workspace no longer retains the desktop left-rail padding on phones.
+- Mobile bottom dock and utilities are constrained safely within the viewport.
+- Updated Service Worker cache: arpan-learning-suite-v8.1-stable-shell.
+- No Firestore rules change required for v8.1.

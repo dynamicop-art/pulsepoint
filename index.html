@@ -1,265 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PulsePoint+ | Instant Hospital, Bed, Blood & Organ Locator</title>
-  <meta name="theme-color" content="#16804a">
-  <link rel="stylesheet" href="style.css?v=solid-7">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-</head>
+<!doctype html><html lang="bn"><head>
+<script>try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#4c1d95"><meta name="color-scheme" content="light dark">
+<title>Student Learning Hub</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236d28d9'/%3E%3Cstop offset='1' stop-color='%230891b2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='url(%23g)'/%3E%3Ctext x='50' y='66' font-size='52' font-family='Poppins,sans-serif' font-weight='700' fill='%23fff' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css?v=9.0-stable"><link rel="stylesheet" href="refresh.css?v=10"></head>
 <body>
+<button id="themeBtn" class="theme-fab" type="button" title="Switch theme">🌙</button>
+<div class="wrap">
+<section class="hero"><div class="brand-line"><span class="brand-dot"></span> Arpan Learning Suite</div><h1>Student Learning Hub</h1><p>Class V থেকে Class XII — নোটস, লাইভ টেস্ট এবং রেজাল্ট, সব এক জায়গায়, একদম প্রাইভেট ও পার্সোনালাইজড।</p></section>
+<div class="grid">
+  <section class="card login-card"><div class="section-kicker">🔑 Student Access</div><h2>Welcome back</h2>
+    <input id="lemail" type="email" placeholder="Email">
+    <input id="lpass" type="password" placeholder="Password">
+    <button id="login">Enter Learning Hub</button><p id="lmsg" class="muted"></p>
+  </section>
+  <section class="card login-card"><div class="section-kicker">✨ First Time Setup</div><h2>Create Student Account</h2>
+    <p class="muted">Teacher আগে তোমার email allow করলে তবেই account তৈরি হবে।</p>
+    <input id="semail" type="email" placeholder="Teacher-approved email">
+    <input id="spass" type="password" placeholder="Create password (6+ characters)">
+    <button id="signup">Create Account</button><p id="smsg" class="muted"></p>
+  </section>
+  <section class="card login-card"><div class="section-kicker">🎓 Teacher Workspace</div><h2>Admin Console</h2>
+    <p class="muted">Students, subjects, notes, tests এবং live results manage করুন।</p>
+    <a class="btn" href="admin.html">Open Admin Panel</a>
+  </section>
+</div><div class="footer-note">Private academic portal • Powered by Firebase + GitHub Pages</div></div>
+<script type="module">
+try{const fx=await import("./effects.js");fx.mountHeroSparkle();fx.mountCardTilt();fx.mountButtonRipples();}catch(e){console.warn("Optional effects unavailable",e);}
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,deleteUser,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {firebaseConfig,TEACHER_EMAIL} from "./config.js";
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);
 
-  <div class="top-sos-bar" id="emergency-contacts">
-    <div class="sos-ticker-container">
-      <div class="sos-pill-pulse">
-        <span class="pulse-beacon"></span>
-        <strong>Emergency assistance</strong>
-      </div>
-      <div class="sos-hotlines">
-        <a href="tel:108" class="hotline-btn"><i class="fa-solid fa-truck-medical"></i> 108 Ambulance</a>
-        <a href="tel:102" class="hotline-btn"><i class="fa-solid fa-baby"></i> 102 Maternity</a>
-        <a href="tel:112" class="hotline-btn"><i class="fa-solid fa-shield-heart"></i> 112 Emergency</a>
-        <a href="tel:104" class="hotline-btn"><i class="fa-solid fa-user-doctor"></i> 104 Health</a>
-      </div>
-    </div>
-  </div>
+function applyThemeBtn(){const dark=document.documentElement.getAttribute("data-theme")==="dark";$("themeBtn").textContent=dark?"☀️":"🌙";const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=dark?"#150f28":"#4c1d95";}
+applyThemeBtn();
+$("themeBtn").onclick=()=>{
+ const dark=document.documentElement.getAttribute("data-theme")==="dark";
+ if(dark){document.documentElement.removeAttribute("data-theme");localStorage.setItem("theme","light");}
+ else{document.documentElement.setAttribute("data-theme","dark");localStorage.setItem("theme","dark");}
+ applyThemeBtn();
+};
 
-  <header class="app-header">
-    <div class="header-container">
-      <div class="brand">
-        <div class="brand-icon"><i class="fa-solid fa-heart-pulse"></i></div>
-        <div class="brand-text">
-          <h1 aria-label="PulsePoint Plus"><span class="wordmark">PulsePoint</span><span class="brand-plus" aria-hidden="true">+</span></h1>
-          <p>Emergency Care</p>
-        </div>
-      </div>
-      <nav class="nav-links" aria-label="Main navigation">
-        <a href="#section-map"><i class="fa-solid fa-map-location-dot"></i> Live Map</a>
-        <a href="#section-hospitals"><i class="fa-solid fa-hospital"></i> Hospitals</a>
-        <a href="#section-blood-organ"><i class="fa-solid fa-droplet"></i> Blood & Organs</a>
-        <a href="#section-doctors"><i class="fa-solid fa-user-doctor"></i> Doctors</a>
-        <a href="#section-auth"><i class="fa-solid fa-user-shield"></i> Sign in</a>
-      </nav>
-      <div class="nav-user-badge" id="navUserBadge">
-        <i class="fa-solid fa-circle-user"></i>
-        <span id="userStatusText">Guest (Public View)</span>
-      </div>
-    </div>
-  </header>
+$("login").onclick=async()=>{
+ try{
+   const c=await signInWithEmailAndPassword(auth,$("lemail").value.trim(),$("lpass").value);
+   location.href=(c.user.email||"").toLowerCase()===TEACHER_EMAIL.toLowerCase()?"admin.html":"student.html";
+ }catch(e){$("lmsg").textContent="Login failed: "+e.message;}
+};
 
-  <main class="main-content">
-
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <p class="eyebrow"><span class="dot-green"></span> CARE STARTS WITH CONNECTION</p>
-        <h2 id="hero-title">Find the right care,<br><span>nearby.</span></h2>
-        <p class="hero-description">Locate hospitals and get directions when every minute matters.</p>
-        <span class="location-tag"><i class="fa-solid fa-location-dot"></i> Search your location</span>
-        <div class="hero-actions">
-          <a href="#section-hospitals" class="btn btn-green"><i class="fa-solid fa-hospital"></i> Find nearby hospitals <span aria-hidden="true">→</span></a>
-          <button id="btnGpsCalc" type="button" class="btn btn-location"><i class="fa-solid fa-location-crosshairs"></i> Use my location</button>
-          <a href="tel:108" class="btn btn-emergency"><i class="fa-solid fa-phone"></i> Call ambulance 108</a>
-        </div>
-        <div id="gpsStatusMessage" class="gps-status-banner" role="status" aria-live="polite"></div>
-      </div>
-      <div class="hero-art" aria-hidden="true"><img src="assets/hospital-hero.png" alt="" width="2048" height="745" fetchpriority="high"><span class="hospital-red-plus"></span></div>
-    </section>
-
-    <nav class="quick-services" aria-label="Quick care services">
-      <a class="quick-card service-green" href="#section-hospitals"><span class="service-icon"><i class="fa-solid fa-bed-pulse"></i></span><span><strong>Hospital beds</strong><small>Explore nearby facilities</small></span><span aria-hidden="true">›</span></a>
-      <a class="quick-card service-red" href="#section-blood-organ"><span class="service-icon"><i class="fa-solid fa-droplet"></i></span><span><strong>Blood banks</strong><small>Find blood bank contacts</small></span><span aria-hidden="true">›</span></a>
-      <a class="quick-card service-purple" href="#section-doctors"><span class="service-icon"><i class="fa-solid fa-user-doctor"></i></span><span><strong>Specialists</strong><small>Browse by specialty</small></span><span aria-hidden="true">›</span></a>
-      <a class="quick-card service-teal" href="#emergency-contacts"><span class="service-icon"><i class="fa-solid fa-phone"></i></span><span><strong>Emergency contacts</strong><small>Quick access to helplines</small></span><span aria-hidden="true">›</span></a>
-    </nav>
-
-    <details class="emergency-tools"><summary><i class="fa-solid fa-sliders"></i> Additional emergency tools</summary><div class="console-actions">
-      <button id="btnPlaySiren" class="btn btn-blue-outline" aria-pressed="false"><i class="fa-solid fa-bullhorn"></i> <span id="sirenLabel">Emergency Siren</span></button>
-      <button id="btnStrobe" class="btn btn-blue-outline" aria-pressed="false"><i class="fa-solid fa-lightbulb"></i> Screen beacon</button>
-      <button id="btnShareSms" class="btn btn-dark"><i class="fa-solid fa-share-nodes"></i> Copy location link</button>
-    </div><p class="form-subtext">These tools run on your device. They do not contact emergency services.</p></details>
-
-    <div class="demo-notice"><span id="backendStatus" role="status">Connecting to backend…</span> <button id="btnRefreshData" type="button" class="btn btn-sm btn-blue">Refresh data</button></div>
-    <p class="demo-notice"><i class="fa-solid fa-circle-info"></i> Hospital locations come from public map data. Bed, ICU, ventilator and blood availability are shown only when reported in PulsePoint.</p>
-
-    <section id="section-map" class="content-section">
-      <div class="section-title">
-        <div>
-          <h2><i class="fa-solid fa-map-marked-alt text-green"></i> Hospitals near you</h2>
-          <p>Search an area or use your current location.</p>
-        </div>
-        <div class="map-controls-pills" id="mapTargetPills"></div>
-      </div>
-      <div class="map-wrapper">
-        <div class="map-container">
-          <iframe id="googleMapIframe" title="Google Map Live Hospital Embed" src="https://maps.google.com/maps?q=West+Bengal+India&t=&z=9&ie=UTF8&iwloc=&output=embed" loading="lazy"></iframe>
-        </div>
-        <div class="map-side-card" id="activeMapHospitalCard"></div>
-      </div>
-    </section>
-
-    <section id="section-hospitals" class="content-section">
-      <div class="section-title">
-        <div>
-          <h2><i class="fa-solid fa-hospital text-blue"></i> Find a hospital</h2>
-          <p>Search hospitals by area and view nearest facilities first.</p>
-        </div>
-        <div class="filter-controls">
-          <input type="text" id="hospitalSearch" placeholder="Search area e.g. Howrah, Kolkata, Bauria..." class="form-input search-input" autocomplete="off">
-          <select id="filterType" class="form-select">
-            <option value="all">All Hospitals</option>
-            <option value="icu">ICU Bed Available</option>
-            <option value="vent">Ventilator Available</option>
-            <option value="govt">Government Hospitals</option>
-          </select>
-        </div>
-      </div>
-      <div class="hospitals-grid" id="hospitalsGrid"></div>
-    </section>
-
-    <section id="section-inspector" class="content-section inspector-section">
-      <div class="section-title">
-        <div>
-          <h2><i class="fa-solid fa-microscope text-green"></i> Facility details</h2>
-          <p>Explore the selected facility’s available information.</p>
-        </div>
-        <span class="badge badge-green"><i class="fa-solid fa-shield-check"></i> Facility information</span>
-      </div>
-      <div class="inspector-card" id="inspectorCard"></div>
-    </section>
-
-    <section id="section-blood-organ" class="content-section">
-      <div class="section-title">
-        <div>
-          <h2><i class="fa-solid fa-droplet text-blue"></i> Blood banks & organ registry</h2>
-          <p>Blood stock is shown only when reported by a facility.</p>
-        </div>
-      </div>
-      <div class="blood-organ-grid">
-        <div class="card card-clean">
-          <div class="card-header">
-            <h3><i class="fa-solid fa-cubes-stacked text-blue"></i> Regional Blood Stock Matrix</h3>
-            <span class="badge badge-blue">Reported stock</span>
-          </div>
-          <div class="blood-group-chips" id="bloodSummaryChips"></div>
-          <div class="table-container">
-            <table class="data-table" id="bloodTable">
-              <thead><tr><th>Hospital</th><th>O-</th><th>O+</th><th>A+</th><th>B+</th><th>AB+</th><th>Contact</th></tr></thead>
-              <tbody id="bloodTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card card-clean">
-          <div class="card-header">
-            <h3><i class="fa-solid fa-dna text-green"></i> Organ Transplant Information</h3>
-            <span class="badge badge-green">Prototype</span>
-          </div>
-          <div class="organ-list" id="organListContainer"></div>
-          <hr class="divider">
-          <h3 class="form-heading"><i class="fa-solid fa-hand-holding-medical text-blue"></i> Blood / organ request</h3>
-          <p class="form-subtext">Sign in to save a request. After saving, PulsePoint will show a request ID and status. Hospitals, blood banks and transplant centres are NOT notified automatically.</p>
-          <form id="requisitionForm" class="inpage-form">
-            <div class="form-row">
-              <div class="form-col"><label>Patient Full Name</label><input type="text" id="reqName" class="form-input" placeholder="e.g. Souvik Das" required></div>
-              <div class="form-col"><label>Blood / Organ Needed</label><select id="reqItem" class="form-select" required>
-                <option value="O- Blood Units">O- Negative</option><option value="O+ Blood Units">O+ Positive</option><option value="A+ Blood Units">A+ Positive</option><option value="B+ Blood Units">B+ Positive</option><option value="AB+ Blood Units">AB+ Positive</option><option value="Cornea Tissue">Cornea Tissue</option><option value="Kidney Match Requisition">Kidney Transplant Match</option>
-              </select></div>
-            </div>
-            <div class="form-row">
-              <div class="form-col"><label>Quantity / Units</label><input type="number" id="reqUnits" class="form-input" min="1" max="10" value="2" required></div>
-              <div class="form-col"><label>Receiving Hospital</label><input type="text" id="reqHospital" class="form-input" placeholder="Hospital name" required></div>
-            </div>
-            <div class="form-row"><div class="form-col"><label>Attending Doctor / Contact Phone</label><input type="tel" id="reqPhone" class="form-input" placeholder="+91 98XXXXXXXX" required></div></div>
-            <button type="submit" class="btn btn-blue btn-block"><i class="fa-solid fa-paper-plane"></i> Save request</button>
-            <div id="requisitionNotice" class="form-notice"></div>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <section id="section-doctors" class="content-section">
-      <div class="section-title">
-        <div><h2><i class="fa-solid fa-stethoscope text-green"></i> Find a specialist</h2><p>Browse the specialist directory by area of care.</p></div>
-        <div class="doctor-filter-pills" id="doctorFilterPills">
-          <button class="pill active" data-spec="all">All Doctors</button>
-          <button class="pill" data-spec="Trauma">Trauma & Surgery</button>
-          <button class="pill" data-spec="Cardiology">Cardiology</button>
-          <button class="pill" data-spec="Pediatrics">Pediatrics</button>
-          <button class="pill" data-spec="Critical Care">Critical Care</button>
-        </div>
-      </div>
-      <div class="doctors-grid" id="doctorsGrid"></div>
-    </section>
-
-    <section id="section-auth" class="content-section auth-section">
-      <div class="section-title">
-        <div><h2><i class="fa-solid fa-lock text-green"></i> Account portal</h2><p>Create a patient account or sign in. Staff accounts are provisioned by the server administrator.</p></div>
-      </div>
-      <div class="auth-grid">
-        <div class="card card-clean">
-          <div class="card-header"><h3><i class="fa-solid fa-right-to-bracket text-green"></i> Your account</h3><span class="badge badge-green" id="activeRoleTag">Role: Citizen</span></div>
-          <div class="profile-photo-panel">
-            <div class="profile-photo-wrap">
-              <img id="profilePhotoPreview" class="profile-photo" alt="Profile photo preview" hidden>
-              <div id="profilePhotoFallback" class="profile-photo-fallback"><i class="fa-solid fa-user"></i></div>
-              <label class="profile-photo-camera" for="profilePhotoInput" title="Choose profile photo" aria-label="Choose profile photo"><i class="fa-solid fa-camera"></i></label>
-              <input type="file" id="profilePhotoInput" class="visually-hidden-input" accept="image/jpeg,image/png,image/webp" capture="user">
-            </div>
-            <div class="profile-photo-copy">
-              <strong id="profilePhotoTitle">Citizen / Patient profile</strong>
-              <span id="profilePhotoHint">Add a profile photo. Sign in to save it to your account.</span>
-              <div class="profile-photo-actions">
-                <label class="btn btn-sm btn-green profile-upload-btn" for="profilePhotoInput"><i class="fa-solid fa-camera"></i> Choose profile photo</label>
-                <button type="button" class="btn btn-sm btn-blue-outline" id="btnRemoveProfilePhoto"><i class="fa-solid fa-trash-can"></i> Remove</button>
-              </div>
-            </div>
-          </div>
-          <form id="authForm" class="inpage-form">
-            <div class="form-group"><label>Registered Email or Medical ID</label><input type="text" id="authEmail" class="form-input" placeholder="user@pulsepoint.in" required></div>
-            <div class="form-group"><label>Password / Access PIN</label><input type="password" id="authPassword" class="form-input" minlength="12" autocomplete="current-password" required></div>
-            <button type="submit" class="btn btn-green btn-block" id="btnAuthSubmit"><i class="fa-solid fa-arrow-right-to-bracket"></i> Sign in</button>
-            <button id="btnRegister" type="button" class="btn btn-blue-outline btn-block">Create patient account</button>
-            <button id="btnLogout" type="button" class="btn btn-blue-outline" hidden>Sign out</button>
-            <div id="authNotice" class="form-notice"></div>
-          </form>
-        </div>
-
-        <div class="card card-clean" id="staffPortalCard">
-          <div class="card-header"><h3><i class="fa-solid fa-pen-to-square text-blue"></i> Hospital inventory editor</h3><span class="badge badge-blue" id="staffLockBadge"><i class="fa-solid fa-lock"></i> Staff Login Required</span></div>
-          <p class="staff-intro">Authorized hospital staff can update available beds, ICU capacity, ventilators and blood stock.</p>
-          <form id="staffUpdateForm" class="inpage-form">
-            <div class="form-group"><label>Select Facility</label><select id="staffSelectHospital" class="form-select"></select></div>
-            <div class="form-row">
-              <div class="form-col"><label>Available ICU Beds</label><input type="number" id="staffIcuBeds" class="form-input" min="0" max="100" value="5" required></div>
-              <div class="form-col"><label>Ventilators Free</label><input type="number" id="staffVentilators" class="form-input" min="0" max="50" value="3" required></div>
-              <div class="form-col"><label>General Beds</label><input type="number" id="staffGeneralBeds" class="form-input" min="0" max="300" value="28" required></div>
-            </div>
-            <div class="form-row">
-              <div class="form-col"><label>O- Blood Units</label><input type="number" id="staffONegUnits" class="form-input" min="0" max="50" value="6" required></div>
-              <div class="form-col"><label>AB+ Blood Units</label><input type="number" id="staffABPosUnits" class="form-input" min="0" max="50" value="9" required></div>
-            </div>
-            <button type="submit" id="btnStaffBroadcast" class="btn btn-blue btn-block" disabled><i class="fa-solid fa-tower-broadcast"></i> Save inventory</button>
-            <div id="staffNotice" class="form-notice"></div>
-          </form>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="app-footer">
-    <div class="footer-container">
-      <div class="footer-brand"><h3><i class="fa-solid fa-heart-pulse text-blue"></i> PulsePoint+ Emergency Care</h3><p>Find nearby emergency care when every minute matters.</p></div>
-      <div class="footer-copy"><p>&copy; 2026 PulsePoint+.</p><p>Hospital availability must be confirmed with the facility before travelling.</p></div>
-    </div>
-  </footer>
-
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <script src="config.js?v=connected-1"></script>
-  <script src="hospital-search.js?v=live-internet-2"></script>
-  <script src="account-staff.js?v=final-1"></script>
-  <script src="emergency-tools.js?v=final-1"></script>
-</body>
-</html>
+$("signup").onclick=async()=>{
+ let cred=null;
+ try{
+   const email=$("semail").value.trim().toLowerCase();
+   if(!email||$("spass").value.length<6)throw new Error("Valid email এবং 6+ character password দিন।");
+   cred=await createUserWithEmailAndPassword(auth,email,$("spass").value);
+   const inv=await getDoc(doc(db,"invites",email));
+   if(!inv.exists()||inv.data().active!==true){
+     await deleteUser(cred.user);
+     throw new Error("এই email teacher allow করেননি।");
+   }
+   const d=inv.data();
+   await setDoc(doc(db,"users",cred.user.uid),{
+     uid:cred.user.uid,email,name:d.name,classId:d.classId,className:d.className,
+     role:"student",createdAt:serverTimestamp()
+   });
+   location.href="student.html";
+ }catch(e){$("smsg").textContent=e.message;}
+};
+</script><script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script></body></html>

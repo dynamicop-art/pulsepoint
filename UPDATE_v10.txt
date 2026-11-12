@@ -1,0 +1,21 @@
+STUDY EDITION v10
+
+Changes
+- Larger profile: 104px desktop frame, 84px mobile frame, proportional photo.
+- Profile is keyboard-accessible; click it to open picture settings.
+- Muted violet/teal palette and lightweight book illustration.
+- Personal checklist with completion meter and automatic device saving per account.
+- Quick notes with automatic saving and visible storage-error feedback.
+- Pending assignment deadline summary refreshes every minute.
+- Export pending dated assignments as an all-day .ics calendar file.
+- Updated service-worker cache includes all new assets.
+
+Deployment
+Extract this ZIP and upload ALL files inside Student-Live-Test-main to the existing website folder. Keep your existing Firebase project configuration. No Firestore rule or data migration is required. Refresh the website after deployment.
+
+Notes
+Checklist/notes are local to this browser and account, not cloud-synced. Clearing browser storage removes them. Calendar export is a manual snapshot; re-export after deadline changes. It does not schedule email or push notifications.
+
+Validation
+All HTML inline scripts and new JavaScript pass Node syntax checks. Logic checks passed for persistence, account isolation, completion, safe text rendering, calendar rollover and escaping, and storage failure feedback.
+Browser rendering could not be verified in this environment because Chromium was blocked from launching. Live Firebase login, database permissions and end-to-end tests require verification on your deployed site with a real account.

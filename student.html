@@ -1,0 +1,973 @@
+<!doctype html><html lang="bn"><head>
+<script>try{if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#4c1d95"><meta name="color-scheme" content="light dark">
+<title>My Learning Space · Arpan Learning Suite</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236d28d9'/%3E%3Cstop offset='1' stop-color='%230891b2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='url(%23g)'/%3E%3Ctext x='50' y='66' font-size='52' font-family='Poppins,sans-serif' font-weight='700' fill='%23fff' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="app-icon-192.png">
+<link rel="stylesheet" href="style.css?v=9.0-stable">
+<style>
+/* Critical mobile profile header: kept inline so an old cached stylesheet cannot restore the oversized card. */
+@media(max-width:600px){
+  section.hero.topbar{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:9px!important;min-height:0!important;height:auto!important;margin:6px 0 12px!important;padding:58px 14px 14px!important;border-radius:22px!important;text-align:left!important}
+  section.hero.topbar .avatar-row{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;width:100%!important;min-width:0!important;text-align:left!important}
+  section.hero.topbar .avatar-row>div{display:block!important;min-width:0!important;text-align:left!important}
+  section.hero.topbar .profile-orbit{width:58px!important;height:58px!important;flex:0 0 58px!important}
+  section.hero.topbar .profile-orbit .avatar,section.hero.topbar .profile-orbit .avatar-placeholder{width:49px!important;height:49px!important}
+  section.hero.topbar .brand-line{justify-content:flex-start!important;width:auto!important;max-width:100%!important;margin:0 0 5px!important;padding:0!important;border:0!important;background:none!important;backdrop-filter:none!important;font-size:8.5px!important;letter-spacing:.07em!important;animation:brandFloat 4.8s ease-in-out infinite!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  section.hero.topbar h1{max-width:100%!important;margin:0 0 3px!important;font-size:clamp(18px,5.4vw,22px)!important;line-height:1.15!important;text-align:left!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  section.hero.topbar p#who{max-width:100%!important;margin:0!important;font-size:10.5px!important;line-height:1.3!important;text-align:left!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  section.hero.topbar>button#logout{align-self:center!important;width:auto!important;min-width:68px!important;margin:0!important;padding:9px 9px!important;border-radius:12px!important;font-size:11px!important;box-shadow:none!important}
+  section.hero.topbar .learn-symbol{display:none!important} section.hero.topbar .star,section.hero.topbar .sparkle-sweep{display:block!important}
+}
+@media(max-width:370px){section.hero.topbar{grid-template-columns:minmax(0,1fr) 62px!important;padding:56px 11px 13px!important;gap:6px!important}section.hero.topbar .profile-orbit{width:52px!important;height:52px!important;flex-basis:52px!important}section.hero.topbar .profile-orbit .avatar,section.hero.topbar .profile-orbit .avatar-placeholder{width:44px!important;height:44px!important}section.hero.topbar h1{font-size:17px!important}section.hero.topbar p#who{font-size:9.5px!important}section.hero.topbar>button#logout{min-width:62px!important;padding:8px 6px!important;font-size:10px!important}}
+</style><link rel="stylesheet" href="refresh.css?v=10"><link rel="stylesheet" href="premium.css?v=11"><link rel="stylesheet" href="learning-plus.css?v=12"></head>
+<body>
+<div class="fab-row"><button id="soundBtn" class="sound-fab" type="button" title="Toggle sound">🔇</button><button id="themeBtn" class="theme-fab" type="button" title="Switch theme">🌙</button></div>
+<div class="wrap">
+<section class="hero topbar">
+  <div class="avatar-row"><span class="profile-orbit" id="profileEffect" role="button" tabindex="0" aria-label="Change profile picture" title="Change profile picture"><span id="avatarBox"></span><i class="online-dot" title="Online"></i></span><div><div class="brand-line"><span class="brand-dot"></span> Arpan Learning Suite</div><h1 id="welcome">My Learning Hub</h1><p id="who"></p></div></div>
+  <button id="logout" class="secondary">Logout</button>
+</section>
+<nav class="nav student-nav">
+  <button class="active" data-tab="home">🏠 Home</button>
+  <button data-tab="notes">📝 Notes</button>
+  <button data-tab="tests">🧪 Tests</button>
+  <button data-tab="assignments">📌 Assignments</button>
+  <button data-tab="revision">🧠 Revision</button>
+  <button data-tab="progress">📊 Progress</button>
+  <button data-tab="history">🗂️ Test History</button>
+  <button data-tab="games">🎮 Games</button>
+  <button data-tab="doubts">💬 Doubts</button>
+  <button id="moreNavBtn" class="mobile-more" type="button">☰ More</button>
+</nav>
+<div class="utility-strip" aria-label="App tools">
+  <button id="quickFindBtn" type="button" class="secondary utility-btn">⌘ Quick Find</button>
+  <button id="installAppBtn" type="button" class="secondary utility-btn hidden">⬇ Install App</button>
+  <span id="networkBadge" class="network-badge" aria-live="polite">● Online</span>
+  <span class="version-badge">STUDY EDITION · 10</span>
+</div>
+
+<!-- ================= HOME ================= -->
+<section id="home" class="tab">
+  <div class="card quote-card motivation-card" aria-label="Daily motivation">
+    <div class="motivation-icon" aria-hidden="true">✦</div>
+    <div class="motivation-copy"><span class="section-kicker">DAILY MOTIVATION</span><div class="quote-text" id="quoteText"></div><div class="quote-by" id="quoteBy"></div></div>
+  </div>
+
+  <div class="card smart-dashboard"><div class="topbar"><div><span class="section-kicker">TODAY</span><h2>⚡ Smart Dashboard</h2></div><span id="todayDate" class="pill"></span></div>
+    <div class="smart-grid">
+      <button class="smart-tile" id="todayAssignmentBtn" type="button"><span>📌 Assignment</span><b id="todayAssignment">Loading…</b><small id="todayAssignmentMeta">Checking deadlines</small></button>
+      <button class="smart-tile" id="nextTestBtn" type="button"><span>🧪 Next Test</span><b id="nextTestTitle">Loading…</b><small id="nextTestMeta">Checking tests</small></button>
+      <button class="smart-tile" id="weakAreaBtn" type="button"><span>🎯 Revision Focus</span><b id="weakAreaTitle">Waiting for results</b><small id="weakAreaMeta">Subject and unit insight</small></button>
+      <button class="smart-tile" id="continueBtn" type="button"><span>↗ Continue</span><b id="continueTitle">Open Notes</b><small id="continueMeta">Resume your last section</small></button>
+    </div>
+  </div>
+
+  <section class="card study-desk" aria-labelledby="deskTitle">
+    <div class="desk-heading"><div><span class="section-kicker">A LITTLE PROGRESS, EVERY DAY</span><h2 id="deskTitle">Your study desk</h2><p class="muted">ছোট লক্ষ্য ঠিক করো। এক এক করে এগিয়ে যাও।</p></div><img src="study-art.svg" width="144" height="104" alt="" aria-hidden="true"></div>
+    <div class="desk-grid"><div><form id="taskForm"><label for="taskInput">My checklist</label><div class="desk-input"><input id="taskInput" maxlength="160" placeholder="e.g. Revise one chapter" required><button type="submit">Add</button></div></form><div id="deskTasks"></div><p id="deskProgress" class="muted"></p><progress id="deskMeter" max="1" value="0" aria-label="Checklist completion"></progress></div>
+    <div><label for="deskNote">Quick notes</label><textarea id="deskNote" rows="4" maxlength="5000" placeholder="Ideas, formulas, things to revise…"></textarea><p id="deskSave" role="status" class="muted">Saved on this device, for your account.</p></div></div>
+    <div class="desk-footer"><span id="deadlineSummary" role="status">Loading assignment deadlines…</span><button id="exportDeadlines" type="button" class="secondary" disabled>↓ Add deadlines to calendar</button></div>
+  </section>
+
+  <div class="home-primary-grid">
+    <div class="card mission-card compact-home-card">
+      <div class="topbar compact-card-head"><div><span class="section-kicker">TODAY</span><h2>🎯 Daily Mission</h2></div><span id="missionProgress" class="pill">0 / 0</span></div>
+      <div id="dailyMissionList" class="mission-list"><div class="skeleton skeleton-block"></div></div>
+    </div>
+    <div class="card ai-coach-card compact-home-card">
+      <div class="topbar compact-card-head"><div><span class="section-kicker">AI COACH</span><h2>✨ Personal Study Coach</h2><p id="coachSummary" class="muted coach-summary">তোমার performance context অনুযায়ী সাহায্য।</p></div><span class="pill teal">Smart</span></div>
+      <div class="coach-actions"><button id="coachPlan" type="button">🗓 Today Plan</button><button id="coachWeak" type="button" class="secondary">🧠 Weak Topic</button><button id="coachQuiz" type="button" class="secondary">🎯 Quiz Me</button></div>
+    </div>
+  </div>
+
+  <div class="home-insight-grid">
+    <div class="card compact-home-card"><div class="topbar compact-card-head"><h2>📣 Notice Board</h2><span class="pill">Latest</span></div><div id="noticeList"></div></div>
+    <div class="card home-performance compact-home-card"><div class="topbar compact-card-head"><div><h2>📊 Performance Snapshot</h2></div><button class="secondary compact-action" id="openProgress">Details</button></div><div class="home-stat-grid"><div class="mini-stat"><b id="homeTests">0</b><span>Tests</span></div><div class="mini-stat"><b id="homeAvg">—</b><span>Average</span></div><div class="mini-stat"><b id="homeBest">—</b><span>Best</span></div><div class="mini-stat"><b id="homeRank">—</b><span>Rank</span></div></div><div id="homeFocus" class="focus-tip muted">একটি graded test-এর পরে revision focus এখানে দেখা যাবে।</div></div>
+  </div>
+
+  <details id="homeMorePanel" class="card home-more-panel">
+    <summary><span><b>✨ More tools & insights</b><small>Weekly goal, leaderboard, streak, timer, subjects & profile</small></span><span class="summary-chevron">⌄</span></summary>
+    <div class="home-more-content">
+      <div class="card weekly-goal-card"><div class="topbar"><div><h2>🎯 Weekly Test Goal</h2></div><select id="weeklyGoal" aria-label="Weekly test target"><option value="1">1 test</option><option value="2">2 tests</option><option value="3">3 tests</option><option value="4">4 tests</option><option value="5">5 tests</option><option value="6">6 tests</option><option value="7">7 tests</option></select></div><div class="goal-meter"><div id="weeklyGoalFill"></div></div><div class="goal-copy"><b id="weeklyGoalText">0 / 3 tests</b><span id="weeklyGoalHint" class="muted">Start with one test this week.</span></div></div>
+
+      <div class="card leaderboard-card"><h2>🏆 Latest 3 Exam Leaderboards</h2><div id="homeLeaderboard" class="recent-leaderboards"><div class="skeleton skeleton-block"></div></div></div>
+
+      <div class="home-mini-tools">
+        <div class="card"><h2>🔥 Study Streak</h2><div class="streak-box"><div class="streak-num">🔥 <span id="streakCount">0</span> days</div><div class="badge-row" id="badgeRow"></div></div></div>
+        <div class="card"><h2>🎮 Learning Level</h2><div class="xp-box"><div class="xp-ring" id="xpRing" data-level="1" style="--xppct:0"></div><div class="xp-info"><h3 id="xpTitle">Level 1 · Starter</h3><div class="xp-track"><div class="xp-fill" id="xpFill"></div></div><div class="muted" id="xpSub">0 XP</div></div></div></div>
+      </div>
+
+      <div class="card"><h2>⏱️ Pomodoro Study Timer</h2><div class="pomo-box"><div class="pomo-ring" id="pomoRing" data-time="25:00" style="--pct:0"></div><div><div class="row" style="max-width:280px"><select id="pomoMode"><option value="25">Focus 25 min</option><option value="5">Short break 5 min</option><option value="15">Long break 15 min</option></select></div><div class="pomo-actions"><button id="pomoStart" class="secondary">▶️ Start</button><button id="pomoPause" class="secondary">⏸️ Pause</button><button id="pomoReset" class="secondary">🔄 Reset</button></div></div></div></div>
+
+      <div class="home-mini-tools">
+        <div class="card"><h2>🖼️ Profile Picture</h2><p class="muted">JPG, PNG বা WebP (সর্বোচ্চ 10 MB) — ছবি নিজে থেকেই ছোট হবে।</p><div class="row"><input id="avatarFile" type="file" accept="image/jpeg,image/png,image/webp"><button id="saveAvatar" class="secondary">Save Picture</button></div><p id="avatarMsg" class="muted"></p></div>
+        <div class="card"><h2>📚 My Subjects</h2><div id="subjects" class="grid"></div></div>
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- ================= NOTES ================= -->
+<section id="notes" class="tab hidden">
+  <div class="card">
+    <h2>📝 Notes</h2>
+    <div class="filter-bar">
+      <input id="noteSearch" placeholder="🔍 Search notes...">
+      <select id="chapterFilter"><option value="">All chapters</option></select>
+      <label class="chip-toggle"><input id="bookmarkOnly" type="checkbox"> ⭐ Bookmarked only</label>
+      <button id="flashBtn" class="secondary">🎴 Flashcard revision</button>
+    </div>
+    <div id="notesList"></div>
+  </div>
+  <div id="flashSection" class="card hidden">
+    <h2>🎴 Flashcards</h2>
+    <div class="flash-stage">
+      <div class="flash-card-wrap"><div class="flash-card" id="flashCard"></div></div>
+      <div class="flash-progress" id="flashProgress"></div>
+      <div class="flash-controls">
+        <button id="flashPrev" class="secondary">◀ Prev</button>
+        <button id="flashShuffle" class="secondary">🔀 Shuffle</button>
+        <button id="flashNext" class="secondary">Next ▶</button>
+        <button id="flashClose" class="danger">✖ Close</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TESTS ================= -->
+<section id="tests" class="tab hidden">
+  <div class="card"><h2>🧪 Available Tests</h2>
+    <p class="muted">Retake যতবার চাইবে করা যাবে। Official leaderboard-এ শুধু প্রথম submitted attempt গণনা হবে।</p>
+    <div class="test-catalog-title"><div><span class="section-kicker">EXAM PORTAL</span><h3>Subject ও Unit অনুযায়ী test খুঁজে নাও</h3></div><span id="studentTestCount" class="pill">0 tests</span></div>
+    <div class="filter-bar test-catalog-filters"><select id="testSubjectFilter" aria-label="Filter tests by subject"><option value="">All Subjects</option></select><select id="testUnitFilter" aria-label="Filter tests by unit or chapter" disabled><option value="">Select Subject for Units</option></select><input id="testSearch" type="search" placeholder="🔍 Search tests..."><button id="studentTestClear" type="button" class="secondary">Reset</button></div>
+    <p id="studentTestScope" class="filter-scope" role="status">সব subject ও unit-এর test দেখানো হচ্ছে।</p>
+    <p id="testLoadMsg" class="muted" role="status"></p>
+    <div id="testsList" class="test-catalog"></div>
+  </div>
+  <div class="card practice-builder"><div class="practice-builder-head"><div><span class="pill">FREE · NO API KEY</span><h2>🎯 Personal Practice Test</h2><p class="muted">ChatGPT output paste করো, clipboard থেকে নাও, বা TXT / MD / JSON file import করো। Formatting একটু বদলালেও importer যতটা সম্ভব question চিনে নেবে। Practice result Firebase-এ save হবে না।</p></div><div class="practice-head-actions"><button id="pracFeed" type="button" class="secondary">∞ Smart Practice Feed</button><button id="pracAuto" type="button" class="secondary">⚡ Auto Practice from My Performance</button></div></div><div class="row"><input id="pracTopic" placeholder="Topic"><input id="pracCount" type="number" min="3" max="20" value="5"></div><div class="practice-import-actions"><button id="pracPromptBtn" type="button" class="secondary">🤖 Create in ChatGPT</button><button id="pracPasteClipboard" type="button" class="secondary">📋 Paste Clipboard</button><label class="practice-file-btn secondary" for="pracFile">📄 Upload File</label><input id="pracFile" class="hidden" type="file" accept=".txt,.md,.json,text/plain,text/markdown,application/json"></div><textarea id="pracPaste" placeholder="Paste ChatGPT output here…
+
+Q: Question
+A: Option
+B: Option
+C: Option
+D: Option
+ANSWER: A
+TOPIC: Topic"></textarea><div class="practice-import-actions"><button id="pracPreview" type="button" class="secondary">✓ Preview & Validate</button><button id="pracStart" type="button">▶ Start Practice</button></div><div id="pracImportStatus" class="practice-import-status muted" role="status"></div><div id="pracImportPreview" class="practice-import-preview"></div><div id="smartFeedBox" class="smart-feed-box hidden"></div><div id="pracQuiz"></div></div>
+</section>
+
+<section id="runner" class="card hidden">
+<div class="topbar"><div><span class="pill">LIVE TEST</span><h2 id="testName"></h2></div><span id="timer" class="pill"></span></div>
+<div class="progress"><div id="prog"></div></div><p id="progText" class="muted"></p>
+<div class="test-toolbar"><button id="testFullscreen" type="button" class="secondary">⛶ Full Screen</button><button id="jumpUnanswered" type="button" class="secondary">↪ Next Unanswered</button><span class="muted">Answers + confidence are auto-saved</span></div>
+<div id="questionPalette" class="question-palette" aria-label="Question navigation"></div>
+<form id="testForm"></form><button id="submitTest" type="button">Final Submit</button> <button id="printPaperBtn" type="button" class="secondary hidden">🖨️ Question Paper</button><p id="testStatus" class="muted"></p>
+</section>
+<section id="resultBox" class="card hidden"></section>
+
+<!-- ================= ASSIGNMENTS ================= -->
+<section id="assignments" class="tab hidden">
+  <div class="card"><h2>📌 Homework / Assignments</h2><div id="asgList"></div></div>
+</section>
+
+<!-- ================= PROGRESS ================= -->
+<section id="progress" class="tab hidden">
+  <div class="card topbar"><div><h2>📊 Your Progress</h2><p class="muted">সব result একসাথে দেখো।</p></div><button id="printReport" class="secondary">🖨️ Print Full Report</button></div>
+  <div class="card"><h2>🔎 Subject & Unit Progress</h2><div class="filter-bar"><select id="progressSubject"><option value="">All Subjects</option></select><select id="progressUnit"><option value="">All Units / Chapters</option></select></div><p id="progressScope" class="muted">সব subject এবং unit-এর result দেখানো হচ্ছে।</p></div>
+  <div class="card"><h2>📊 Subject-wise Accuracy</h2><div id="subjectBars" class="barlist"><p class="muted">টেস্ট দিলে এখানে subject অনুযায়ী performance দেখা যাবে।</p></div></div>
+  <div class="card"><h2>🧭 Unit Analytics</h2><p class="muted">প্রতিটি unit-এর average, test count এবং আগের performance-এর তুলনা।</p><div id="unitAnalytics" class="analytics-grid"><p class="muted">Graded test-এর পরে unit analytics দেখা যাবে।</p></div></div>
+  <div class="card"><h2>🎯 Topic-wise Weak Areas</h2><p class="muted">৬০%-এর কম accuracy হলে ChatGPT দিয়ে topic-টি সহজভাবে বুঝে নাও।</p><div id="topicBars" class="barlist"><p class="muted">টেস্ট দিলে এখানে topic অনুযায়ী দুর্বল জায়গা দেখা যাবে।</p></div></div>
+  <div class="card"><div class="topbar"><div><span class="section-kicker">CALIBRATION</span><h2>🎯 Confidence Intelligence</h2><p class="muted">Sure, unsure আর guess—তোমার confidence আসলে accuracy-এর সাথে কতটা match করছে।</p></div></div><div id="confidenceAnalytics" class="confidence-analytics"><p class="muted">Confidence data collect হলে এখানে insight দেখা যাবে।</p></div></div>
+  <div class="card"><div class="topbar"><div><span class="section-kicker">MASTERY MAP</span><h2>🗺️ Knowledge Map</h2><p class="muted">Topic-গুলোকে Priority → Building → Strong → Mastered ধাপে দেখানো হচ্ছে।</p></div><span id="masteryCount" class="pill">0 mastered</span></div><div id="masteryMap" class="mastery-map"><p class="muted">Graded result-এর পরে mastery map তৈরি হবে।</p></div></div>
+</section>
+
+<!-- ================= TEST HISTORY ================= -->
+<section id="history" class="tab hidden"><div class="card topbar"><div><h2>🗂️ Test History</h2><p class="muted">সব submitted test, score, review এবং printable result এক জায়গায়।</p></div><button id="historyToProgress" class="secondary">📊 Open Progress</button></div><div class="card"><div id="historyList"></div></div></section>
+
+<!-- ================= REVISION CENTRE ================= -->
+<section id="revision" class="tab hidden">
+  <div class="card"><span class="section-kicker">PERSONALISED FROM TEST RESULTS</span><h2>🧠 Revision Centre</h2><p class="muted">ভুল প্রশ্ন, দুর্বল topic এবং আজকের revision plan—এক জায়গায়।</p><div class="home-stat-grid"><div class="mini-stat"><b id="mistakeOpen">0</b><span>To Review</span></div><div class="mini-stat"><b id="mistakeMastered">0</b><span>Mastered</span></div><div class="mini-stat"><b id="revisionDone">0</b><span>Plan Done</span></div><div class="mini-stat"><b id="revisionTotal">0</b><span>Today's Tasks</span></div></div></div>
+  <div class="card mistake-dna-card"><div class="topbar"><div><span class="section-kicker">LEARNING INTELLIGENCE</span><h2>🧬 Mistake DNA</h2><p class="muted">ভুলের কারণ tag করলে app বুঝবে তুমি concept, calculation, carelessness নাকি guessing-এ বেশি আটকে যাচ্ছ।</p></div><span id="dnaTaggedCount" class="pill teal">0 tagged</span></div><div id="mistakeDnaSummary" class="dna-summary"><p class="muted">Mistake Notebook-এ ভুলগুলোর কারণ tag করো।</p></div></div>
+  <div class="card"><div class="topbar"><div><h2>📅 Smart Revision Plan</h2><p class="muted">অসম্পূর্ণ task পরের দিনেও থাকবে।</p></div><button id="resetRevisionPlan" type="button" class="secondary">Reset Today</button></div><div id="revisionPlan"></div></div>
+  <div class="card"><div class="topbar"><div><h2>📕 Mistake Notebook</h2><p class="muted">Mastered mark করলে ভুলটি archive হবে; চাইলে আবার ফিরিয়ে আনতে পারবে।</p></div><label class="chip-toggle"><input id="showMasteredMistakes" type="checkbox"> Show mastered</label></div><div id="mistakeNotebook"></div></div>
+</section>
+
+<!-- ================= LEARNING GAMES ================= -->
+<section id="games" class="tab hidden"><div class="card"><span class="pill">JUST FOR FUN</span><h2>🎮 Learning Games</h2><p class="muted">Practice only—game scores exam result বা leaderboard-এ যোগ হবে না।</p></div><div class="grid2 game-grid">
+  <div class="card game-card math-game"><div class="game-icon">➗</div><h2>Math Sprint</h2><p class="muted">10টি দ্রুত arithmetic challenge solve করো।</p><div class="game-score"><span>Score <b id="mathScore">0</b></span><span>Best <b id="mathBest">0</b></span></div><div id="mathQuestion" class="game-question">Ready?</div><div class="game-answer-row"><input id="mathAnswer" type="number" inputmode="numeric" placeholder="Your answer"><button id="mathCheck">Check</button></div><p id="mathFeedback" class="game-feedback muted">Start চাপো।</p><button id="mathStart" class="secondary">Start Math Sprint</button></div>
+  <div class="card game-card physics-game"><div class="game-icon">⚛️</div><h2>Force Lab</h2><p class="muted">Mass × acceleration ব্যবহার করে force বেছে নাও।</p><div class="game-score"><span>Score <b id="physicsScore">0</b></span><span>Best <b id="physicsBest">0</b></span></div><div class="physics-track"><div id="physicsCart" class="physics-cart">▣</div></div><div id="physicsQuestion" class="game-question">F = m × a</div><div id="physicsOptions" class="physics-options"></div><p id="physicsFeedback" class="game-feedback muted">Start চাপো।</p><button id="physicsStart" class="secondary">Start Force Lab</button></div>
+</div>
+<div class="card"><span class="section-kicker">ULTIMATE LAB</span><h2>🚀 High-Impact Practice Modes</h2><p class="muted">এগুলো exam score-এ যোগ হবে না—mastery, challenge এবং oral rehearsal-এর জন্য।</p></div>
+<div class="grid ultimate-lab-grid">
+  <div class="card ultimate-feature-card"><div class="game-icon">👹</div><h2>Chapter Boss</h2><p class="muted">তোমার weak-topic questions দিয়ে 5-question boss challenge। 80%+ হলে boss defeated.</p><div id="bossArena" class="boss-arena"><div class="boss-health"><i id="bossHealth"></i></div><p id="bossStatus" class="muted">Graded review data থেকে challenge তৈরি হবে।</p></div><button id="bossStart" class="secondary" type="button">⚔️ Fight Weakest Boss</button></div>
+  <div class="card ultimate-feature-card"><div class="game-icon">⚔️</div><h2>Challenge Link Duel</h2><p class="muted">নিজে 5টি question খেলো, তারপর friend-কে challenge link পাঠাও—ওকে তোমার score beat করতে হবে।</p><div id="duelArea" class="duel-area"><p id="duelStatus" class="muted">No active challenge.</p></div><button id="duelStart" class="secondary" type="button">🎯 Create a Duel</button></div>
+  <div class="card ultimate-feature-card"><div class="game-icon">🎙️</div><h2>Viva Rehearsal</h2><p class="muted">Weak topic বা note নিজের ভাষায় explain করো; speech-to-text থাকলে microphone ব্যবহার করো, তারপর ChatGPT দিয়ে feedback নাও।</p><select id="vivaTopic"><option value="">Auto-select focus</option></select><div id="vivaQuestion" class="viva-question">Start করলে একটি oral prompt আসবে।</div><textarea id="vivaTranscript" placeholder="তোমার spoken answer / transcript এখানে থাকবে…"></textarea><div class="coach-actions"><button id="vivaStart" class="secondary" type="button">▶ Start Viva</button><button id="vivaMic" class="secondary" type="button">🎙️ Speak</button><button id="vivaEvaluate" type="button">✨ Evaluate with ChatGPT</button></div><p id="vivaStatus" class="muted"></p></div>
+</div></section>
+
+<div id="reviewOverlay" class="modal-overlay hidden"><div class="modal-card"><div class="topbar"><h3 id="reviewTitle">Answer Review</h3><button id="reviewClose" class="secondary">✕</button></div><div id="reviewBody"></div></div></div>
+<div id="replayOverlay" class="modal-overlay hidden"><div class="modal-card replay-modal"><div class="topbar"><div><span class="section-kicker">EXAM TELEMETRY</span><h3 id="replayTitle">Exam Replay</h3></div><button id="replayClose" class="secondary">✕</button></div><div id="replayInsights" class="replay-insights"></div><div id="replayTimeline" class="replay-timeline"></div></div></div>
+<div id="quickFindOverlay" class="modal-overlay hidden"><div class="modal-card quick-find-modal"><div class="topbar"><div><span class="section-kicker">UNIVERSAL SEARCH</span><h3>⌘ Quick Find</h3></div><button id="quickFindClose" class="secondary">✕</button></div><input id="quickFindInput" class="quick-find-input" autocomplete="off" placeholder="Search notes, tests, assignments, sections…"><div id="quickFindResults" class="quick-find-results"></div><p class="muted quick-find-hint">Tip: Ctrl/⌘ + K opens this from anywhere.</p></div></div>
+
+<div id="moreNavSheet" class="nav-sheet hidden" aria-hidden="true"><button id="closeMoreNav" class="nav-sheet-backdrop" type="button" aria-label="Close menu"></button><div class="nav-sheet-card"><div class="nav-sheet-head"><b>More Sections</b><button id="closeMoreNavTop" type="button" class="secondary">✕</button></div><div class="nav-sheet-grid"><button data-open-tab="assignments">📌<span>Assignments</span></button><button data-open-tab="revision">🧠<span>Revision</span></button><button data-open-tab="progress">📊<span>Progress</span></button><button data-open-tab="history">🗂️<span>History</span></button><button data-open-tab="games">🎮<span>Games</span></button><button data-open-tab="doubts">💬<span>Doubts</span></button></div></div></div>
+
+<!-- ================= DOUBTS ================= -->
+<section id="doubts" class="tab hidden">
+  <div class="card"><h2>💬 Ask a Doubt</h2>
+    <div class="row"><select id="doubtSubject"><option value="">Subject বেছে নাও</option></select></div>
+    <textarea id="doubtText" placeholder="তোমার প্রশ্নটা লিখো..."></textarea>
+    <button id="sendDoubt">Send to Teacher</button><p id="doubtMsg" class="muted"></p>
+  </div>
+  <div class="card"><h2>📜 My Doubts</h2><div id="myDoubts"></div></div>
+</section>
+
+</div>
+
+<script src="premium-shell.js?v=11"></script>
+<script type="module">
+import {initStudyDesk, updateDeadlines} from "./study-desk.js";
+import {initLearningPlus,compressAvatar} from "./learning-plus.js";
+let confettiBurst=()=>{},playChime=()=>{},toast=()=>{},isSoundOn=()=>false,setSoundOn=()=>{},mountBlobs=()=>{},mountCardTilt=()=>{},mountButtonRipples=()=>{},mountHeroSparkle=()=>{};
+try{const fx=await import("./effects.js?v=9.0-stable");({confettiBurst,playChime,toast,isSoundOn,setSoundOn,mountBlobs,mountCardTilt,mountButtonRipples,mountHeroSparkle}=fx);mountBlobs();mountHeroSparkle();mountCardTilt();mountButtonRipples();}catch(e){console.warn("Optional effects unavailable",e);}
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {getAuth,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {getFirestore,doc,getDoc,updateDoc,collection,getDocs,query,where,addDoc,setDoc,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {firebaseConfig} from "./config.js";
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
+let profile=null,subjects=[],notes=[],tests=[],assignments=[],doneAssignmentIds=new Set(),activeAttempt=null,activeTest=null,answers={},startMs=0,timerHandle=null;
+let markedForReview=new Set(),confidenceMap={},answerTimeline=[],attemptSubmitting=false,attemptSubmitted=false,startingTest=false;
+let deferredInstallPrompt=null,smartFeedState=null;
+const WEAK_TOPIC_THRESHOLD=60;
+const escapeHTML=value=>String(value??"").replace(/[&<>'"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch]));
+let reportSubjects=[],reportTopics=[],reportAttempts=[];
+let progressMine=[],studentAttempts=[],cachedLeaderboardEntries=[],initialProgressLoaded=false,leaderboardLoaded=false;
+
+/* ---------- APP SHELL / PWA ---------- */
+function updateNetworkBadge(){const online=navigator.onLine;$('networkBadge').textContent=online?'● Online':'● Offline';$('networkBadge').classList.toggle('offline',!online);}
+updateNetworkBadge();window.addEventListener('online',updateNetworkBadge);window.addEventListener('offline',updateNetworkBadge);
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;$('installAppBtn').classList.remove('hidden');});
+window.addEventListener('appinstalled',()=>{$('installAppBtn').classList.add('hidden');deferredInstallPrompt=null;showToast('✅ App installed');});
+$('installAppBtn').onclick=async()=>{if(!deferredInstallPrompt)return showToast('Install option browser menu-তে পাওয়া যেতে পারে।');deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;$('installAppBtn').classList.add('hidden');};
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('Service worker unavailable',e)));
+window.addEventListener('unhandledrejection',e=>{console.error('Unhandled app error',e.reason);if(!String(e.reason||'').includes('permission'))showToast('একটি operation complete হয়নি—আবার চেষ্টা করো।');});
+
+function consumeSharedPracticeImport(){
+ const params=new URLSearchParams(location.search),shared=String(params.get('shared_text')||params.get('shared_title')||params.get('shared_url')||'').trim();if(!shared)return;
+ $('pracPaste').value=shared;openTab('tests',{scroll:false});practiceParseAndPreview(true);showToast('✅ Shared questions imported');
+ ['shared_title','shared_text','shared_url'].forEach(k=>params.delete(k));const qs=params.toString();history.replaceState({},'',location.pathname+(qs?'?'+qs:'')+location.hash);setTimeout(()=>$('pracPaste').scrollIntoView({behavior:'smooth',block:'center'}),100);
+}
+
+/* ---------- THEME ---------- */
+function applyThemeBtn(){const dark=document.documentElement.getAttribute("data-theme")==="dark";$("themeBtn").textContent=dark?"☀️":"🌙";const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=dark?"#150f28":"#4c1d95";}
+applyThemeBtn();
+$("themeBtn").onclick=()=>{
+ const dark=document.documentElement.getAttribute("data-theme")==="dark";
+ if(dark){document.documentElement.removeAttribute("data-theme");localStorage.setItem("theme","light");}
+ else{document.documentElement.setAttribute("data-theme","dark");localStorage.setItem("theme","dark");}
+ applyThemeBtn();
+};
+function updateSoundButton(){$("soundBtn").textContent=isSoundOn()?"🔊":"🔇";}
+updateSoundButton();$("soundBtn").onclick=()=>{setSoundOn(!isSoundOn());updateSoundButton();if(isSoundOn())playChime("click");};
+
+const DAILY_QUOTES=[["প্রতিদিনের ছোট revision-ই বড় প্রস্তুতি তৈরি করে।","Study Tip"],["ভুল মানে শেখার পরবর্তী ধাপ।","Daily Motivation"],["বোঝার চেষ্টা করো, শুধু মুখস্থ নয়।","Learning Tip"],["Consistency beats last-minute pressure.","Study Tip"],["আজকের চেষ্টা আগামীকালের আত্মবিশ্বাস।","Daily Motivation"]];
+function renderQuote(){const q=DAILY_QUOTES[Math.floor(Date.now()/86400000)%DAILY_QUOTES.length];$("quoteText").textContent=`“${q[0]}”`;$("quoteBy").textContent=`— ${q[1]}`;}renderQuote();
+
+function renderXP(testCount=0){const xp=((profile?.streak?.count)||0)*5+testCount*20+(profile?.bookmarks||[]).length*2;const level=Math.min(10,Math.floor(xp/100)+1),pct=xp%100;$("xpRing").dataset.level=level;$("xpRing").style.setProperty("--xppct",pct);$("xpFill").style.width=pct+"%";$("xpTitle").textContent=`Level ${level} · ${["Starter","Explorer","Learner","Scholar","Achiever","Champion","Expert","Elite","Master","Legend"][level-1]}`;$("xpSub").textContent=`${xp} XP · ${100-pct} XP to next level`;}
+
+$("logout").onclick=async()=>{
+ const btn=$("logout");if(btn.disabled)return;btn.disabled=true;btn.textContent="Logging out...";
+ const forceRedirect=setTimeout(()=>{location.href="index.html";},4000);
+ try{await signOut(auth);}
+ catch(e){console.error("logout error:",e);}
+ finally{clearTimeout(forceRedirect);location.href="index.html";}
+};
+onAuthStateChanged(auth,async u=>{
+ if(!u){location.href="index.html";return;}
+ const p=await getDoc(doc(db,"users",u.uid));if(!p.exists()){await signOut(auth);location.href="index.html";return;}
+ profile=p.data();$("welcome").textContent=`Hi, ${profile.name} 👋`;$("who").textContent=`${profile.className} · ${profile.email}`;
+ renderAvatar();
+ initStudyDesk(u.uid);renderFocusWeek();
+ try{initLearningPlus({db,user:u,profile,getReviews:()=>reportAttempts.flatMap(a=>a.review||[])});}catch(e){console.error("Learning extras unavailable",e);showToast("Some extras could not load. Your core study tools are still available.");}
+ const streakTask=updateStreak().then(()=>{renderBadges();renderXP(progressMine.length);}).catch(e=>console.warn("streak update deferred",e));
+ await loadData();
+ await streakTask;
+ consumeSharedPracticeImport();consumeDuelChallenge();
+ const savedTab=localStorage.getItem(`lastTab:${u.uid}`);if(savedTab&&$(savedTab))openTab(savedTab,{remember:false,scroll:false});
+});
+
+const MORE_TABS=new Set(["assignments","revision","progress","history","games","doubts","desk","updates","account"]);
+function closeMoreNav(){$("moreNavSheet").classList.add("hidden");$("moreNavSheet").setAttribute("aria-hidden","true");}
+function openTab(tabId,{remember=true,scroll=true}={}){
+ const target=$(tabId);if(!target)return;
+ document.querySelectorAll(".tab").forEach(t=>t.classList.add("hidden"));target.classList.remove("hidden");
+ document.querySelectorAll(".nav button[data-tab]").forEach(x=>x.classList.toggle("active",x.dataset.tab===tabId));
+ $("moreNavBtn").classList.toggle("active",MORE_TABS.has(tabId));
+ if(remember&&auth.currentUser)localStorage.setItem(`lastTab:${auth.currentUser.uid}`,tabId);
+ closeMoreNav();if(scroll)window.scrollTo({top:0,behavior:"smooth"});renderSmartDashboard();
+}
+document.querySelectorAll(".nav button[data-tab]").forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
+$("moreNavBtn").onclick=()=>{$("moreNavSheet").classList.remove("hidden");$("moreNavSheet").setAttribute("aria-hidden","false");};
+$("closeMoreNav").onclick=closeMoreNav;$("closeMoreNavTop").onclick=closeMoreNav;
+document.querySelectorAll("[data-open-tab]").forEach(b=>b.onclick=()=>openTab(b.dataset.openTab));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMoreNav();});
+
+/* ---------- AVATAR ---------- */
+function renderAvatar(){
+ const initial=(profile.name||"?").trim().charAt(0).toUpperCase();
+ $("avatarBox").innerHTML=profile.avatarData?`<img class="avatar" src="${escapeHTML(profile.avatarData)}" alt="avatar">`:`<span class="avatar-placeholder">${escapeHTML(initial)}</span>`;
+}
+$("profileEffect").onclick=()=>{openTab("account");$("homeMorePanel").open=true;$("avatarFile").scrollIntoView({behavior:"smooth",block:"center"});$("avatarFile").focus();};
+$("profileEffect").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();$("profileEffect").click();}};
+$("openProgress").onclick=()=>openTab("progress");
+$("historyToProgress").onclick=()=>openTab("progress");
+function weeklyGoalValue(){const value=Number(localStorage.getItem(`weeklyGoal:${auth.currentUser?.uid||"guest"}`));return value>=1&&value<=7?value:3;}
+function renderWeeklyGoal(attempts=reportAttempts){const goal=weeklyGoalValue(),now=new Date(),day=(now.getDay()+6)%7,start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-day);const done=attempts.filter(a=>{const ms=a.submittedAt?.seconds?Number(a.submittedAt.seconds)*1000:0;return ms>=start.getTime();}).length,pct=Math.min(100,Math.round(done/goal*100));$("weeklyGoal").value=goal;$("weeklyGoalFill").style.width=pct+"%";$("weeklyGoalText").textContent=`${done} / ${goal} tests`;$("weeklyGoalHint").textContent=done>=goal?"✅ Weekly goal completed!":`${goal-done} more test${goal-done===1?"":"s"} to reach your goal.`;}
+$("weeklyGoal").onchange=()=>{localStorage.setItem(`weeklyGoal:${auth.currentUser.uid}`,String($("weeklyGoal").value));renderWeeklyGoal();toast("Weekly goal updated","🎯");};
+function fileToDataUrl(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});}
+$("saveAvatar").onclick=async()=>{
+ const button=$("saveAvatar");if(button.disabled)return;button.disabled=true;
+ try{
+   const f=$("avatarFile").files[0];
+   if(!f)throw new Error("প্রথমে একটা ছবি বেছে নাও।");
+   const dataUrl=await compressAvatar(f);
+   await updateDoc(doc(db,"users",auth.currentUser.uid),{avatarData:dataUrl});
+   profile.avatarData=dataUrl;renderAvatar();$("avatarMsg").textContent="✅ Profile picture updated.";document.dispatchEvent(new Event("avatar-saved"));
+ }catch(e){$("avatarMsg").textContent=e.message;}finally{button.disabled=false;}
+};
+
+/* ---------- STREAK ---------- */
+function todayStr(){return focusDay();}
+function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return focusDay(d);}
+async function updateStreak(){
+ const streak=profile.streak||{count:0,lastDate:""};
+ const today=todayStr();
+ if(streak.lastDate===today){/* already counted today */}
+ else if(streak.lastDate===yesterdayStr()){streak.count=(streak.count||0)+1;streak.lastDate=today;await updateDoc(doc(db,"users",auth.currentUser.uid),{streak});profile.streak=streak;}
+ else{streak.count=1;streak.lastDate=today;await updateDoc(doc(db,"users",auth.currentUser.uid),{streak});profile.streak=streak;}
+ $("streakCount").textContent=streak.count||0;
+}
+function renderBadges(){
+ const c=(profile.streak&&profile.streak.count)||0;
+ const levels=[["🔥 3-day",3],["🥉 7-day",7],["🥈 14-day",14],["🥇 30-day",30]];
+ $("badgeRow").innerHTML=levels.map(([label,n])=>`<span class="badge ${c>=n?"":"locked"}">${label}</span>`).join("");
+}
+
+/* ---------- POMODORO ---------- */
+let pomoTotal=25*60,pomoLeft=25*60,pomoHandle=null,pomoDeadline=0;
+function focusDay(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function focusLog(){try{return JSON.parse(localStorage.getItem(`focusLog:${auth.currentUser?.uid}`)||'{}')||{};}catch{return {};}}
+function renderFocusWeek(){
+ const log=focusLog(),root=$('focusWeek');root.replaceChildren();let total=0;
+ for(let i=6;i>=0;i--){const day=new Date();day.setDate(day.getDate()-i);const count=Number(log[focusDay(day)])||0;total+=count;const cell=document.createElement('span');cell.className=count?'focus-day completed':'focus-day';cell.textContent=day.toLocaleDateString('en',{weekday:'narrow'});cell.title=`${focusDay(day)}: ${count} completed focus sessions`;cell.setAttribute('aria-label',cell.title);root.append(cell);}
+ $('focusWeekCaption').textContent=total?`${total} focus session${total===1?'':'s'} this week · keep your own pace`:'Your next small win starts here.';
+}
+function renderPomo(){
+ const m=Math.floor(pomoLeft/60),s=pomoLeft%60,time=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+ $('pomoRing').setAttribute('data-time',time);$('pomoRing').style.setProperty('--pct',Math.round((1-pomoLeft/pomoTotal)*100));
+ $('focusStatus').classList.toggle('hidden',!pomoHandle&&pomoLeft===pomoTotal);$('focusStatus').textContent=`${pomoHandle?'◷':'Ⅱ'} ${time} · ${pomoHandle?'Focus timer':'Paused'}`;
+ $('pomoStart').disabled=!!pomoHandle;$('pomoPause').disabled=!pomoHandle;
+}
+function finishFocus(){
+ clearInterval(pomoHandle);pomoHandle=null;pomoLeft=0;
+ if(['10','25'].includes($('pomoMode').value)&&auth.currentUser){const log=focusLog(),day=focusDay();log[day]=(Number(log[day])||0)+1;const recent=Object.fromEntries(Object.entries(log).sort().slice(-90));try{localStorage.setItem(`focusLog:${auth.currentUser.uid}`,JSON.stringify(recent));$('focusFeedback').textContent='✦ Session complete. One small win, earned. Take a break!';}catch{$('focusFeedback').textContent='Session complete! Activity could not be saved on this device.';}renderFocusWeek();}
+ showToast('✦ Session complete — take a short break.');renderPomo();
+}
+function tickFocus(){pomoLeft=Math.max(0,Math.ceil((pomoDeadline-Date.now())/1000));if(!pomoLeft)finishFocus();else renderPomo();}
+$('pomoMode').onchange=()=>{clearInterval(pomoHandle);pomoHandle=null;pomoTotal=pomoLeft=Number($('pomoMode').value)*60;renderPomo();};
+$('pomoStart').onclick=()=>{if(pomoHandle)return;if(pomoLeft<=0)pomoLeft=pomoTotal;pomoDeadline=Date.now()+pomoLeft*1000;pomoHandle=setInterval(tickFocus,1000);renderPomo();};
+$('pomoPause').onclick=()=>{if(pomoHandle){pomoLeft=Math.max(0,Math.ceil((pomoDeadline-Date.now())/1000));clearInterval(pomoHandle);pomoHandle=null;}renderPomo();};
+$('pomoReset').onclick=()=>{clearInterval(pomoHandle);pomoHandle=null;pomoLeft=pomoTotal;renderPomo();};
+$('quickFocus').onclick=()=>{openTab('desk');if(!pomoHandle){$('pomoMode').value='10';$('pomoMode').onchange();$('pomoStart').click();}$('pomoRing').closest('.card').scrollIntoView({behavior:'smooth',block:'center'});};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&pomoHandle)tickFocus();});
+renderPomo();
+
+/* ---------- HELPERS ---------- */
+function subjectClass(name){const n=(name||"").toLowerCase();if(n.includes("math"))return"math";if(n.includes("phys"))return"physics";if(n.includes("chem"))return"chemistry";if(n.includes("bio"))return"biology";return"default";}
+function subjectIcon(name){const n=(name||"").toLowerCase();if(n.includes("math"))return"➗";if(n.includes("phys"))return"⚡";if(n.includes("chem"))return"🧪";if(n.includes("bio"))return"🧬";return"📘";}
+function subjectName(id){return subjects.find(s=>s.id===id)?.name||"Subject";}
+
+/* ---------- SMART DASHBOARD ---------- */
+function readableDate(value){if(!value)return null;const d=value?.toDate?value.toDate():new Date(value);return Number.isNaN(d.getTime())?null:d;}
+function renderSmartDashboard(){
+ if(!$("todayDate"))return;
+ const now=new Date(),today=todayStr();$("todayDate").textContent=now.toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"});
+ const pending=[...assignments].filter(a=>!doneAssignmentIds.has(a.id)).sort((a,b)=>(a.dueDate||"9999-12-31").localeCompare(b.dueDate||"9999-12-31"));
+ const todayItems=pending.filter(a=>a.dueDate===today),assignment=todayItems[0]||pending[0];
+ $("todayAssignment").textContent=assignment?assignment.title:"All clear";$("todayAssignmentMeta").textContent=assignment?(assignment.dueDate===today?"Due today":assignment.dueDate?`Due ${assignment.dueDate}`:"No deadline"):"No pending assignment";
+ const attempted=new Set(progressMine.filter(a=>a.status==="submitted").map(a=>a.testId));
+ const available=[...tests].filter(t=>!attempted.has(t.id)).sort((a,b)=>{const ad=readableDate(a.startAt||a.startsAt)?.getTime()||0,bd=readableDate(b.startAt||b.startsAt)?.getTime()||0;return ad-bd;});
+ const next=available[0];$("nextTestTitle").textContent=next?next.title:"No pending test";
+ if(next){const start=readableDate(next.startAt||next.startsAt),delta=start?start-now:null;$("nextTestMeta").textContent=start&&delta>0?`Starts in ${Math.max(1,Math.ceil(delta/3600000))} hour(s)`: `${Number(next.questionCount)||next.questions?.length||0} questions · available now`;}
+ else $("nextTestMeta").textContent="Teacher publishes new tests here";
+ const weakTopic=reportTopics[0],weakSubject=reportSubjects[0];
+ $("weakAreaTitle").textContent=weakTopic&&weakTopic.pct<WEAK_TOPIC_THRESHOLD?weakTopic.label:weakSubject&&weakSubject.pct<75?weakSubject.label:"On track";
+ $("weakAreaMeta").textContent=weakTopic&&weakTopic.pct<WEAK_TOPIC_THRESHOLD?`${weakTopic.pct}% accuracy · revise today`:weakSubject&&weakSubject.pct<75?`${weakSubject.pct}% subject average`:"No urgent weak area";
+ const last=localStorage.getItem(`lastTab:${auth.currentUser?.uid||"guest"}`)||"notes",labels={home:"Home",notes:"Notes",tests:"Tests",assignments:"Assignments",revision:"Revision Centre",progress:"Progress",history:"Test History",games:"Games",doubts:"Doubts",desk:"My Desk",updates:"Updates",account:"Profile"};
+ const safeLast=last==="home"?"notes":last;$("continueTitle").textContent=labels[safeLast]||"Notes";$("continueMeta").textContent="Resume your last section";$("continueBtn").dataset.target=safeLast;
+ $("todayAssignmentBtn").disabled=!assignment;$("nextTestBtn").disabled=!next;renderDailyMission();renderCoachSummary();
+}
+$("todayAssignmentBtn").onclick=()=>openTab("assignments");$("nextTestBtn").onclick=()=>openTab("tests");$("weakAreaBtn").onclick=()=>openTab("revision");$("continueBtn").onclick=()=>openTab($("continueBtn").dataset.target||"notes");
+
+/* ---------- DAILY MISSION + AI COACH + QUICK FIND ---------- */
+function performanceContext(){
+ const weak=reportTopics.slice(0,3).map(x=>`${x.label} ${x.pct}%`).join(', ')||'not enough topic data';
+ const recent=reportAttempts.filter(a=>a.percentage!=null).slice(0,4).map(a=>`${a.testTitle}: ${a.percentage}%`).join(', ')||'no graded tests yet';
+ return `Student: ${profile?.className||'student'}; weak topics: ${weak}; recent results: ${recent}; open mistakes: ${mistakeRows().filter(x=>!masteredMistakes().has(x.key)).length}; pending assignments: ${assignments.filter(a=>!doneAssignmentIds.has(a.id)).length}.`;
+}
+function renderDailyMission(){
+ if(!$('dailyMissionList'))return;const tasks=revisionTasks().slice(0,3),done=revisionCompletion(),today=todayStr(),completed=tasks.filter(t=>done[t.id]===today).length;$('missionProgress').textContent=`${completed} / ${tasks.length}`;
+ $('dailyMissionList').innerHTML=tasks.map(t=>`<article class="mission-item ${done[t.id]===today?'done':''}" data-id="${escapeHTML(t.id)}"><button type="button" class="mission-check" aria-label="Toggle mission">${done[t.id]===today?'✓':'○'}</button><span class="revision-icon">${t.icon}</span><span><b>${escapeHTML(t.title)}</b><small>${escapeHTML(t.meta)}</small></span><button type="button" class="secondary mission-open" data-target="${t.tab}">Open</button></article>`).join('');
+ document.querySelectorAll('.mission-check').forEach(b=>b.onclick=()=>{const id=b.closest('.mission-item').dataset.id,data=revisionCompletion();data[id]===today?delete data[id]:data[id]=today;localStorage.setItem(`revisionDone:${auth.currentUser.uid}`,JSON.stringify(data));renderRevisionCentre();renderDailyMission();});
+ document.querySelectorAll('.mission-open').forEach(b=>b.onclick=()=>openTab(b.dataset.target));
+}
+function renderCoachSummary(){if(!$('coachSummary'))return;const weak=reportTopics[0];$('coachSummary').textContent=weak?`Current focus: ${weak.label} (${weak.pct}%). Coach prompts include your recent performance context.`:'Complete a graded test and the coach will become personalised.';}
+$('coachPlan').onclick=()=>openChatGPTPrompt(`Act as my study coach. ${performanceContext()}\n\nBuild a realistic plan for TODAY only. Prioritise the highest-impact 3 tasks, estimate minutes for each, include one short revision block and one self-test. Keep the plan concise and in Bengali with important academic terms in English.`);
+$('coachWeak').onclick=()=>{const weak=reportTopics[0];if(!weak)return showToast('Weak-topic data এখনো নেই');openChatGPTPrompt(weakTopicPrompt(weak));};
+$('coachQuiz').onclick=()=>{const weak=reportTopics[0],topic=weak?.label||'my current syllabus';openChatGPTPrompt(`আমি ${profile.className}-এর বাংলা-মাধ্যমের student। আমাকে ${topic} topic-এ 7-question adaptive oral quiz নাও। একবারে শুধু 1টি question করবে, আমার answer না পাওয়া পর্যন্ত পরের question বা correct answer বলবে না। ভুল হলে hint দেবে, শেষে strengths, misconception এবং next revision step বলবে। Context: ${performanceContext()}`);};
+
+const QUICK_SECTIONS=[['home','Home'],['notes','Notes'],['tests','Tests & Practice'],['assignments','Assignments'],['revision','Revision Centre'],['progress','Progress & Mastery'],['history','Test History'],['games','Learning Games'],['doubts','Ask a Doubt']];
+function quickFindItems(){return [
+ ...QUICK_SECTIONS.map(([id,label])=>({type:'section',id,title:label,meta:'Section'})),
+ ...notes.map(n=>({type:'note',id:n.id,title:n.title,meta:`Note · ${n.chapter||subjectName(n.subjectId)}`})),
+ ...tests.map(t=>({type:'test',id:t.id,title:t.title,meta:`Test · ${subjectName(t.subjectId)} · ${t.chapter||'General'}`})),
+ ...assignments.map(a=>({type:'assignment',id:a.id,title:a.title,meta:`Assignment${a.dueDate?' · due '+a.dueDate:''}`}))
+];}
+function renderQuickFind(){const q=$('quickFindInput').value.trim().toLocaleLowerCase(),items=quickFindItems().filter(x=>!q||(x.title+' '+x.meta).toLocaleLowerCase().includes(q)).slice(0,20);$('quickFindResults').innerHTML=items.length?items.map(x=>`<button type="button" class="quick-result" data-type="${x.type}" data-id="${escapeHTML(x.id)}"><span><b>${escapeHTML(x.title)}</b><small>${escapeHTML(x.meta)}</small></span><span>↗</span></button>`).join(''):`<p class="muted">No match found.</p>`;document.querySelectorAll('.quick-result').forEach(b=>b.onclick=()=>openQuickResult(b.dataset.type,b.dataset.id));}
+function openQuickFind(){renderQuickFind();$('quickFindOverlay').classList.remove('hidden');setTimeout(()=>$('quickFindInput').focus(),30);}
+function closeQuickFind(){$('quickFindOverlay').classList.add('hidden');}
+function openQuickResult(type,id){closeQuickFind();if(type==='section')return openTab(id);if(type==='note'){openTab('notes');const n=notes.find(x=>x.id===id);$('noteSearch').value=n?.title||'';renderNotes();return;}if(type==='test'){openTab('tests');const t=tests.find(x=>x.id===id);$('testSearch').value=t?.title||'';renderTests();return;}if(type==='assignment'){openTab('assignments');setTimeout(()=>document.querySelector(`[data-assignment-id="${CSS.escape(id)}"]`)?.scrollIntoView({behavior:'smooth',block:'center'}),80);}}
+$('quickFindBtn').onclick=openQuickFind;$('quickFindClose').onclick=closeQuickFind;$('quickFindInput').oninput=renderQuickFind;$('quickFindOverlay').onclick=e=>{if(e.target.id==='quickFindOverlay')closeQuickFind();};
+document.addEventListener('keydown',e=>{const typing=/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'');if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openQuickFind();}else if(e.key==='/'&&!typing){e.preventDefault();openQuickFind();}else if(e.key==='Escape'&&!$('quickFindOverlay').classList.contains('hidden'))closeQuickFind();});
+
+/* ---------- LOAD ALL DATA ---------- */
+async function loadData(){
+ const ss=await getDocs(query(collection(db,"subjects"),where("classId","==",profile.classId)));subjects=ss.docs.map(d=>({id:d.id,...d.data()}));
+ $("subjects").innerHTML=subjects.map(s=>`<div class="card subject-card ${subjectClass(s.name)}"><div class="subject-icon">${subjectIcon(s.name)}</div><div><h3>${escapeHTML(s.name)}</h3><span class="pill">${escapeHTML(profile.className)}</span></div></div>`).join("")||"<p>No subjects yet.</p>";
+ $("doubtSubject").innerHTML=`<option value="">Subject বেছে নাও</option>`+subjects.map(s=>`<option value="${escapeHTML(s.id)}">${escapeHTML(s.name)}</option>`).join("");
+
+ // Live: new notes/tests/notices/assignments the teacher publishes appear
+ // instantly, no logout/login or manual reload needed.
+ onSnapshot(query(collection(db,"notes"),where("classId","==",profile.classId)),snap=>{
+  notes=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const chapters=[...new Set(notes.map(n=>n.chapter).filter(Boolean))];
+  $("chapterFilter").innerHTML=`<option value="">All chapters</option>`+chapters.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
+  renderNotes();renderVivaTopics();
+ },err=>console.error("notes listener error:",err));
+
+ onSnapshot(query(collection(db,"tests"),where("classId","==",profile.classId),where("published","==",true)),snap=>{
+ tests=snap.docs.map(d=>({id:d.id,...d.data()}));
+  $("testLoadMsg").textContent="";
+  refreshStudentTestFilters();renderSmartDashboard();
+  if(initialProgressLoaded){clearTimeout(loadData.testRefresh);loadData.testRefresh=setTimeout(()=>loadProgressAndLeaderboard(false,true).catch(e=>console.error("progress refresh error:",e)),220);}
+ },err=>{console.error("tests listener error:",err);$("testLoadMsg").textContent="⚠️ Published test list load করা যায়নি। Teacher-কে package-এর Firestore Rules publish করতে বলো।";$("testsList").innerHTML="<p class='muted'>Test list load করা যায়নি। পরে আবার চেষ্টা করো।</p>";});
+
+ onSnapshot(query(collection(db,"announcements"),where("classId","==",profile.classId)),snap=>{
+  const notices=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  $("noticeList").innerHTML=notices.map((n,i)=>`<div class="notice-item ${i===0?"pinned":""}"><b>${i===0?"📌 ":""}${escapeHTML(n.title)}</b><p class="muted">${escapeHTML(n.content)}</p></div>`).join("")||"<p class='muted'>এখনো কোনো notice নেই।</p>";
+ });
+
+ onSnapshot(query(collection(db,"assignments"),where("classId","==",profile.classId)),async snap=>{
+  assignments=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const statusS=await getDocs(query(collection(db,"assignmentStatus"),where("uid","==",auth.currentUser.uid)));
+  doneAssignmentIds=new Set(statusS.docs.filter(d=>d.data().done).map(d=>d.data().assignmentId));
+  renderAssignments();renderSmartDashboard();
+ });
+
+ await loadProgressAndLeaderboard(false,false);
+ initialProgressLoaded=true;
+ const loadLeaderboardLater=()=>loadProgressAndLeaderboard(true,true).catch(e=>console.error("leaderboard refresh error:",e));
+ if("requestIdleCallback" in window)requestIdleCallback(loadLeaderboardLater,{timeout:1800});else setTimeout(loadLeaderboardLater,650);
+ $("homeMorePanel")?.addEventListener("toggle",()=>{if($("homeMorePanel").open&&!leaderboardLoaded)loadLeaderboardLater();},{once:false});
+ listenMyDoubts();
+}
+
+/* ---------- NOTES + SEARCH + BOOKMARK + FLASHCARDS ---------- */
+function filteredNotes(){
+ const q=$("noteSearch").value.trim().toLowerCase();
+ const chap=$("chapterFilter").value;
+ const bmOnly=$("bookmarkOnly").checked;
+ const bookmarks=profile.bookmarks||[];
+ return notes.filter(n=>{
+  if(chap&&n.chapter!==chap)return false;
+  if(bmOnly&&!bookmarks.includes(n.id))return false;
+  if(q){const hay=(n.title+" "+(n.content||"")+" "+(n.chapter||"")).toLowerCase();if(!hay.includes(q))return false;}
+  return true;
+ });
+}
+function renderNotes(){
+ const list=filteredNotes();const bookmarks=profile.bookmarks||[];
+ $("notesList").innerHTML=list.map(n=>{
+  const isBm=bookmarks.includes(n.id);
+  return `<div class="item"><div class="topbar"><span class="pill">${escapeHTML(subjectName(n.subjectId))}</span><button class="bookmark-btn ${isBm?"active":""}" data-id="${escapeHTML(n.id)}" title="Bookmark">${isBm?"★":"☆"}</button></div>
+  ${n.chapter?`<span class="pill teal">${escapeHTML(n.chapter)}</span>`:""}
+  <h3>${escapeHTML(n.title)}</h3><div>${escapeHTML(n.content||"").replaceAll("\n","<br>")}</div>
+  ${n.attachmentData?`<p><a class="btn secondary" download="${escapeHTML(n.attachmentName||"note")}" href="${escapeHTML(n.attachmentData)}">📎 Open attachment</a></p>`:""}
+  <button class="ai" data-title="${encodeURIComponent(n.title)}" data-content="${encodeURIComponent(n.content||"")}">✨ Explain with ChatGPT</button></div>`;
+ }).join("")||"<p>কোনো note পাওয়া যায়নি।</p>";
+ document.querySelectorAll(".ai").forEach(b=>b.onclick=()=>aiHelp(decodeURIComponent(b.dataset.title),decodeURIComponent(b.dataset.content)));
+ document.querySelectorAll(".bookmark-btn").forEach(b=>b.onclick=()=>toggleBookmark(b.dataset.id));
+}
+$("noteSearch").oninput=renderNotes;$("chapterFilter").onchange=renderNotes;$("bookmarkOnly").onchange=renderNotes;
+
+async function toggleBookmark(noteId){
+ const bookmarks=new Set(profile.bookmarks||[]);
+ if(bookmarks.has(noteId))bookmarks.delete(noteId);else bookmarks.add(noteId);
+ profile.bookmarks=[...bookmarks];
+ await updateDoc(doc(db,"users",auth.currentUser.uid),{bookmarks:profile.bookmarks});
+ renderNotes();
+}
+
+async function aiHelp(title,content){
+ const promptText=`আমি বাংলা-মাধ্যমের ${profile.className} student। নিচের topic-টা আমি বুঝতে পারছি না।
+
+Topic: ${title}
+Context/Notes: ${content}
+
+আমাকে এই sequence-এ শেখাও:
+1) খুব সহজ real-life example
+2) basic concept
+3) visual imagination/ছোট diagram
+4) step-by-step explanation
+5) important English terms-এর বাংলা মানে
+6) common mistakes
+7) 3টা practice question
+
+আমি মুখস্থ না করে concept বুঝতে চাই।`;
+ try{await navigator.clipboard.writeText(promptText);alert("Prompt copy হয়েছে। এখন ChatGPT খুলছে—paste করো।");window.open("https://chatgpt.com/","_blank");}
+ catch{window.prompt("এই prompt copy করো:",promptText);}
+}
+
+async function openChatGPTPrompt(promptText){
+ try{
+  await navigator.clipboard.writeText(promptText);
+  showToast("✅ Prompt copied — ChatGPT খুলছে");
+  window.open("https://chatgpt.com/","_blank","noopener,noreferrer");
+ }catch{
+  window.prompt("এই prompt copy করে ChatGPT-তে paste করো:",promptText);
+ }
+}
+
+function showToast(message){
+ let toast=document.getElementById("appToast");
+ if(!toast){toast=document.createElement("div");toast.id="appToast";toast.className="app-toast";toast.setAttribute("role","status");toast.setAttribute("aria-live","polite");document.body.appendChild(toast);}
+ toast.textContent=message;toast.classList.add("show");
+ clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove("show"),2600);
+}
+
+function weakTopicPrompt(row){
+ const context=[...row.tests].slice(0,3).join(", ")||"Completed tests";
+ return `আমি বাংলা-মাধ্যমের ${profile.className} student। আমার ${row.subjects.size===1?[...row.subjects][0]:"এই subject-এর"} ${row.label} topic-এ ${row.correct}/${row.total} সঠিক হয়েছে (${row.pct}%)।\n\nRelevant tests: ${context}\n\nআমাকে এইভাবে শেখাও:\n1) প্রথমে একটি ছোট diagnostic question করো\n2) সহজ real-life example দাও\n3) basic concept বাংলায় বোঝাও, important terms English-এ রাখো\n4) step-by-step explanation ও ছোট text diagram দাও\n5) common mistakes বোঝাও\n6) দুইটি solved example দাও\n7) easy থেকে hard তিনটি practice question দাও\n8) আমি চেষ্টা করার আগে practice answer দেখাবে না\n\nআমাকে বিচার না করে আমার ভুল ধারণাটি খুঁজে ঠিক করতে সাহায্য করো।`;
+}
+
+/* ---------- FLASHCARDS ---------- */
+let flashDeck=[],flashIdx=0,flashShowBack=false;
+$("flashBtn").onclick=()=>{
+ flashDeck=filteredNotes().filter(n=>n.content);
+ if(!flashDeck.length){alert("Flashcard বানানোর মতো কোনো note নেই (filter change করে দেখো)।");return;}
+ flashIdx=0;flashShowBack=false;$("flashSection").classList.remove("hidden");renderFlash();$("flashSection").scrollIntoView({behavior:"smooth"});
+};
+function renderFlash(){
+ const n=flashDeck[flashIdx];
+ $("flashCard").innerHTML=flashShowBack?`<div>${escapeHTML(n.content).replaceAll("\n","<br>")}<div class="hint">Tap to see question</div></div>`:`<div>${escapeHTML(n.title)}<div class="hint">Tap to reveal answer</div></div>`;
+ $("flashProgress").textContent=`${flashIdx+1} / ${flashDeck.length}`;
+}
+$("flashCard").onclick=()=>{flashShowBack=!flashShowBack;renderFlash();};
+$("flashNext").onclick=()=>{flashIdx=(flashIdx+1)%flashDeck.length;flashShowBack=false;renderFlash();};
+$("flashPrev").onclick=()=>{flashIdx=(flashIdx-1+flashDeck.length)%flashDeck.length;flashShowBack=false;renderFlash();};
+$("flashShuffle").onclick=()=>{for(let i=flashDeck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[flashDeck[i],flashDeck[j]]=[flashDeck[j],flashDeck[i]];}flashIdx=0;flashShowBack=false;renderFlash();};
+$("flashClose").onclick=()=>$("flashSection").classList.add("hidden");
+
+/* ---------- TESTS ---------- */
+function hasValidTestQuestions(test){return Array.isArray(test?.questions)&&test.questions.length>0&&test.questions.every(item=>item&&typeof item.q==="string"&&item.q.trim()&&Array.isArray(item.o)&&item.o.length===4&&item.o.every(option=>typeof option==="string"&&option.trim()));}
+function catalogUnitName(name){return String(name||"").normalize("NFKC").trim().replace(/\s+/g," ")||"Uncategorized";}
+function catalogUnitKey(name){return catalogUnitName(name).toLocaleLowerCase();}
+function testCatalogCompare(a,b){return String(a||"").localeCompare(String(b||""),undefined,{numeric:true,sensitivity:"base"});}
+function replaceStudentTestOptions(id,placeholder,items,preferred){const select=$(id),wanted=preferred===undefined?select.value:preferred;select.replaceChildren(new Option(placeholder,""));items.forEach(item=>select.add(new Option(item.label,item.value)));select.value=items.some(item=>item.value===wanted)?wanted:"";}
+function studentTestUnitItems(items){const units=new Map();items.forEach(test=>{const key=catalogUnitKey(test.chapter);if(!units.has(key))units.set(key,catalogUnitName(test.chapter));});return [...units].map(([value,label])=>({value,label})).sort((a,b)=>testCatalogCompare(a.label,b.label));}
+function refreshStudentTestFilters({resetUnit=false}={}){
+ const subjectItems=[...new Set(tests.map(t=>t.subjectId).filter(Boolean))].map(value=>({value,label:subjectName(value)})).sort((a,b)=>testCatalogCompare(a.label,b.label));replaceStudentTestOptions("testSubjectFilter","All Subjects",subjectItems);
+ const subjectId=$("testSubjectFilter").value,unitItems=subjectId?studentTestUnitItems(tests.filter(t=>t.subjectId===subjectId)):[];replaceStudentTestOptions("testUnitFilter",subjectId?"All Units / Chapters":"Select Subject for Units",unitItems,resetUnit?"":undefined);$("testUnitFilter").disabled=!subjectId||!unitItems.length;renderTests();
+}
+function renderTests(){
+ const q=$("testSearch").value.trim().toLocaleLowerCase(),subjectId=$("testSubjectFilter").value,unit=$("testUnitFilter").value;
+ const list=tests.filter(t=>(!subjectId||t.subjectId===subjectId)&&(!unit||catalogUnitKey(t.chapter)===unit)&&(!q||`${t.title||""} ${catalogUnitName(t.chapter)} ${subjectName(t.subjectId)}`.toLocaleLowerCase().includes(q))).sort((a,b)=>testCatalogCompare(`${subjectName(a.subjectId)}\u0000${catalogUnitName(a.chapter)}\u0000${a.title}`,`${subjectName(b.subjectId)}\u0000${catalogUnitName(b.chapter)}\u0000${b.title}`)),groups=new Map();
+ list.forEach(test=>{const key=`${test.subjectId}\u001f${catalogUnitKey(test.chapter)}`;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(test);});
+ $("studentTestCount").textContent=`${list.length} / ${tests.length} tests`;const unitLabel=unit?$("testUnitFilter").selectedOptions[0]?.textContent||unit:"All Units";$("studentTestScope").textContent=`Showing: ${subjectId?subjectName(subjectId):"All Subjects"} · ${unitLabel}`;
+ $("testsList").innerHTML=[...groups.values()].map(items=>{const first=items[0],unitName=catalogUnitName(first.chapter);return `<section class="test-catalog-group"><div class="test-group-head"><div><span class="pill">${escapeHTML(subjectName(first.subjectId))}</span><h3>${escapeHTML(unitName)}</h3></div><span class="pill gold">${items.length} exam${items.length===1?"":"s"}</span></div><div class="test-card-grid">${items.map(t=>{const submitted=studentAttempts.filter(a=>a.testId===t.id&&a.status==="submitted"),resumable=studentAttempts.some(a=>a.testId===t.id&&a.status==="in_progress"),start=readableDate(t.startAt||t.startsAt),locked=!!start&&start.getTime()>Date.now(),valid=hasValidTestQuestions(t),label=locked?"Not open yet":!valid?"Test needs correction":resumable?"Resume Test":submitted.length?"Retake Test":"Start Test";return `<article class="test-library-card student-test-card"><div><span class="pill teal">${escapeHTML(unitName)}</span>${submitted.length?` <span class="pill">${submitted.length} submitted</span>`:""}${resumable?` <span class="pill gold">In progress</span>`:""}<h3>${escapeHTML(t.title)}</h3><p class="muted">${Number(t.questionCount)||t.questions?.length||0} questions · ${Number(t.durationMinutes)||0} min${start?` · ${start.toLocaleString("en-IN")}`:""}</p>${!valid?`<p class="catalog-warning">⚠️ এই test-এ valid question নেই—Teacher-কে test-টি ঠিক করতে বলো।</p>`:""}</div><button class="startTest" data-id="${escapeHTML(t.id)}" ${locked||!valid?"disabled":""}>${label}</button></article>`;}).join("")}</div></section>`;}).join("")||"<div class='catalog-empty'><b>No matching tests</b><span>Subject/Unit filter change করো অথবা Reset চাপো।</span></div>";
+ document.querySelectorAll(".startTest").forEach(b=>b.onclick=()=>startTest(b.dataset.id));
+}
+$("testSubjectFilter").onchange=()=>refreshStudentTestFilters({resetUnit:true});$("testUnitFilter").onchange=renderTests;$("testSearch").oninput=renderTests;$("studentTestClear").onclick=()=>{$("testSubjectFilter").value="";$("testSearch").value="";refreshStudentTestFilters({resetUnit:true});};
+
+function updateTestProgress(){
+ const total=activeTest?.questions?.length||1,done=Object.keys(answers).length;$("prog").style.width=(done/total*100)+"%";$("progText").textContent=`Answered ${done}/${total} · Review ${markedForReview.size}`;
+ document.querySelectorAll(".palette-btn").forEach((b,i)=>{b.classList.toggle("answered",Object.hasOwn(answers,"q"+i));b.classList.toggle("review",markedForReview.has(i));});
+ document.querySelectorAll(".mark-review").forEach((b,i)=>{b.classList.toggle("active",markedForReview.has(i));b.textContent=markedForReview.has(i)?"★ Marked for Review":"☆ Mark for Review";});
+ document.querySelectorAll(".confidence-btn").forEach(b=>b.classList.toggle("active",confidenceMap["q"+b.dataset.index]===b.dataset.confidence));
+}
+function renderTestQuestions(){
+ $("testForm").innerHTML=activeTest.questions.map((x,i)=>`<div class="q test-question" id="question-${i}"><div class="question-head"><span class="pill">${escapeHTML(x.topic||"Question")}</span><button type="button" class="secondary mark-review" data-index="${i}">☆ Mark for Review</button></div><p><b>${i+1}. ${escapeHTML(x.q)}</b></p>${x.o.map((o,j)=>`<label class="opt"><input type="radio" name="q${i}" value="${j}" ${Number(answers["q"+i])===j?"checked":""}> ${String.fromCharCode(65+j)}. ${escapeHTML(o)}</label>`).join("")}<div class="confidence-row"><span>How sure are you?</span><button type="button" class="confidence-btn" data-index="${i}" data-confidence="sure">😎 Sure</button><button type="button" class="confidence-btn" data-index="${i}" data-confidence="maybe">🤔 Maybe</button><button type="button" class="confidence-btn" data-index="${i}" data-confidence="guess">🎲 Guess</button></div></div>`).join("");
+ $("questionPalette").innerHTML=activeTest.questions.map((_,i)=>`<button type="button" class="palette-btn" data-index="${i}" aria-label="Go to question ${i+1}">${i+1}</button>`).join("");
+ document.querySelectorAll(".palette-btn").forEach(b=>b.onclick=()=>$("question-"+b.dataset.index).scrollIntoView({behavior:"smooth",block:"start"}));
+ document.querySelectorAll(".mark-review").forEach(b=>b.onclick=()=>{const i=Number(b.dataset.index);markedForReview.has(i)?markedForReview.delete(i):markedForReview.add(i);updateTestProgress();queueAttemptSave();});
+ document.querySelectorAll(".confidence-btn").forEach(b=>b.onclick=()=>{const key="q"+b.dataset.index,value=b.dataset.confidence;confidenceMap[key]=value;recordAttemptEvent({type:"confidence",q:Number(b.dataset.index),confidence:value});updateTestProgress();queueAttemptSave();});
+ updateTestProgress();
+}
+function recordAttemptEvent(event){if(!startMs)return;answerTimeline.push({...event,at:Math.max(0,Math.round((Date.now()-startMs)/1000))});if(answerTimeline.length>600)answerTimeline=answerTimeline.slice(-600);}
+function queueAttemptSave(){clearTimeout(queueAttemptSave.timer);queueAttemptSave.timer=setTimeout(async()=>{if(!activeAttempt||attemptSubmitted)return;try{await updateDoc(doc(db,"attempts",activeAttempt),{answers,progress:Object.keys(answers).length,markedForReview:[...markedForReview],confidence:confidenceMap,answerTimeline,lastUpdated:serverTimestamp()});$("testStatus").textContent="✓ Progress saved";}catch(e){console.error(e);try{const current=activeAttempt&&await getDoc(doc(db,"attempts",activeAttempt));if(!current||!current.exists()){recoverDeletedAttempt("ℹ️ Teacher এই attempt reset/delete করেছেন। এখন নতুন করে test শুরু করা যাবে।");return;}}catch{}$("testStatus").textContent="⚠️ Save failed—check internet before submitting.";}},450);}
+function attemptTimeMs(value){if(!value)return 0;if(typeof value.toMillis==="function")return value.toMillis();return Number(value.seconds||0)*1000+Number(value.nanoseconds||0)/1000000;}
+function makeAttemptToken(){const uuid=globalThis.crypto?.randomUUID?.();return uuid?uuid.replaceAll("-",""):`${Date.now().toString(36)}${Math.random().toString(36).slice(2,22)}`;}
+function recoverDeletedAttempt(message){const removedId=activeAttempt;clearTimeout(queueAttemptSave.timer);clearInterval(timerHandle);if(removedId)studentAttempts=studentAttempts.filter(a=>a.id!==removedId);activeAttempt=null;activeTest=null;answers={};markedForReview=new Set();confidenceMap={};answerTimeline=[];attemptSubmitting=false;attemptSubmitted=false;$("runner").classList.add("hidden");$("testStatus").textContent="";$("testLoadMsg").textContent=message;renderTests();loadProgressAndLeaderboard().catch(e=>console.error("attempt reset refresh failed",e));}
+async function startTest(id){
+ const selected=tests.find(t=>t.id===id);if(!selected||startingTest)return;
+ if(activeAttempt&&!attemptSubmitted){if(activeTest?.id===id){$("runner").scrollIntoView({behavior:"smooth"});return;}showToast("আগের in-progress test আগে submit বা Teacher-এর মাধ্যমে reset করো।");$("runner").scrollIntoView({behavior:"smooth"});return;}
+ if(!hasValidTestQuestions(selected)){$("testLoadMsg").textContent="⚠️ Test-এ valid question/option নেই। Teacher-কে test-টি ঠিক করতে বলো।";return;}
+ const start=readableDate(selected.startAt||selected.startsAt);if(start&&start.getTime()>Date.now()){showToast("Test এখনো open হয়নি।");return;}
+ startingTest=true;$("testLoadMsg").textContent="Starting test...";
+ try{
+  const own=await getDocs(query(collection(db,"attempts"),where("uid","==",auth.currentUser.uid)));
+  studentAttempts=own.docs.map(d=>({id:d.id,...d.data()}));progressMine=studentAttempts.filter(a=>a.status==="submitted");
+  const inProgress=studentAttempts.filter(a=>a.testId===id&&a.status==="in_progress").sort((a,b)=>attemptTimeMs(b.startedAt)-attemptTimeMs(a.startedAt)||String(b.id).localeCompare(String(a.id)))[0];
+  activeTest=selected;answers={};markedForReview=new Set();confidenceMap={};answerTimeline=[];attemptSubmitting=false;attemptSubmitted=false;$("submitTest").disabled=false;$("printPaperBtn").classList.add("hidden");$("testStatus").textContent="";
+  let existingData=null;
+  if(inProgress){const existing=await getDoc(doc(db,"attempts",inProgress.id));if(existing.exists()&&existing.data().status==="in_progress"){activeAttempt=inProgress.id;existingData=existing.data();}}
+  if(existingData){
+   answers=existingData.answers||{};markedForReview=new Set((existingData.markedForReview||[]).map(Number));confidenceMap=existingData.confidence||{};answerTimeline=Array.isArray(existingData.answerTimeline)?existingData.answerTimeline.slice(-600):[];startMs=attemptTimeMs(existingData.startedAt)||Date.now();$("testStatus").textContent="↩ Saved attempt resumed.";
+  }else{
+   const token=makeAttemptToken(),sameTest=studentAttempts.filter(a=>a.testId===id),submittedCount=sameTest.filter(a=>a.status==="submitted").length,attemptNumber=sameTest.length+1;
+   activeAttempt=`${id}_${auth.currentUser.uid}_${token}`;startMs=Date.now();
+   const payload={attemptId:activeAttempt,attemptToken:token,attemptNumber,isRetake:submittedCount>0,uid:auth.currentUser.uid,studentName:profile.name,classId:profile.classId,testId:id,testTitle:selected.title,subjectId:selected.subjectId,status:"in_progress",progress:0,answers:{},markedForReview:[],confidence:{},answerTimeline:[],startedAt:serverTimestamp()};
+   await setDoc(doc(db,"attempts",activeAttempt),payload);studentAttempts.push({...payload,id:activeAttempt,startedAt:{seconds:Math.floor(startMs/1000)}});$("testStatus").textContent=submittedCount?`🔁 Retake #${attemptNumber}. Leaderboard-এর প্রথম result বদলাবে না।`:"🏆 First attempt—এই result leaderboard-এর জন্য eligible।";
+  }
+  $("testLoadMsg").textContent="";$("runner").classList.remove("hidden");$("resultBox").classList.add("hidden");$("testName").textContent=activeTest.title;renderTestQuestions();
+  clearInterval(timerHandle);timerHandle=setInterval(tick,1000);tick();$("runner").scrollIntoView({behavior:"smooth"});
+  $("testForm").onchange=e=>{if(e.target.type!=="radio")return;const index=Number(e.target.name.slice(1)),choice=Number(e.target.value);answers[e.target.name]=choice;recordAttemptEvent({type:"answer",q:index,choice});updateTestProgress();queueAttemptSave();};
+ }catch(e){
+  console.error("test start error:",e);activeAttempt=null;activeTest=null;$("testLoadMsg").textContent="⚠️ Test start হয়নি। Teacher-কে website files-এর সঙ্গে package-এর Firestore Rules publish করতে বলো।";showToast("Test start failed—please inform Teacher.");
+ }finally{startingTest=false;renderTests();}
+}
+function tick(){
+ const total=Math.max(1,Number(activeTest.durationMinutes)||30)*60,used=Math.floor((Date.now()-startMs)/1000),left=Math.max(0,total-used);
+ $("timer").textContent=`⏱ ${String(Math.floor(left/60)).padStart(2,"0")}:${String(left%60).padStart(2,"0")}`;
+ if(left<=0){clearInterval(timerHandle);finishTest(true);}
+}
+$("jumpUnanswered").onclick=()=>{if(!activeTest)return;const i=activeTest.questions.findIndex((_,idx)=>!Object.hasOwn(answers,"q"+idx));if(i<0)return showToast("সব question answered হয়েছে।");$("question-"+i).scrollIntoView({behavior:"smooth",block:"start"});};
+$("testFullscreen").onclick=async()=>{try{if(!document.fullscreenElement)await $("runner").requestFullscreen();else await document.exitFullscreen();}catch{showToast("এই browser full screen support করছে না।");}};
+window.addEventListener("beforeunload",e=>{if(activeAttempt&&!attemptSubmitted){e.preventDefault();e.returnValue="";}});
+$("submitTest").onclick=()=>{if(attemptSubmitting||attemptSubmitted)return;const unanswered=(activeTest?.questions?.length||0)-Object.keys(answers).length,marked=markedForReview.size,msg=`Final submit করতে নিশ্চিত?${unanswered?`\n${unanswered}টি unanswered আছে।`:""}${marked?`\n${marked}টি review-marked আছে।`:""}`;if(confirm(msg))finishTest(false);};
+
+async function finishTest(auto){
+ if(attemptSubmitting||attemptSubmitted||!activeAttempt)return;attemptSubmitting=true;clearTimeout(queueAttemptSave.timer);clearInterval(timerHandle);$("submitTest").disabled=true;$("testForm").querySelectorAll("input,button").forEach(x=>x.disabled=true);
+ try{
+  await updateDoc(doc(db,"attempts",activeAttempt),{answers,progress:Object.keys(answers).length,markedForReview:[...markedForReview],confidence:confidenceMap,answerTimeline,status:"submitted",submittedAt:serverTimestamp(),autoSubmitted:auto});attemptSubmitted=true;
+  const local=studentAttempts.find(a=>a.id===activeAttempt);if(local){local.answers={...answers};local.progress=Object.keys(answers).length;local.markedForReview=[...markedForReview];local.confidence={...confidenceMap};local.answerTimeline=[...answerTimeline];local.status="submitted";local.submittedAt={seconds:Math.floor(Date.now()/1000)};}progressMine=studentAttempts.filter(a=>a.status==="submitted");renderTests();
+ }
+ catch(e){try{const current=activeAttempt&&await getDoc(doc(db,"attempts",activeAttempt));if(!current||!current.exists()){recoverDeletedAttempt("ℹ️ Teacher এই attempt reset/delete করেছেন। এখন নতুন করে test শুরু করা যাবে।");return;}}catch{}attemptSubmitting=false;$("submitTest").disabled=false;$("testForm").querySelectorAll("input,button").forEach(x=>x.disabled=false);$("testStatus").textContent="⚠️ Submit failed. Internet check করে আবার submit করো।";return;}
+ $("testStatus").textContent="✅ Submitted. Teacher dashboard grading complete হলে result এখানে আসবে.";
+ $("printPaperBtn").classList.remove("hidden");$("printPaperBtn").onclick=()=>printQuestionPaper(activeTest);
+ const unsub=onSnapshot(doc(db,"attempts",activeAttempt),s=>{
+   if(!s.exists()){unsub();recoverDeletedAttempt("ℹ️ Teacher এই attempt reset/delete করেছেন। এখন নতুন করে test শুরু করা যাবে।");return;}
+   const d=s.data();if(d?.score!=null){
+     $("resultBox").classList.remove("hidden");
+     $("resultBox").innerHTML=`<span class="pill">RESULT</span><h2>${escapeHTML(activeTest.title)}</h2><h1>${d.score}/${d.total}</h1><p><b>${d.percentage}%</b></p>${confidenceSummaryHTML(d)}<button id="reviewNow" class="secondary">📝 Answer Review</button> ${Array.isArray(d.answerTimeline)&&d.answerTimeline.length?`<button id="replayNow" class="secondary">⏱ Exam Replay</button>`:""}<div class="notice">Revision-এর জন্য weak-topic ChatGPT help ব্যবহার করতে পারো।</div>`;
+     $("reviewNow").onclick=()=>showReview(activeTest.title,d.review,d);if($("replayNow"))$("replayNow").onclick=()=>showExamReplay({...d,id:activeAttempt,testTitle:activeTest.title});
+     if(d.percentage>=80){confettiBurst(d.percentage===100?150:90);playChime(d.percentage===100?"perfect":"success");}
+     unsub();loadProgressAndLeaderboard();renderTests();
+   }
+ });
+}
+
+function confidenceLabel(v){return v==='sure'?'😎 Sure':v==='maybe'?'🤔 Maybe':v==='guess'?'🎲 Guess':'—';}
+function confidenceSummaryData(a){const review=a?.review||[],c=a?.confidence||{};let mastered=0,lucky=0,danger=0,learning=0,tagged=0;review.forEach((r,i)=>{const v=c['q'+i];if(!v)return;tagged++;if(r.isCorrect&&v==='sure')mastered++;else if(r.isCorrect&&v==='guess')lucky++;else if(!r.isCorrect&&v==='sure')danger++;else learning++;});return {mastered,lucky,danger,learning,tagged};}
+function confidenceSummaryHTML(a){const x=confidenceSummaryData(a);if(!x.tagged)return '';return `<div class="confidence-result"><span>🟢 Mastered <b>${x.mastered}</b></span><span>🟡 Lucky guess <b>${x.lucky}</b></span><span>🔴 Wrong but sure <b>${x.danger}</b></span><span>🔵 Learning <b>${x.learning}</b></span></div>`;}
+function showReview(title,review=[],attempt=null){
+ $('reviewTitle').textContent=`${title} — Answer Review`;const confidence=attempt?.confidence||{};
+ $('reviewBody').innerHTML=review.length?review.map((r,i)=>`<div class="review-item ${r.isCorrect?'correct':'wrong'}"><div class="review-question-line"><b>${i+1}. ${escapeHTML(r.q)}</b>${confidence['q'+i]?`<span class="confidence-tag ${escapeHTML(confidence['q'+i])}">${confidenceLabel(confidence['q'+i])}</span>`:''}</div><p>${r.isCorrect?'✅ Correct':r.chosenIdx==null?'➖ Not answered':'❌ Needs revision'}</p>${(r.o||[]).map((o,j)=>`<div class="review-option ${j===r.correctIdx?'correct':j===r.chosenIdx?'wrong':''}">${String.fromCharCode(65+j)}. ${escapeHTML(o)}${j===r.correctIdx?' ✓':j===r.chosenIdx?' — your answer':''}</div>`).join('')}${r.explanation?`<div class="mistake-explanation"><b>Why?</b><p>${escapeHTML(r.explanation)}</p></div>`:''}</div>`).join(''):`<p class='muted'>এই পুরোনো result-এর review data নেই।</p>`;
+ $('reviewOverlay').classList.remove('hidden');
+}
+$('reviewClose').onclick=()=>$('reviewOverlay').classList.add('hidden');
+$('reviewOverlay').onclick=e=>{if(e.target.id==='reviewOverlay')$('reviewOverlay').classList.add('hidden');};
+function formatReplayTime(sec){sec=Math.max(0,Number(sec)||0);return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;}
+function showExamReplay(a){
+ const events=Array.isArray(a?.answerTimeline)?a.answerTimeline:[];if(!events.length)return showToast('এই attempt-এর replay data নেই।');const duration=Math.max(1,Math.round((attemptTimeMs(a.submittedAt)-attemptTimeMs(a.startedAt))/1000)||Math.max(...events.map(e=>Number(e.at)||0),1));
+ const answerEvents=events.filter(e=>e.type==='answer'),counts={};answerEvents.forEach(e=>counts[e.q]=(counts[e.q]||0)+1);const changed=Object.values(counts).filter(n=>n>1).length,first=answerEvents.length?Math.min(...answerEvents.map(e=>Number(e.at)||0)):0;
+ const wrong=new Set((a.review||[]).map((r,i)=>!r.isCorrect?i:null).filter(v=>v!==null)),latestByQ={};answerEvents.forEach(e=>latestByQ[e.q]=Number(e.at)||0);const lateWrong=[...wrong].filter(i=>(latestByQ[i]||0)>=duration*.8).length;
+ $('replayTitle').textContent=`${a.testTitle||'Test'} — Exam Replay`;$('replayInsights').innerHTML=`<div><b>${formatReplayTime(duration)}</b><span>Total duration</span></div><div><b>${changed}</b><span>Answers changed</span></div><div><b>${formatReplayTime(first)}</b><span>First answer</span></div><div><b>${lateWrong}</b><span>Late mistakes</span></div>`;
+ $('replayTimeline').innerHTML=events.slice(-120).map(e=>`<div class="replay-event"><time>${formatReplayTime(e.at)}</time><span class="replay-dot"></span><span>${e.type==='answer'?`Q${Number(e.q)+1} → ${String.fromCharCode(65+Number(e.choice))}`:`Q${Number(e.q)+1} confidence → ${confidenceLabel(e.confidence)}`}</span></div>`).join('');$('replayOverlay').classList.remove('hidden');
+}
+$('replayClose').onclick=()=>$('replayOverlay').classList.add('hidden');$('replayOverlay').onclick=e=>{if(e.target.id==='replayOverlay')$('replayOverlay').classList.add('hidden');};
+
+function printQuestionPaper(test){
+ if(!test?.questions?.length)return showToast("Question paper পাওয়া যায়নি");
+ const body=test.questions.map((q,i)=>`<section><b>${i+1}. ${escapeHTML(q.q)}</b>${q.o.map((o,j)=>`<div>${String.fromCharCode(65+j)}. ${escapeHTML(o)}</div>`).join("")}</section>`).join("");
+ const w=window.open("","_blank");if(!w)return showToast("Popup blocked");
+ w.document.write(`<html><head><title>${escapeHTML(test.title)}</title><style>body{font-family:sans-serif;padding:28px;color:#222}header{border-bottom:2px solid #6d28d9;margin-bottom:20px}section{break-inside:avoid;margin:18px 0;line-height:1.6}section div{margin-left:20px}</style><link rel="stylesheet" href="refresh.css?v=10"><link rel="stylesheet" href="premium.css?v=11"></head><body><header><h1>${escapeHTML(test.title)}</h1><p>${escapeHTML(profile.className)} · ${escapeHTML(test.chapter||"")}</p></header>${body}<p>Answer key intentionally excluded.</p></body></html>`);w.document.close();w.print();
+}
+
+/* ---------- ASSIGNMENTS ---------- */
+function dueTag(dueDate){
+ if(!dueDate)return"";
+ const today=todayStr();
+ if(dueDate<today)return`<span class="due-tag due-late">Overdue</span>`;
+ const soon=new Date();soon.setDate(soon.getDate()+2);
+ if(dueDate<=focusDay(soon))return`<span class="due-tag due-soon">Due soon</span>`;
+ return`<span class="due-tag due-ok">Due ${dueDate}</span>`;
+}
+function renderAssignments(){
+ updateDeadlines(assignments.filter(a=>!doneAssignmentIds.has(a.id)));
+ const sorted=[...assignments].sort((a,b)=>(a.dueDate||"9999").localeCompare(b.dueDate||"9999"));
+ $("asgList").innerHTML=sorted.map(a=>{
+  const done=doneAssignmentIds.has(a.id);
+  return `<div class="item assign-item ${done?"done":""}" data-assignment-id="${escapeHTML(a.id)}"><input type="checkbox" class="asgCheck" data-id="${escapeHTML(a.id)}" ${done?"checked":""}>
+  <div style="flex:1"><span class="pill">${escapeHTML(subjectName(a.subjectId))}</span> ${dueTag(a.dueDate)}<h3>${escapeHTML(a.title)}</h3><p class="muted">${escapeHTML(a.description||"")}</p></div></div>`;
+ }).join("")||"<p class='muted'>এখনো কোনো assignment নেই।</p>";
+ document.querySelectorAll(".asgCheck").forEach(cb=>cb.onchange=async()=>{
+  const id=cb.dataset.id,done=cb.checked;
+  cb.disabled=true;
+  try{await setDoc(doc(db,"assignmentStatus",`${id}_${auth.currentUser.uid}`),{uid:auth.currentUser.uid,assignmentId:id,classId:profile.classId,done,doneAt:serverTimestamp()});
+  if(done)doneAssignmentIds.add(id);else doneAssignmentIds.delete(id);
+  renderAssignments();renderSmartDashboard();renderRevisionCentre();}
+  catch(e){cb.checked=!done;showToast("Assignment update failed. Please retry.");}finally{cb.disabled=false;}
+ });
+}
+
+/* ---------- PROGRESS + LEADERBOARD + HISTORY ---------- */
+function barClass(pct){return pct<50?"weak":pct<75?"mid":"strong";}
+function testUnit(testId){return tests.find(t=>t.id===testId)?.chapter||"Uncategorized";}
+function fillProgressUnits(){const subjectId=$("progressSubject").value,current=$("progressUnit").value,units=[...new Set(progressMine.filter(a=>!subjectId||a.subjectId===subjectId).map(a=>testUnit(a.testId)))].sort();$("progressUnit").innerHTML=`<option value="">All Units / Chapters</option>`+units.map(u=>`<option value="${escapeHTML(u)}">${escapeHTML(u)}</option>`).join("");if(units.includes(current))$("progressUnit").value=current;}
+$("progressSubject").onchange=()=>{fillProgressUnits();$("progressUnit").value="";loadProgressAndLeaderboard(true);};
+$("progressUnit").onchange=()=>loadProgressAndLeaderboard(true);
+
+function renderUnitAnalytics(attempts){
+ const groups={};attempts.filter(a=>Number.isFinite(Number(a.percentage))).forEach(a=>{const unit=testUnit(a.testId),subject=subjectName(a.subjectId),key=subject+"||"+unit;if(!groups[key])groups[key]={subject,unit,items:[]};groups[key].items.push(a);});
+ const rows=Object.values(groups).map(g=>{g.items.sort((a,b)=>(a.submittedAt?.seconds||0)-(b.submittedAt?.seconds||0));const avg=Math.round(g.items.reduce((s,a)=>s+Number(a.percentage),0)/g.items.length),latest=Number(g.items.at(-1)?.percentage),previous=g.items.length>1?Number(g.items.at(-2)?.percentage):null;return {...g,avg,latest,previous,trend:previous==null?null:latest-previous};}).sort((a,b)=>a.avg-b.avg);
+ $("unitAnalytics").innerHTML=rows.length?rows.map(r=>`<article class="analytics-card"><span class="pill">${escapeHTML(r.subject)}</span><h3>${escapeHTML(r.unit)}</h3><div class="analytics-score">${r.avg}%</div><p class="muted">${r.items.length} test${r.items.length===1?"":"s"} · Latest ${r.latest}%</p><span class="trend ${r.trend>0?"up":r.trend<0?"down":"same"}">${r.trend==null?"First result":r.trend>0?`↑ ${r.trend}% improved`:r.trend<0?`↓ ${Math.abs(r.trend)}% from previous`:"→ No change"}</span></article>`).join(""):"<p class='muted'>এই filter-এর জন্য unit result নেই।</p>";
+}
+function mistakeRows(){const rows=[];progressMine.forEach(a=>(a.review||[]).forEach((r,i)=>{if(!r.isCorrect)rows.push({key:`${a.id}:${i}`,attempt:a,review:r,index:i});}));return rows.sort((a,b)=>(b.attempt.submittedAt?.seconds||0)-(a.attempt.submittedAt?.seconds||0));}
+function masteredMistakes(){try{return new Set(JSON.parse(localStorage.getItem(`masteredMistakes:${auth.currentUser?.uid||"guest"}`)||"[]"));}catch{return new Set();}}
+function saveMastered(set){localStorage.setItem(`masteredMistakes:${auth.currentUser.uid}`,JSON.stringify([...set]));}
+function revisionCompletion(){try{return JSON.parse(localStorage.getItem(`revisionDone:${auth.currentUser?.uid||"guest"}`)||"{}");}catch{return {};}}
+const DNA_TYPES={concept:['🧠','Concept gap'],careless:['⚡','Careless'],calculation:['🧮','Calculation'],guess:['🎲','Guess'],question:['🔎','Question reading']};
+function mistakeDnaData(){try{return JSON.parse(localStorage.getItem(`mistakeDNA:${auth.currentUser?.uid||'guest'}`)||'{}');}catch{return {};}}
+function saveMistakeDna(data){localStorage.setItem(`mistakeDNA:${auth.currentUser.uid}`,JSON.stringify(data));}
+function inferredDnaTag(row,data){if(data[row.key])return data[row.key];const confidence=row.attempt?.confidence?.['q'+row.index];return confidence==='guess'?'guess':'';}
+function renderMistakeDNA(rows=mistakeRows()){
+ if(!$('mistakeDnaSummary'))return;const data=mistakeDnaData(),counts={};let tagged=0;rows.forEach(r=>{const tag=inferredDnaTag(r,data);if(tag){counts[tag]=(counts[tag]||0)+1;tagged++;}});$('dnaTaggedCount').textContent=`${tagged} tagged`;
+ if(!tagged){$('mistakeDnaSummary').innerHTML=`<p class="muted">প্রথমে Mistake Notebook-এর “Why?” selector দিয়ে কয়েকটি ভুল tag করো। Guess confidence থাকলে সেটি automatically DNA-তে ধরা হবে।</p>`;return;}
+ $('mistakeDnaSummary').innerHTML=`<div class="dna-bars">${Object.entries(DNA_TYPES).map(([key,[icon,label]])=>{const n=counts[key]||0,p=Math.round(n/tagged*100);return `<div class="dna-row"><div><span>${icon} ${label}</span><b>${p}%</b></div><div class="dna-track"><i style="width:${p}%"></i></div><small>${n} mistake${n===1?'':'s'}</small></div>`;}).join('')}</div><p class="focus-tip">${Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?`Primary pattern: <b>${DNA_TYPES[Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0]][1]}</b>. Revision-এর সময় এই pattern-টা consciously check করো।`:''}</p>`;
+}
+function revisionTasks(){
+ const tasks=[];reportTopics.filter(r=>r.pct<WEAK_TOPIC_THRESHOLD).slice(0,3).forEach(r=>tasks.push({id:`topic:${r.label}`,icon:"🎯",title:`Revise ${r.label}`,meta:`${r.pct}% accuracy · weakest topic`,tab:"revision"}));
+ const pending=[...assignments].filter(a=>!doneAssignmentIds.has(a.id)).sort((a,b)=>(a.dueDate||"9999").localeCompare(b.dueDate||"9999"))[0];if(pending)tasks.push({id:`assignment:${pending.id}`,icon:"📌",title:pending.title,meta:pending.dueDate?`Assignment due ${pending.dueDate}`:"Pending assignment",tab:"assignments"});
+ const attempted=new Set(progressMine.filter(a=>a.status==="submitted").map(a=>a.testId)),test=tests.find(t=>!attempted.has(t.id));if(test)tasks.push({id:`test:${test.id}`,icon:"🧪",title:`Prepare: ${test.title}`,meta:`${subjectName(test.subjectId)} · ${test.chapter||"Available test"}`,tab:"tests"});
+ if(!tasks.length)tasks.push({id:"notes:daily",icon:"📚",title:"15-minute note revision",meta:"Keep concepts fresh",tab:"notes"});return tasks.slice(0,5);
+}
+function renderRevisionCentre(){
+ if(!$("mistakeNotebook"))return;const rows=mistakeRows(),mastered=masteredMistakes(),showMastered=$("showMasteredMistakes").checked,visible=rows.filter(x=>showMastered||!mastered.has(x.key));
+ $("mistakeOpen").textContent=rows.filter(x=>!mastered.has(x.key)).length;$("mistakeMastered").textContent=rows.filter(x=>mastered.has(x.key)).length;
+ $("mistakeNotebook").innerHTML=visible.length?visible.map(x=>{const r=x.review,a=x.attempt,chosen=r.chosenIdx==null?"Not answered":r.o?.[r.chosenIdx]||"Unknown",correct=r.o?.[r.correctIdx]||"Answer unavailable",isMastered=mastered.has(x.key);return `<article class="mistake-card ${isMastered?"mastered":""}" data-key="${escapeHTML(x.key)}"><div class="mistake-head"><div><span class="pill">${escapeHTML(subjectName(a.subjectId))}</span> <span class="pill teal">${escapeHTML(r.topic||testUnit(a.testId))}</span><h3>${escapeHTML(r.q)}</h3><small class="muted">${escapeHTML(a.testTitle||"Test")} · ${escapeHTML(testUnit(a.testId))}</small></div><button type="button" class="secondary master-mistake">${isMastered?"↩ Restore":"✓ Mark Mastered"}</button></div><div class="answer-compare"><p><b>Your answer</b><br>${escapeHTML(chosen)}</p><p><b>Correct answer</b><br>${escapeHTML(correct)}</p></div>${r.explanation?`<div class="mistake-explanation"><b>Explanation</b><p>${escapeHTML(r.explanation)}</p></div>`:`<p class="muted">Teacher explanation নেই—নিচের Explain button দিয়ে guided explanation তৈরি করো।</p>`}<label class="dna-select-label">Why did I miss this?<select class="dna-select" data-key="${escapeHTML(x.key)}"><option value="">Choose reason…</option>${Object.entries(DNA_TYPES).map(([key,[icon,label]])=>`<option value="${key}" ${inferredDnaTag(x,mistakeDnaData())===key?'selected':''}>${icon} ${label}</option>`).join('')}</select></label><div class="mistake-actions"><button type="button" class="secondary practice-mistake">▶ Practice Again</button><button type="button" class="secondary explain-mistake">✨ Explain</button><button type="button" class="secondary doubt-mistake">💬 Ask Teacher</button></div><div class="mistake-practice hidden"></div></article>`;}).join(""):"<p class='muted'>✅ কোনো active mistake নেই। নতুন graded result হলে ভুল প্রশ্ন এখানে automatically আসবে।</p>";
+ renderMistakeDNA(rows);document.querySelectorAll(".dna-select").forEach(sel=>sel.onchange=()=>{const data=mistakeDnaData();sel.value?data[sel.dataset.key]=sel.value:delete data[sel.dataset.key];saveMistakeDna(data);renderRevisionCentre();});
+ document.querySelectorAll(".master-mistake").forEach(b=>b.onclick=()=>{const key=b.closest(".mistake-card").dataset.key,set=masteredMistakes();set.has(key)?set.delete(key):set.add(key);saveMastered(set);renderRevisionCentre();});
+ document.querySelectorAll(".practice-mistake").forEach(b=>b.onclick=()=>{const card=b.closest(".mistake-card"),x=rows.find(r=>r.key===card.dataset.key),r=x.review,box=card.querySelector(".mistake-practice");box.classList.remove("hidden");box.innerHTML=`<b>Choose again:</b>${(r.o||[]).map((o,i)=>`<button type="button" class="practice-choice secondary" data-value="${i}">${String.fromCharCode(65+i)}. ${escapeHTML(o)}</button>`).join("")}<p class="practice-feedback muted"></p>`;box.querySelectorAll(".practice-choice").forEach(choice=>choice.onclick=()=>{box.querySelectorAll("button").forEach(x=>x.disabled=true);box.querySelector(".practice-feedback").textContent=Number(choice.dataset.value)===Number(r.correctIdx)?"✅ Correct—এবার mastered mark করতে পারো।":`❌ আবার revise করো। Correct: ${r.o?.[r.correctIdx]||"—"}`;});});
+ document.querySelectorAll(".explain-mistake").forEach(b=>b.onclick=()=>{const x=rows.find(r=>r.key===b.closest(".mistake-card").dataset.key),r=x.review;openChatGPTPrompt(`আমি ${profile.className}-এর বাংলা-মাধ্যমের student। এই MCQ-তে ভুল করেছি:\n\nQuestion: ${r.q}\nMy answer: ${r.chosenIdx==null?"Not answered":r.o?.[r.chosenIdx]}\nCorrect answer: ${r.o?.[r.correctIdx]}\nTopic: ${r.topic||"General"}\n\nকেন correct answer ঠিক এবং আমার ধারণাটি কোথায় ভুল ছিল তা সহজ বাংলায় বোঝাও। তারপর একই concept-এর একটি নতুন practice MCQ দাও, কিন্তু আমি চেষ্টা করার আগে answer দেখাবে না।`);});
+ document.querySelectorAll(".doubt-mistake").forEach(b=>b.onclick=()=>{const x=rows.find(r=>r.key===b.closest(".mistake-card").dataset.key),r=x.review;$("doubtSubject").value=x.attempt.subjectId;$("doubtText").value=`${x.attempt.testTitle} — ${r.topic||"Question"}\n${r.q}\nআমি কেন ${r.o?.[r.correctIdx]||"এই উত্তরটি"} সঠিক বুঝতে পারছি না।`;openTab("doubts");$("doubtText").focus();});
+ const tasks=revisionTasks(),done=revisionCompletion(),today=todayStr();$("revisionDone").textContent=tasks.filter(t=>done[t.id]===today).length;$("revisionTotal").textContent=tasks.length;
+ $("revisionPlan").innerHTML=tasks.map(t=>`<label class="revision-task ${done[t.id]===today?"done":""}"><input type="checkbox" data-task-id="${escapeHTML(t.id)}" ${done[t.id]===today?"checked":""}><span class="revision-icon">${t.icon}</span><span><b>${escapeHTML(t.title)}</b><small>${escapeHTML(t.meta)}</small></span><button type="button" class="secondary revision-open" data-target="${t.tab}">Open</button></label>`).join("");
+ document.querySelectorAll("[data-task-id]").forEach(cb=>cb.onchange=()=>{const data=revisionCompletion();cb.checked?data[cb.dataset.taskId]=today:delete data[cb.dataset.taskId];localStorage.setItem(`revisionDone:${auth.currentUser.uid}`,JSON.stringify(data));renderRevisionCentre();renderDailyMission();});document.querySelectorAll(".revision-open").forEach(b=>b.onclick=e=>{e.preventDefault();openTab(b.dataset.target);});
+}
+$("showMasteredMistakes").onchange=renderRevisionCentre;$("resetRevisionPlan").onclick=()=>{const data=revisionCompletion(),today=todayStr();Object.keys(data).forEach(k=>{if(data[k]===today)delete data[k];});localStorage.setItem(`revisionDone:${auth.currentUser.uid}`,JSON.stringify(data));renderRevisionCentre();renderDailyMission();};
+
+function renderConfidenceAnalytics(attempts){
+ const buckets={sure:{correct:0,total:0},maybe:{correct:0,total:0},guess:{correct:0,total:0}};let danger=0,lucky=0;attempts.forEach(a=>(a.review||[]).forEach((r,i)=>{const v=a.confidence?.['q'+i];if(!buckets[v])return;buckets[v].total++;if(r.isCorrect)buckets[v].correct++;if(v==='sure'&&!r.isCorrect)danger++;if(v==='guess'&&r.isCorrect)lucky++;}));const total=Object.values(buckets).reduce((s,x)=>s+x.total,0);if(!total){$('confidenceAnalytics').innerHTML=`<p class="muted">নতুন test-এ confidence select করলে calibration insight এখানে আসবে।</p>`;return;}
+ $('confidenceAnalytics').innerHTML=`<div class="calibration-grid">${[['sure','😎 Sure'],['maybe','🤔 Maybe'],['guess','🎲 Guess']].map(([k,label])=>{const b=buckets[k],pct=b.total?Math.round(b.correct/b.total*100):0;return `<div class="calibration-card"><span>${label}</span><b>${b.total?pct+'%':'—'}</b><small>${b.correct}/${b.total} correct</small></div>`;}).join('')}</div><div class="confidence-flags"><span>🔴 Wrong but sure: <b>${danger}</b></span><span>🟡 Correct guesses: <b>${lucky}</b></span></div>`;
+}
+function renderMasteryMap(topicRows){
+ const classify=p=>p>=85?['mastered','✅ Mastered']:p>=70?['strong','🟢 Strong']:p>=50?['building','🟡 Building']:['priority','🔴 Priority'];$('masteryCount').textContent=`${topicRows.filter(r=>r.pct>=85).length} mastered`;
+ $('masteryMap').innerHTML=topicRows.length?topicRows.map((r,i)=>{const [cls,label]=classify(r.pct);return `<article class="mastery-node ${cls}"><div class="mastery-node-head"><span>${label}</span><b>${r.pct}%</b></div><h3>${escapeHTML(r.label)}</h3><div class="mastery-progress"><i style="width:${r.pct}%"></i></div><small>${r.correct}/${r.total} correct</small>${r.pct<85?`<button type="button" class="secondary mastery-practice" data-topic-index="${i}">Practice this</button>`:''}</article>`;}).join(''):`<p class="muted">Graded result-এর পরে mastery map তৈরি হবে।</p>`;
+ document.querySelectorAll('.mastery-practice').forEach(b=>b.onclick=()=>{const r=topicRows[Number(b.dataset.topicIndex)];openTab('tests');$('pracTopic').value=r.label;$('pracCount').value='5';$('pracTopic').scrollIntoView({behavior:'smooth',block:'center'});showToast(`Practice focus: ${r.label}`);});
+}
+async function loadProgressAndLeaderboard(useCache=false,loadLeaderboard=true){
+ let mine=progressMine;
+ if(!useCache){const myAttempts=await getDocs(query(collection(db,"attempts"),where("uid","==",auth.currentUser.uid)));studentAttempts=myAttempts.docs.map(d=>({id:d.id,...d.data()}));mine=studentAttempts.filter(a=>a.status==="submitted");progressMine=mine;const selected=$("progressSubject").value;$("progressSubject").innerHTML=`<option value="">All Subjects</option>`+subjects.map(s=>`<option value="${escapeHTML(s.id)}">${escapeHTML(s.name)}</option>`).join("");if(subjects.some(s=>s.id===selected))$("progressSubject").value=selected;fillProgressUnits();}
+ const selectedSubject=$("progressSubject").value,selectedUnit=$("progressUnit").value;
+ const filteredMine=mine.filter(a=>(!selectedSubject||a.subjectId===selectedSubject)&&(!selectedUnit||testUnit(a.testId)===selectedUnit));
+ const scopeSubject=selectedSubject?subjectName(selectedSubject):"All Subjects",scopeUnit=selectedUnit||"All Units";$("progressScope").textContent=`Showing: ${scopeSubject} · ${scopeUnit} · ${filteredMine.length} submitted test(s)`;
+ renderXP(mine.length);
+
+ // subject-wise
+ const bySubject={};
+ filteredMine.forEach(a=>{if(a.percentage==null)return;const s=subjectName(a.subjectId);if(!bySubject[s])bySubject[s]={sum:0,n:0};bySubject[s].sum+=a.percentage;bySubject[s].n++;});
+ const subjRows=Object.entries(bySubject).map(([s,v])=>({label:s,pct:Math.round(v.sum/v.n)})).sort((a,b)=>a.pct-b.pct);
+ reportSubjects=subjRows;
+ $("subjectBars").innerHTML=subjRows.length?subjRows.map(r=>`<div class="barrow"><div class="barlabel"><span>${r.label}</span><span>${r.pct}%</span></div><div class="bartrack"><div class="barfill ${barClass(r.pct)}" style="width:${r.pct}%"></div></div></div>`).join("")
+  :"<p class='muted'>টেস্ট দিলে এখানে subject অনুযায়ী performance দেখা যাবে।</p>";
+
+ // topic-wise
+ const byTopic={};
+ filteredMine.forEach(a=>{if(!a.topicStats)return;Object.entries(a.topicStats).forEach(([topic,st])=>{if(!byTopic[topic])byTopic[topic]={correct:0,total:0,subjects:new Set(),tests:new Set()};byTopic[topic].correct+=st.correct;byTopic[topic].total+=st.total;byTopic[topic].subjects.add(subjectName(a.subjectId));byTopic[topic].tests.add(a.testTitle||"Test");});});
+ const topicRows=Object.entries(byTopic).map(([t,v])=>({label:t,correct:v.correct,total:v.total,subjects:v.subjects,tests:v.tests,pct:Math.round(v.correct/v.total*100)})).sort((a,b)=>a.pct-b.pct);
+ reportTopics=topicRows;
+ $("topicBars").innerHTML=topicRows.length?topicRows.map((r,i)=>`<div class="barrow"><div class="barlabel"><span>${r.label}</span><span>${r.correct}/${r.total} · ${r.pct}%</span></div><div class="bartrack"><div class="barfill ${barClass(r.pct)}" style="width:${r.pct}%"></div></div>${r.pct<WEAK_TOPIC_THRESHOLD?`<button class="secondary weak-help" data-topic-index="${i}">✨ Solve with ChatGPT</button>`:""}</div>`).join("")
+  :"<p class='muted'>টেস্ট দিলে এখানে topic অনুযায়ী দুর্বল জায়গা দেখা যাবে।</p>";
+ document.querySelectorAll(".weak-help").forEach(b=>b.onclick=()=>openChatGPTPrompt(weakTopicPrompt(topicRows[Number(b.dataset.topicIndex)])));
+ renderConfidenceAnalytics(filteredMine);renderMasteryMap(topicRows);
+ renderUnitAnalytics(filteredMine);
+
+ // history + print
+ const attemptNumbers=new Map(),attemptCounts=new Map();[...mine].sort((a,b)=>attemptTimeMs(a.submittedAt)-attemptTimeMs(b.submittedAt)||String(a.id).localeCompare(String(b.id))).forEach(a=>{const key=`${a.testId}::${a.uid}`,number=(attemptCounts.get(key)||0)+1;attemptCounts.set(key,number);attemptNumbers.set(a.id,number);});
+ const sortedMine=[...mine].sort((a,b)=>attemptTimeMs(b.submittedAt)-attemptTimeMs(a.submittedAt)||String(b.id).localeCompare(String(a.id)));
+ reportAttempts=sortedMine;
+ renderWeeklyGoal(sortedMine);
+ $("historyList").innerHTML=sortedMine.map(a=>{const number=attemptNumbers.get(a.id)||Number(a.attemptNumber)||1;return `<div class="item"><div class="topbar"><div><span class="pill ${number===1?"gold":"teal"}">${number===1?"Official first attempt":`Retake #${number}`}</span><br><b>${escapeHTML(a.testTitle)}</b><br><span class="muted">${a.score!=null?`${a.score}/${a.total} · ${a.percentage}%`:"Grading pending..."}</span></div><div>${a.score!=null?`<button class="secondary reviewBtn" data-id="${a.id}">📝 Review</button> ${Array.isArray(a.answerTimeline)&&a.answerTimeline.length?`<button class="secondary replayBtn" data-id="${a.id}">⏱ Replay</button>`:""} <button class="secondary printBtn" data-id="${a.id}">🖨️ Print</button>`:""}</div></div></div>`;}).join("")||"<p class='muted'>এখনো কোনো test attempt নেই।</p>";
+ document.querySelectorAll(".reviewBtn").forEach(b=>b.onclick=()=>{const a=mine.find(x=>x.id===b.dataset.id);showReview(a.testTitle,a.review,a);});
+ document.querySelectorAll(".replayBtn").forEach(b=>b.onclick=()=>{const a=mine.find(x=>x.id===b.dataset.id);showExamReplay(a);});
+ document.querySelectorAll(".printBtn").forEach(b=>b.onclick=()=>{
+  const a=mine.find(x=>x.id===b.dataset.id);
+  const w=window.open("","_blank");if(!w)return showToast("Allow popups to print this result.");
+  w.document.write(`<html><head><title>${escapeHTML(a.testTitle)} - Result</title><style>body{font-family:sans-serif;padding:40px;text-align:center}h1{color:#4c1d95}</style><link rel="stylesheet" href="refresh.css?v=10"><link rel="stylesheet" href="premium.css?v=11"></head><body><h2>Arpan Learning Suite</h2><h1>${escapeHTML(a.testTitle)}</h1><p>Student: ${escapeHTML(profile.name)} (${escapeHTML(profile.className)})</p><h1>${a.score} / ${a.total}</h1><p style="font-size:22px"><b>${a.percentage}%</b></p></body></html>`);
+  w.document.close();w.print();
+ });
+
+ // Privacy-safe leaderboards for the latest three published tests.
+ const latestTests=[...tests].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)).slice(0,3);
+ if(loadLeaderboard&&(!leaderboardLoaded||!useCache)){const safeEntries=await getDocs(query(collection(db,"leaderboardEntries"),where("classId","==",profile.classId)));cachedLeaderboardEntries=safeEntries.docs.map(d=>d.data());leaderboardLoaded=true;}
+ const entries=cachedLeaderboardEntries;
+ const cards=latestTests.map(test=>{
+  const rows=entries.filter(x=>x.testId===test.id&&x.percentage!=null&&Number.isFinite(Number(x.percentage))).sort((a,b)=>Number(b.percentage)-Number(a.percentage)||(a.submittedAt?.seconds||Infinity)-(b.submittedAt?.seconds||Infinity)||String(a.studentName||"").localeCompare(String(b.studentName||"")));
+  let lastPct=null,lastRank=0;
+  rows.forEach((r,i)=>{if(Number(r.percentage)!==lastPct)lastRank=i+1;r.rank=lastRank;lastPct=Number(r.percentage);});
+  const visible=rows.slice(0,10),me=rows.find(r=>r.uid===auth.currentUser.uid);
+  if(me&&!visible.includes(me))visible.push(me);
+  const rowHtml=visible.map((r,i)=>`<div data-lb-uid="${escapeHTML(r.uid||'')}" data-lb-name="${escapeHTML(r.studentName||'Student')}" class="lb-row ${r.uid===auth.currentUser.uid?"me":""} ${i===10?"lb-separated":""}"><span class="lb-rank ${r.rank===1?"top1":r.rank===2?"top2":r.rank===3?"top3":""}">${r.rank}</span><span class="lb-name">${escapeHTML(r.studentName||"Student")}<small>${r.rank===1?"🏆 First place":r.rank===2?"🥈 Second place":r.rank===3?"🥉 Third place":"Personal progress counts"}</small></span><span class="lb-score">${Number(r.score)}/${Number(r.total)} · ${Number(r.percentage)}%</span></div>`).join("");
+  return `<section class="exam-board"><div class="exam-board-head"><div><span class="pill">${escapeHTML(subjectName(test.subjectId))}</span><h3>${escapeHTML(test.title)}</h3></div><span class="muted">${test.createdAt?.toDate?test.createdAt.toDate().toLocaleDateString("en-IN"):"Recent exam"}</span></div>${rowHtml||"<p class='muted'>এই পরীক্ষার graded result এখনো নেই।</p>"}</section>`;
+ });
+ const leaderboardHTML=loadLeaderboard?(cards.join("")||"<p class='muted'>Leaderboard দেখানোর মতো published test নেই।</p>"):"<p class='muted'>Leaderboard background-এ load হচ্ছে…</p>";
+ $("homeLeaderboard").innerHTML=leaderboardHTML;
+
+ const graded=mine.filter(a=>a.percentage!=null&&Number.isFinite(Number(a.percentage))),avg=graded.length?Math.round(graded.reduce((s,a)=>s+Number(a.percentage),0)/graded.length):null,best=graded.length?Math.max(...graded.map(a=>Number(a.percentage))):null;
+ $("homeTests").textContent=mine.length;$("homeAvg").textContent=avg==null?"—":avg+"%";$("homeBest").textContent=best==null?"—":best+"%";
+ const newest=latestTests[0],latestRows=newest?entries.filter(x=>x.testId===newest.id).sort((a,b)=>Number(b.percentage)-Number(a.percentage)):[];let rank="—",last=null,currentRank=0;latestRows.forEach((r,i)=>{if(Number(r.percentage)!==last)currentRank=i+1;if(r.uid===auth.currentUser.uid)rank="#"+currentRank;last=Number(r.percentage);});$("homeRank").textContent=rank;
+ const weakest=topicRows[0];$("homeFocus").innerHTML=weakest&&weakest.pct<WEAK_TOPIC_THRESHOLD?`<div><b>🎯 Revision focus: ${escapeHTML(weakest.label)} (${weakest.pct}%)</b><button id="homeWeakHelp" class="secondary">✨ Solve with ChatGPT</button></div>`:"<span>✅ কোনো topic 60%-এর নিচে নেই—নিয়মিত revision চালিয়ে যাও।</span>";if(weakest&&weakest.pct<WEAK_TOPIC_THRESHOLD)$("homeWeakHelp").onclick=()=>openChatGPTPrompt(weakTopicPrompt(weakest));
+ renderRevisionCentre();renderSmartDashboard();renderTests();renderVivaTopics();
+}
+
+$("printReport").onclick=()=>{
+ if(!reportAttempts.length)return showToast("এখনো result নেই");
+ const avg=Math.round(reportAttempts.filter(a=>a.percentage!=null).reduce((s,a)=>s+a.percentage,0)/Math.max(1,reportAttempts.filter(a=>a.percentage!=null).length));
+ const rows=x=>x.map(r=>`<tr><td>${escapeHTML(r.label)}</td><td>${r.pct}%</td></tr>`).join("");
+ const history=reportAttempts.map(a=>`<tr><td>${escapeHTML(a.testTitle)}</td><td>${a.score??"—"}/${a.total??"—"} (${a.percentage??"—"}%)</td></tr>`).join("");
+ const w=window.open("","_blank");if(!w)return showToast("Popup blocked");w.document.write(`<html><head><title>Progress Report</title><style>body{font-family:sans-serif;padding:35px;color:#222}h1,h2{color:#6d28d9}table{width:100%;border-collapse:collapse}td{padding:8px;border-bottom:1px solid #ddd}</style><link rel="stylesheet" href="refresh.css?v=10"><link rel="stylesheet" href="premium.css?v=11"></head><body><h1>Arpan Learning Suite</h1><p>${escapeHTML(profile.name)} · ${escapeHTML(profile.className)}</p><h2>Overall Average: ${avg}%</h2><h2>Subjects</h2><table>${rows(reportSubjects)}</table><h2>Topics</h2><table>${rows(reportTopics)}</table><h2>Test History</h2><table>${history}</table></body></html>`);w.document.close();w.print();
+};
+
+let currentPracticeQuestions=[];
+function practiceQuestionFromObject(v){
+ const q=String(v?.q??v?.question??v?.Q??"").trim(),rawOptions=v?.o??v?.options??[v?.A,v?.B,v?.C,v?.D],o=Array.isArray(rawOptions)?rawOptions.slice(0,4).map(x=>String(x??"").trim()):[];
+ let rawAnswer=v?.answer??v?.correctAnswer??v?.ANSWER??v?.ans??"",answer=Number.isInteger(rawAnswer)?Number(rawAnswer):-1;
+ if(!(answer>=0&&answer<4)){const m=String(rawAnswer).trim().match(/(?:OPTION\s*)?([A-D])/i);if(m)answer="ABCD".indexOf(m[1].toUpperCase());else answer=o.findIndex(x=>x&&x.toLowerCase()===String(rawAnswer).trim().toLowerCase());}
+ return q&&o.length===4&&o.every(Boolean)&&answer>=0?{q,o,answer,topic:String(v?.topic??v?.TOPIC??"Practice").trim()||"Practice"}:null;
+}
+function parsePracticeDetailed(text){
+ let raw=String(text||"").replace(/\r/g,"").replace(/\u00a0/g," ").trim();
+ if(!raw)return {questions:[],invalid:0,format:"text"};
+ const jsonCandidate=raw.replace(/^```(?:json)?\s*/i,"").replace(/```$/i,"").trim();
+ if(/^[\[{]/.test(jsonCandidate))try{const parsed=JSON.parse(jsonCandidate),items=Array.isArray(parsed)?parsed:(Array.isArray(parsed.questions)?parsed.questions:[parsed]),questions=items.map(practiceQuestionFromObject).filter(Boolean);if(questions.length)return {questions,invalid:items.length-questions.length,format:"json"};}catch{}
+ raw=raw.replace(/```(?:text|txt|markdown|md)?/gi,"").replace(/```/g,"").replace(/^\s*#{1,6}\s+/gm,"");
+ const records=[];let cur=null,last=null;
+ const push=()=>{if(cur){records.push(cur);cur=null;last=null;}};
+ for(const original of raw.split("\n")){
+  const line=original.trim();if(!line)continue;if(/^[-–—_]{3,}$/.test(line)){push();continue;}
+  let m=line.match(/^(?:[-*•]\s*)?(?:\d+\s*[.)-]\s*)?(?:Q(?:UESTION)?(?:\s*\d+)?|প্রশ্ন(?:\s*\d+)?)\s*[:.)-]\s*(.+)$/i);
+  if(m){push();cur={Q:m[1].trim()};last="Q";continue;}
+  m=line.match(/^(?:[-*•]\s*)?\(?([A-D])\)?\s*[).:\-]\s*(.+)$/i);if(m){cur??={};cur[m[1].toUpperCase()]=m[2].trim();last=m[1].toUpperCase();continue;}
+  m=line.match(/^(?:[-*•]\s*)?(?:ANSWER|ANS|CORRECT\s*ANSWER)\s*[:\-]\s*(.+)$/i);if(m){cur??={};cur.ANSWER=m[1].trim();last="ANSWER";continue;}
+  m=line.match(/^(?:[-*•]\s*)?(?:TOPIC|CHAPTER)\s*[:\-]\s*(.+)$/i);if(m){cur??={};cur.TOPIC=m[1].trim();last="TOPIC";continue;}
+  if(cur&&last&&["Q","A","B","C","D","TOPIC"].includes(last))cur[last]=`${cur[last]||""} ${line}`.trim();
+ }
+ push();
+ if(!records.length){records.push(...raw.split(/\n\s*---+\s*\n/).map(block=>{const v={};block.split("\n").forEach(line=>{const m=line.trim().match(/^(Q|A|B|C|D|ANSWER|TOPIC)\s*:\s*(.*)$/i);if(m)v[m[1].toUpperCase()]=m[2].trim();});return v;}));}
+ const questions=records.map(v=>practiceQuestionFromObject({q:v.Q,A:v.A,B:v.B,C:v.C,D:v.D,answer:v.ANSWER,topic:v.TOPIC})).filter(Boolean);
+ return {questions,invalid:Math.max(0,records.length-questions.length),format:"text"};
+}
+function practiceParseAndPreview(show=true){
+ const result=parsePracticeDetailed($("pracPaste").value),count=result.questions.length,invalid=result.invalid;
+ $("pracImportStatus").textContent=count?`✅ ${count} question ready${invalid?` · ${invalid} block skipped (missing option/answer)`:""}`:"❌ কোনো valid MCQ পাওয়া যায়নি। Q + A/B/C/D + ANSWER দরকার।";
+ if(show)$("pracImportPreview").innerHTML=count?`<div class="practice-preview-grid">${result.questions.slice(0,4).map((q,i)=>`<div class="practice-preview-card"><b>${i+1}. ${escapeHTML(q.q)}</b><small>${escapeHTML(q.topic)} · Answer ${String.fromCharCode(65+q.answer)}</small></div>`).join("")}</div>${count>4?`<p class="muted">আরও ${count-4}টি question ready.</p>`:""}`:"";
+ currentPracticeQuestions=result.questions;return result.questions;
+}
+function renderPracticeQuiz(qs){
+ if(!qs.length)return showToast("Valid questions পাওয়া যায়নি");currentPracticeQuestions=qs;
+ $("pracQuiz").innerHTML=qs.map((q,i)=>`<div class="q practice-q"><div class="question-head"><b>${i+1}. ${escapeHTML(q.q)}</b><span class="pill teal">${escapeHTML(q.topic||"Practice")}</span></div>${q.o.map((o,j)=>`<label class="opt"><input type="radio" name="practice${i}" value="${j}"> ${String.fromCharCode(65+j)}. ${escapeHTML(o)}</label>`).join("")}</div>`).join("")+`<button id="checkPractice" type="button" class="secondary">Check Answers</button><p id="practiceResult" class="practice-result"></p>`;
+ $("checkPractice").onclick=()=>{let score=0,answered=0;qs.forEach((q,i)=>{const chosen=$("pracQuiz").querySelector(`input[name="practice${i}"]:checked`);if(chosen){answered++;if(Number(chosen.value)===q.answer)score++;}});const pct=Math.round(score/qs.length*100);$("practiceResult").textContent=`Score: ${score}/${qs.length} (${pct}%) · Answered ${answered}/${qs.length}`;if(pct>=80)confettiBurst(35);};
+ $("pracQuiz").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function adaptivePracticeQuestions(limit){
+ const wrong=[],fallback=[],seen=new Set();
+ [...progressMine].sort((a,b)=>(b.submittedAt?.seconds||0)-(a.submittedAt?.seconds||0)).forEach(a=>(a.review||[]).forEach(r=>{const q=practiceQuestionFromObject({q:r.q,o:r.o,answer:r.correctIdx,topic:r.topic||testUnit(a.testId)});if(!q)return;const key=q.q.toLowerCase().replace(/\s+/g," ");if(seen.has(key))return;seen.add(key);(r.isCorrect?fallback:wrong).push(q);}));
+ return [...wrong,...fallback].slice(0,limit);
+}
+function smartFeedPool(){const rows=[];progressMine.forEach(a=>(a.review||[]).forEach((r,i)=>{const q=practiceQuestionFromObject({q:r.q,o:r.o,answer:r.correctIdx,topic:r.topic||testUnit(a.testId)});if(!q)return;const confidence=a.confidence?.['q'+i]||'';rows.push({...q,priority:(!r.isCorrect?4:0)+(confidence==='guess'?3:confidence==='maybe'?1:0),sourceCorrect:r.isCorrect});}));const seen=new Set();return rows.sort((a,b)=>b.priority-a.priority||Math.random()-.5).filter(x=>{const key=x.q.toLowerCase().replace(/\s+/g,' ');if(seen.has(key))return false;seen.add(key);return true;});}
+function startSmartFeed(){const queue=smartFeedPool();if(!queue.length)return showToast('Smart Feed-এর জন্য graded review দরকার');smartFeedState={queue,index:0,score:0,answered:0,streak:0,retries:{}};$('smartFeedBox').classList.remove('hidden');$('pracQuiz').innerHTML='';renderSmartFeedQuestion();$('smartFeedBox').scrollIntoView({behavior:'smooth',block:'start'});}
+function renderSmartFeedQuestion(){const st=smartFeedState;if(!st)return;const q=st.queue[st.index];if(!q){$('smartFeedBox').innerHTML=`<div class="smart-feed-finish"><span class="pill">SESSION COMPLETE</span><h3>${st.score}/${st.answered} correct</h3><p class="muted">Priority mistakes ও uncertain concepts practice করা হয়েছে।</p><button id="feedRestart" type="button" class="secondary">↻ New Smart Feed</button></div>`;$('feedRestart').onclick=startSmartFeed;return;}$('smartFeedBox').innerHTML=`<div class="smart-feed-head"><span class="pill teal">∞ Adaptive Feed</span><span>${st.score}/${st.answered} · 🔥 ${st.streak}</span></div><h3>${escapeHTML(q.q)}</h3><p class="muted">${escapeHTML(q.topic)} · Question ${st.index+1}</p><div class="smart-feed-options">${q.o.map((o,i)=>`<button type="button" class="secondary feed-choice" data-value="${i}">${String.fromCharCode(65+i)}. ${escapeHTML(o)}</button>`).join('')}</div><div id="feedFeedback" class="practice-feedback muted">Choose an answer.</div>`;document.querySelectorAll('.feed-choice').forEach(b=>b.onclick=()=>{document.querySelectorAll('.feed-choice').forEach(x=>x.disabled=true);const chosen=Number(b.dataset.value),right=chosen===q.answer;st.answered++;if(right){st.score++;st.streak++;}else{st.streak=0;const key=q.q;if((st.retries[key]||0)<1){st.retries[key]=(st.retries[key]||0)+1;st.queue.splice(Math.min(st.queue.length,st.index+3),0,q);}}$('feedFeedback').innerHTML=right?`✅ Correct. <button id="feedNext" type="button">Next →</button>`:`❌ Correct answer: <b>${String.fromCharCode(65+q.answer)}. ${escapeHTML(q.o[q.answer])}</b> <button id="feedNext" type="button">Next →</button>`;$('feedNext').onclick=()=>{st.index++;renderSmartFeedQuestion();};});}
+$('pracFeed').onclick=startSmartFeed;
+
+$("pracPromptBtn").onclick=()=>{const topic=$("pracTopic").value.trim()||"selected topic",count=Math.min(20,Math.max(3,Number($("pracCount").value)||5));openChatGPTPrompt(`Create ${count} MCQ practice questions for a ${profile.className} Bengali-medium student on ${topic}. Return ONLY plain text in this exact repeated format (no markdown table, no explanation outside the fields):\n\nQ: question\nA: option\nB: option\nC: option\nD: option\nANSWER: A\nTOPIC: ${topic}\n---\n\nRepeat for every question. Keep each ANSWER as only A, B, C, or D.`);};
+$("pracPasteClipboard").onclick=async()=>{try{const text=await navigator.clipboard.readText();if(!text.trim())throw new Error("Clipboard empty");$("pracPaste").value=text;practiceParseAndPreview(true);showToast("✅ Clipboard imported");}catch(e){showToast("Clipboard read blocked — textarea-তে paste করো");}};
+$("pracFile").onchange=async e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>512*1024){showToast("File too large — 512 KB-এর মধ্যে রাখো");e.target.value="";return;}try{$("pracPaste").value=await file.text();practiceParseAndPreview(true);showToast(`✅ ${file.name} imported`);}catch{showToast("File পড়া যায়নি");}finally{e.target.value="";}};
+$("pracPreview").onclick=()=>practiceParseAndPreview(true);
+$("pracStart").onclick=()=>renderPracticeQuiz(practiceParseAndPreview(false));
+$("pracAuto").onclick=()=>{const count=Math.min(20,Math.max(3,Number($("pracCount").value)||5)),qs=adaptivePracticeQuestions(count);if(!qs.length)return showToast("Auto practice-এর জন্য graded review এখনো নেই");$("pracImportStatus").textContent=`⚡ তোমার recent performance থেকে ${qs.length}টি question তৈরি হয়েছে — ভুল প্রশ্নগুলো আগে।`;$("pracImportPreview").innerHTML="";renderPracticeQuiz(qs);};
+
+/* ---------- ULTIMATE LAB: BOSS / DUEL / VIVA ---------- */
+let bossState=null,duelState=null,vivaRecognition=null;
+function questionPoolFromReviews(){return smartFeedPool().map(({q,o,answer,topic,priority})=>({q,o,answer,topic,priority}));}
+function renderVivaTopics(){if(!$('vivaTopic'))return;const topics=[...new Set([...reportTopics.map(x=>x.label),...notes.map(n=>n.chapter||n.title).filter(Boolean)])].slice(0,30),current=$('vivaTopic').value;$('vivaTopic').innerHTML=`<option value="">Auto-select focus</option>`+topics.map(t=>`<option value="${escapeHTML(t)}">${escapeHTML(t)}</option>`).join('');if(topics.includes(current))$('vivaTopic').value=current;}
+function startBoss(){let pool=questionPoolFromReviews();if(!pool.length)return showToast('Chapter Boss-এর জন্য graded review দরকার');const focus=reportTopics[0]?.label||pool[0].topic,focused=pool.filter(q=>q.topic===focus);if(focused.length>=3)pool=focused;pool=pool.slice(0,5);bossState={pool,index:0,score:0,focus};$('bossHealth').style.width='100%';renderBossQuestion();}
+function renderBossQuestion(){const st=bossState;if(!st)return;const q=st.pool[st.index];if(!q){const pct=Math.round(st.score/st.pool.length*100),won=pct>=80;$('bossStatus').innerHTML=won?`🏆 <b>${escapeHTML(st.focus)} Boss defeated!</b> ${st.score}/${st.pool.length} (${pct}%)`:`👹 Boss survived. ${st.score}/${st.pool.length} (${pct}%). Revise and try again.`;$('bossHealth').style.width=won?'0%':`${Math.max(20,100-pct)}%`;if(won)confettiBurst(55);$('bossStart').textContent='↻ Fight Again';return;}$('bossStatus').innerHTML=`<b>${escapeHTML(st.focus)} · ${st.index+1}/${st.pool.length}</b><div class="boss-question">${escapeHTML(q.q)}</div><div class="boss-options">${q.o.map((o,i)=>`<button type="button" class="secondary boss-choice" data-value="${i}">${String.fromCharCode(65+i)}. ${escapeHTML(o)}</button>`).join('')}</div><p id="bossFeedback" class="muted">Boss HP falls when you answer correctly.</p>`;document.querySelectorAll('.boss-choice').forEach(b=>b.onclick=()=>{document.querySelectorAll('.boss-choice').forEach(x=>x.disabled=true);const right=Number(b.dataset.value)===q.answer;if(right)st.score++;const pct=Math.round(st.score/st.pool.length*100);$('bossHealth').style.width=`${Math.max(0,100-pct)}%`;$('bossFeedback').innerHTML=right?'⚔️ Direct hit!':'🛡️ Blocked. Correct: '+escapeHTML(q.o[q.answer]);setTimeout(()=>{st.index++;renderBossQuestion();},650);});}
+$('bossStart').onclick=startBoss;
+
+function utf8ToB64Url(text){const bytes=new TextEncoder().encode(text);let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function b64UrlToUtf8(code){code=code.replace(/-/g,'+').replace(/_/g,'/');while(code.length%4)code+='=';const bin=atob(code),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes);}
+function renderDuelQuestion(){const st=duelState;if(!st)return;const q=st.questions[st.index];if(!q){finishDuel();return;}$('duelArea').innerHTML=`<div class="smart-feed-head"><span class="pill gold">${st.mode==='guest'?`Beat ${escapeHTML(st.host)}: ${st.target}/${st.questions.length}`:'Set your score'}</span><span>${st.score}/${st.index}</span></div><b>${st.index+1}. ${escapeHTML(q.q)}</b><div class="boss-options">${q.o.map((o,i)=>`<button type="button" class="secondary duel-choice" data-value="${i}">${String.fromCharCode(65+i)}. ${escapeHTML(o)}</button>`).join('')}</div><p id="duelFeedback" class="muted">Choose your answer.</p>`;document.querySelectorAll('.duel-choice').forEach(b=>b.onclick=()=>{document.querySelectorAll('.duel-choice').forEach(x=>x.disabled=true);const right=Number(b.dataset.value)===q.answer;if(right)st.score++;$('duelFeedback').textContent=right?'✅ Correct':'❌ Wrong';setTimeout(()=>{st.index++;renderDuelQuestion();},450);});}
+function startDuelHost(){let questions=questionPoolFromReviews().slice(0,5);if(questions.length<3)return showToast('Duel-এর জন্য অন্তত 3টি graded review question দরকার');duelState={mode:'host',questions,index:0,score:0};$('duelStart').classList.add('hidden');renderDuelQuestion();}
+async function shareDuelLink(url){try{if(navigator.share){await navigator.share({title:'Learning Suite Challenge',text:'Can you beat my quiz score?',url});return;}await navigator.clipboard.writeText(url);showToast('✅ Challenge link copied');}catch{try{await navigator.clipboard.writeText(url);showToast('✅ Challenge link copied');}catch{window.prompt('Copy this challenge link:',url);}}}
+function finishDuel(){const st=duelState;if(st.mode==='host'){let payload={v:1,host:profile.name||'Friend',score:st.score,questions:st.questions};let code=utf8ToB64Url(JSON.stringify(payload)),url=location.href.split('#')[0]+'#duel='+code;if(url.length>7000&&st.questions.length>3){payload.questions=st.questions.slice(0,3);payload.score=Math.min(payload.score,3);code=utf8ToB64Url(JSON.stringify(payload));url=location.href.split('#')[0]+'#duel='+code;}$('duelArea').innerHTML=`<div class="duel-result"><h3>Score ${payload.score}/${payload.questions.length}</h3><p class="muted">Friend-কে এই exact question set-এ তোমার score beat করতে challenge করো।</p><button id="duelShare" type="button">📤 Share Challenge</button></div>`;$('duelShare').onclick=()=>shareDuelLink(url);$('duelStart').classList.remove('hidden');$('duelStart').textContent='New Duel';}else{const won=st.score>st.target,tied=st.score===st.target;$('duelArea').innerHTML=`<div class="duel-result"><h3>${won?'🏆 You won!':tied?'🤝 Tie!':'⚔️ Challenge complete'}</h3><p>You: <b>${st.score}/${st.questions.length}</b> · ${escapeHTML(st.host)}: <b>${st.target}/${st.questions.length}</b></p></div>`;if(won)confettiBurst(60);$('duelStart').classList.remove('hidden');$('duelStart').textContent='Create My Duel';}}
+$('duelStart').onclick=startDuelHost;
+function consumeDuelChallenge(){const m=location.hash.match(/^#duel=([A-Za-z0-9_-]+)$/);if(!m)return;try{const data=JSON.parse(b64UrlToUtf8(m[1]));if(data?.v!==1||!Array.isArray(data.questions)||data.questions.length<1)return;const questions=data.questions.map(practiceQuestionFromObject).filter(Boolean);if(!questions.length)return;duelState={mode:'guest',questions,index:0,score:0,target:Number(data.score)||0,host:String(data.host||'Friend')};openTab('games',{scroll:false});$('duelStart').classList.add('hidden');renderDuelQuestion();setTimeout(()=>$('duelArea').scrollIntoView({behavior:'smooth',block:'center'}),120);}catch(e){console.warn('Invalid duel link',e);}}
+
+function vivaFocus(){return $('vivaTopic').value||reportTopics[0]?.label||notes.find(n=>n.chapter)?.chapter||notes[0]?.title||'a topic from my current syllabus';}
+function startViva(){const topic=vivaFocus();$('vivaQuestion').innerHTML=`<b>Oral prompt:</b> Explain <b>${escapeHTML(topic)}</b> in your own words. Include: what it means, one example, and one common mistake.`;$('vivaTranscript').value='';$('vivaStatus').textContent='Speak for 30–90 seconds, or type your answer.';}
+$('vivaStart').onclick=startViva;
+$('vivaMic').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('vivaStatus').textContent='এই browser-এ speech recognition নেই—type করে Viva rehearsal করতে পারো।';return;}try{vivaRecognition?.stop();vivaRecognition=new SR();vivaRecognition.lang='bn-BD';vivaRecognition.interimResults=true;let final='';vivaRecognition.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;e.results[i].isFinal?final+=t+' ':interim+=t;}$('vivaTranscript').value=(final+interim).trim();};vivaRecognition.onend=()=>{$('vivaStatus').textContent='Recording stopped. Transcript edit করে Evaluate চাপো।';};vivaRecognition.onerror=()=>{$('vivaStatus').textContent='Microphone unavailable—type করে continue করো।';};vivaRecognition.start();$('vivaStatus').textContent='🎙️ Listening…';}catch{$('vivaStatus').textContent='Microphone start করা যায়নি।';}};
+$('vivaEvaluate').onclick=()=>{const text=$('vivaTranscript').value.trim();if(!text)return showToast('আগে spoken/type করা answer দাও');const topic=vivaFocus();openChatGPTPrompt(`Act as a supportive viva examiner for a ${profile.className} Bengali-medium student. Topic: ${topic}.\n\nStudent spoken answer:\n${text}\n\nEvaluate it without being harsh. Return: (1) accuracy out of 10, (2) what was correct, (3) missing/incorrect concept, (4) a better 4-6 sentence model answer in Bengali with important English terms, (5) one follow-up viva question. Context: ${performanceContext()}`);};
+
+/* ---------- CLIENT-ONLY LEARNING GAMES ---------- */
+let mathRound=0,mathScore=0,mathCorrect=0,mathPlaying=false,mathLocked=false;
+function nextMath(){mathLocked=false;if(mathRound>=10){mathPlaying=false;const best=Math.max(Number(localStorage.getItem("mathGameBest"))||0,mathScore);localStorage.setItem("mathGameBest",best);$("mathBest").textContent=best;$("mathQuestion").textContent=`Finished: ${mathScore}/10`;$("mathFeedback").textContent="আরেকবার খেললে নতুন questions আসবে।";$("mathStart").textContent="Play Again";if(mathScore>=8)confettiBurst(45);return;}mathRound++;const op=Math.floor(Math.random()*4),b=2+Math.floor(Math.random()*11);let a;if(op===0){a=5+Math.floor(Math.random()*46);mathCorrect=a+b;$("mathQuestion").textContent=`${a} + ${b} = ?`;}else if(op===1){a=b+Math.floor(Math.random()*40);mathCorrect=a-b;$("mathQuestion").textContent=`${a} − ${b} = ?`;}else if(op===2){a=2+Math.floor(Math.random()*11);mathCorrect=a*b;$("mathQuestion").textContent=`${a} × ${b} = ?`;}else{mathCorrect=2+Math.floor(Math.random()*11);a=b*mathCorrect;$("mathQuestion").textContent=`${a} ÷ ${b} = ?`;}$("mathAnswer").value="";$("mathAnswer").focus();$("mathFeedback").textContent=`Question ${mathRound}/10`;}
+$("mathStart").onclick=()=>{mathRound=0;mathScore=0;mathPlaying=true;mathLocked=false;$("mathScore").textContent=0;$("mathStart").textContent="Restart";nextMath();};
+function checkMath(){if(!mathPlaying||mathLocked)return;const value=Number($("mathAnswer").value);if($("mathAnswer").value.trim()==="")return;mathLocked=true;const right=value===mathCorrect;if(right){mathScore++;playChime("success");}$("mathScore").textContent=mathScore;$("mathFeedback").textContent=right?"✅ Correct!":"❌ Answer: "+mathCorrect;setTimeout(nextMath,550);}
+$("mathCheck").onclick=checkMath;$("mathAnswer").onkeydown=e=>{if(e.key==="Enter")checkMath();};$("mathBest").textContent=Number(localStorage.getItem("mathGameBest"))||0;
+
+let physicsRound=0,physicsScore=0,physicsCorrect=0,physicsPlaying=false;
+function nextPhysics(){if(physicsRound>=10){physicsPlaying=false;const best=Math.max(Number(localStorage.getItem("physicsGameBest"))||0,physicsScore);localStorage.setItem("physicsGameBest",best);$("physicsBest").textContent=best;$("physicsQuestion").textContent=`Lab complete: ${physicsScore}/10`;$("physicsOptions").innerHTML="";$("physicsFeedback").textContent="Force unit: newton (N).";$("physicsStart").textContent="Play Again";if(physicsScore>=8)confettiBurst(45);return;}physicsRound++;const m=1+Math.floor(Math.random()*10),a=1+Math.floor(Math.random()*10);physicsCorrect=m*a;$("physicsQuestion").textContent=`m = ${m} kg, a = ${a} m/s² → F = ?`;const values=new Set([physicsCorrect]);while(values.size<4)values.add(Math.max(1,physicsCorrect+(Math.floor(Math.random()*9)-4)));const opts=[...values].sort(()=>Math.random()-.5);$("physicsOptions").innerHTML=opts.map(v=>`<button class="secondary physics-choice" data-value="${v}">${v} N</button>`).join("");document.querySelectorAll(".physics-choice").forEach(b=>b.onclick=()=>checkPhysics(Number(b.dataset.value)));$("physicsFeedback").textContent=`Challenge ${physicsRound}/10 · F = m × a`;}
+function checkPhysics(value){if(!physicsPlaying)return;document.querySelectorAll(".physics-choice").forEach(b=>b.disabled=true);const right=value===physicsCorrect;if(right){physicsScore++;$("physicsCart").classList.remove("boost");void $("physicsCart").offsetWidth;$("physicsCart").classList.add("boost");playChime("success");}$("physicsScore").textContent=physicsScore;$("physicsFeedback").textContent=right?"✅ Correct force!":"❌ Correct answer: "+physicsCorrect+" N";setTimeout(nextPhysics,700);}
+$("physicsStart").onclick=()=>{physicsRound=0;physicsScore=0;physicsPlaying=true;$("physicsScore").textContent=0;$("physicsStart").textContent="Restart";nextPhysics();};$("physicsBest").textContent=Number(localStorage.getItem("physicsGameBest"))||0;
+
+/* ---------- DOUBTS ---------- */
+$("sendDoubt").onclick=async()=>{
+ const subjectId=$("doubtSubject").value,question=$("doubtText").value.trim();
+ if(!question)return $("doubtMsg").textContent="প্রশ্ন লিখো আগে।";
+ await addDoc(collection(db,"doubts"),{uid:auth.currentUser.uid,studentName:profile.name,classId:profile.classId,subjectId,question,status:"open",createdAt:serverTimestamp()});
+ $("doubtText").value="";$("doubtMsg").textContent="✅ পাঠানো হয়েছে। টিচার শীঘ্রই reply দেবেন।";
+};
+let doubtsUnsub=null;
+function listenMyDoubts(){
+ if(doubtsUnsub)doubtsUnsub();
+ doubtsUnsub=onSnapshot(query(collection(db,"doubts"),where("uid","==",auth.currentUser.uid)),snap=>{
+  const items=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  $("myDoubts").innerHTML=items.map(x=>`<div class="doubt-item"><div class="topbar"><span class="pill">${escapeHTML(subjectName(x.subjectId))}</span><span class="${x.status==='open'?'status-open':'status-answered'}">${x.status==='open'?'⏳ Waiting':'✅ Answered'}</span></div><p class="doubt-q">${escapeHTML(x.question)}</p>${x.answer?`<div class="doubt-a">${escapeHTML(x.answer)}</div>`:""}</div>`).join("")||"<p class='muted'>এখনো কোনো doubt পাঠাওনি।</p>";
+ });
+}
+</script></body></html>

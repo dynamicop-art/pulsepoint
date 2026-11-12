@@ -1,0 +1,14 @@
+AETHER v8.1 Mobile Stability Hotfix
+===================================
+Fixes:
+- Landing login/signup/admin cards collapsing into three narrow columns on phones.
+- Student workspace inheriting desktop 112px left padding on phones.
+- Desktop left dock leaking into mobile and clipping the bottom navigation.
+- Utility strip overflowing horizontally instead of scrolling safely.
+- Student header/nameplate being squeezed/truncated incorrectly.
+- Smart Dashboard heading contrast on the dark AETHER surface.
+- Cockpit/cards constrained to safe phone widths.
+- Added stronger mobile safety rules for forms, cards, modals and canvases.
+- Service worker changed to network-first for HTML/CSS/JS to prevent mixed stale deploys.
+
+No Firestore rule change is required for this hotfix.

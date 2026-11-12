@@ -1,0 +1,25 @@
+TEST: Chemistry Unit 1 - Test 2
+CLASS: AUTOMATIC_FROM_ADMIN_DROPDOWN
+SUBJECT_ID: AUTOMATIC_FROM_ADMIN_DROPDOWN
+CHAPTER: Liquid State
+DURATION: 30
+
+---
+Q: Henry-এর সূত্র অনুযায়ী নির্দিষ্ট তাপমাত্রায় তরলে গ্যাসের দ্রাব্যতা কোনটির সঙ্গে সমানুপাতিক?
+A: গ্যাসের আংশিক চাপ
+B: তরলের আয়তন
+C: দ্রাবকের ভর
+D: পাত্রের আকৃতি
+ANSWER: A
+TOPIC: Henry's Law
+EXPLANATION: Henry-এর সূত্রে নির্দিষ্ট তাপমাত্রায় দ্রাব্যতা গ্যাসের আংশিক চাপের সমানুপাতিক।
+
+---
+Q: অউদ্বায়ী দ্রব পদার্থ যোগ করলে দ্রাবকের বাষ্পচাপ কী হয়?
+A: বাড়ে
+B: কমে
+C: অপরিবর্তিত থাকে
+D: শূন্য হয়
+ANSWER: B
+TOPIC: Vapour Pressure
+EXPLANATION: অউদ্বায়ী দ্রব পদার্থ দ্রাবকের mole fraction কমায়, তাই বাষ্পচাপ কমে।

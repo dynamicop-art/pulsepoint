@@ -1,0 +1,85 @@
+ARPAN LEARNING SUITE — v12
+
+IMPORTANT: WEBSITE + FIRESTORE RULES ARE BOTH REQUIRED
+
+1. Keep a backup of your currently deployed website and Firebase rules.
+2. Upload ALL files inside Student-Live-Test-main to the website folder.
+   Keep your existing config.js values. The supplied config was not changed.
+3. Open your Firebase project > Firestore Database > Rules.
+4. Replace the rules editor contents with the complete supplied firestore.rules
+   and Publish. Do NOT paste it into the database's data editor.
+5. Reload the website. If an older version remains, close and reopen the tab.
+6. Sign in as the teacher, open 'Class chat & moderation' from Quick workflow.
+   Sign in as a student in a separate browser and run the acceptance checks below.
+
+No Firebase credentials or external deployment were available during editing.
+The chat backend is implemented in the files, but is NOT already deployed.
+No third-party chat account or new Firebase service is required: it uses Firestore.
+Firestore usage is subject to your existing project's quota and billing plan.
+
+NEW AND UPGRADED
+- Class Lounge: live text conversation, latest 60 messages, own-message deletion,
+  report to teacher, teacher deletion, mute/unmute and report resolution.
+- Messages are visible to the same class and teacher. No direct/private messaging.
+- Server rules enforce identity, class access, timestamps, max message length,
+  mute status and a 3-second per-account send interval using an atomic batch.
+- Leaderboard: profile photos, initials fallback, and first/second/third badges.
+  Tied scores retain the same rank. No negative 'loser' labels.
+- Photo sharing is opt-in under Profile; emails/private attempts are not shared.
+  Shared photos use small 96px thumbnails. Existing students must opt in.
+  After opting in, saving a new profile photo also updates the shared thumbnail.
+- Profile photo auto-resize for JPG/PNG/WebP files up to 10 MB.
+- Practice Arcade: 5-question Number Sprint with three difficulty levels and
+  account-specific local personal best; Mistake Replay from graded wrong answers.
+- Old Math Sprint, Force Lab, Chapter Boss, Duel and Viva remain under More practice.
+- Download personal checklist and notes as a text backup.
+- Home still has three main panels; new tools do not add a long Home feed.
+
+FIXES
+- Approved invitation must match the new account's name and class in server rules.
+- Assignment writes validate the assignment and class, not only the user's UID.
+- Failed assignment updates restore the checkbox instead of showing false success.
+- Pending/null grades are not treated as zero in leaderboard/summary filters.
+- Local calendar dates are used for daily streak and due-date checks.
+- Popup-blocked result printing shows feedback; result text is escaped.
+- New arcade IDs are isolated from existing games.
+- Service worker only cleans up this app's cache prefix and never serves HTML as
+  an offline JavaScript/CSS fallback.
+
+LIVE ACCEPTANCE CHECKS — REQUIRED BEFORE USING WITH STUDENTS
+1. Student A and B in the same class can read and send messages to each other.
+2. Student C from a different class cannot read/write class A's room (also test
+   requests directly against Firestore rules, not just through the interface).
+3. Repeated sends less than 3 seconds apart are rejected; the draft is retained.
+4. Student can delete their own message, cannot delete another student's message.
+5. Report a message; teacher sees it and can dismiss/delete it.
+6. Teacher mutes a student: student can read but cannot post. Unmute restores posting.
+7. Opt into photo sharing, save a photo, check the leaderboard in another account.
+   Opt out: other viewers see initials. Private user docs/attempts remain inaccessible.
+8. Try a disabled invite and mismatched class/name when creating a user: reject.
+9. Submit and grade a test, check rank ties, replay wrong answers and verify that
+   practice scores do not modify exam scores.
+10. Test mobile 320/390px, tablet, desktop and dark mode; check navigation, photos,
+    arcade, keyboard focus, chat scrolling and timer after backgrounding the tab.
+11. Verify no console errors, then check assignment update on a disconnected device.
+
+WHAT WAS TESTED HERE
+Script syntax, local DOM fixture integration, preservation and uniqueness of
+existing controls, timer logic, arcade rounds and answer guards, replay selection,
+consent write/removal payloads, chat payloads and text rendering, failed-send draft
+retention, mute UI behaviour, study-desk persistence and calendar edge cases.
+These used local mocks/fixtures. They are not full browser or server verification.
+
+WHAT WAS NOT TESTED HERE
+Actual browser rendering, image decoding/compression with real photos, live Firebase
+login, Firestore rules execution/emulator, live two-account chat and real database
+permissions. Follow the live acceptance checklist above after publishing rules.
+
+EXISTING LIMITATIONS
+Checklist, notes, focus activity and arcade best scores remain browser-local, per
+account. Download a backup before clearing storage. Active timers reset on page reload.
+Chat has no background push notifications or attachments. Latest 60 messages are
+shown; older messages remain in Firestore. Teacher moderation shows latest 100 reports.
+Public photo listener is capped at 500 class profiles; missing photos use initials.
+Existing test grading/leaderboard processing still depends on the original teacher
+console workflow; this update does not introduce a new server-side grading service.

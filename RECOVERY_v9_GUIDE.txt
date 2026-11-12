@@ -1,0 +1,27 @@
+ARPAN LEARNING SUITE — RESTORED v9 FULL STABLE
+
+WHAT THIS BUILD IS
+- Based on Ultimate v6.1, the last feature-rich architecture before NOVA/AETHER experimental changes.
+- NOVA/AETHER cockpit, voice pilot, warp sprint, neural canvas, spatial dock and related experimental CSS/JS were removed by restoring the v6.1 codebase.
+- Existing useful Ultimate features remain: Practice Importer, Auto Practice, Smart Feed, Confidence Mode, Confidence Intelligence, Exam Replay, Mistake DNA, Mastery Map, Daily Mission, AI Study Coach, Chapter Boss, Challenge Duel, Viva Rehearsal, Quick Find, PWA, core Notes/Tests/Assignments/Revision/Progress/History/Games/Doubts.
+- Daily Motivation remains first on Home and Home secondary tools remain collapsed to reduce scrolling.
+- Service worker is replaced by v9 network-first stable shell and deletes every older cache automatically.
+
+DEPLOYMENT
+1. Extract ZIP.
+2. Replace/add ALL files inside this folder in the ROOT of the existing GitHub repository.
+3. Commit and wait for GitHub Pages deployment.
+4. DO NOT change Firebase config/project.
+5. Firestore rules: no new change is needed if the v6/v8 rules are already published; the included rules are the SAME rules used by v8.
+6. Open the site and hard refresh once. The v9 service worker removes old AETHER/NOVA caches automatically.
+
+FIRST SMOKE TEST
+- Student login
+- Open Notes
+- Open Tests
+- Start one small test, answer + confidence, submit
+- Teacher grades it
+- Student checks History, Progress, Replay, Revision/Mistake DNA
+- Check Practice Importer, Assignments, Doubts
+
+If this full loop works, the restored platform is healthy.
