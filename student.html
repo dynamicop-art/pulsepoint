@@ -25,7 +25,7 @@
   section.hero.topbar .learn-symbol{display:none!important} section.hero.topbar .star,section.hero.topbar .sparkle-sweep{display:block!important}
 }
 @media(max-width:370px){section.hero.topbar{grid-template-columns:minmax(0,1fr) 62px!important;padding:56px 11px 13px!important;gap:6px!important}section.hero.topbar .profile-orbit{width:52px!important;height:52px!important;flex-basis:52px!important}section.hero.topbar .profile-orbit .avatar,section.hero.topbar .profile-orbit .avatar-placeholder{width:44px!important;height:44px!important}section.hero.topbar h1{font-size:17px!important}section.hero.topbar p#who{font-size:9.5px!important}section.hero.topbar>button#logout{min-width:62px!important;padding:8px 6px!important;font-size:10px!important}}
-</style><link rel="stylesheet" href="refresh.css?v=10"><link rel="stylesheet" href="premium.css?v=11"><link rel="stylesheet" href="learning-plus.css?v=12"></head>
+</style><link rel="stylesheet" href="refresh.css?v=10"><link rel="stylesheet" href="premium.css?v=11"><link rel="stylesheet" href="learning-plus.css?v=12"><link rel="stylesheet" href="finish.css?v=12.1"></head>
 <body>
 <div class="fab-row"><button id="soundBtn" class="sound-fab" type="button" title="Toggle sound">🔇</button><button id="themeBtn" class="theme-fab" type="button" title="Switch theme">🌙</button></div>
 <div class="wrap">
@@ -302,14 +302,14 @@ onAuthStateChanged(auth,async u=>{
 const MORE_TABS=new Set(["assignments","revision","progress","history","games","doubts","desk","updates","account"]);
 function closeMoreNav(){$("moreNavSheet").classList.add("hidden");$("moreNavSheet").setAttribute("aria-hidden","true");}
 function openTab(tabId,{remember=true,scroll=true}={}){
- const target=$(tabId);if(!target)return;
+ const target=$(tabId);if(!target||!target.classList.contains("tab"))return;
  document.querySelectorAll(".tab").forEach(t=>t.classList.add("hidden"));target.classList.remove("hidden");
- document.querySelectorAll(".nav button[data-tab]").forEach(x=>x.classList.toggle("active",x.dataset.tab===tabId));
+ document.querySelectorAll(".nav button[data-tab]").forEach(x=>{const active=x.dataset.tab===tabId;x.classList.toggle("active",active);x.setAttribute("aria-current",active?"page":"false");});
  $("moreNavBtn").classList.toggle("active",MORE_TABS.has(tabId));
  if(remember&&auth.currentUser)localStorage.setItem(`lastTab:${auth.currentUser.uid}`,tabId);
- closeMoreNav();if(scroll)window.scrollTo({top:0,behavior:"smooth"});renderSmartDashboard();
+ closeMoreNav();if(scroll){window.scrollTo({top:0,behavior:"smooth"});target.setAttribute("tabindex","-1");target.focus({preventScroll:true});}renderSmartDashboard();
 }
-document.querySelectorAll(".nav button[data-tab]").forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
+document.querySelectorAll(".nav button[data-tab]").forEach(b=>{b.setAttribute("aria-current",b.dataset.tab==="home"?"page":"false");const section=$(b.dataset.tab);if(section)section.setAttribute("aria-label",b.textContent.trim());b.onclick=()=>openTab(b.dataset.tab);});
 $("moreNavBtn").onclick=()=>{$("moreNavSheet").classList.remove("hidden");$("moreNavSheet").setAttribute("aria-hidden","false");};
 $("closeMoreNav").onclick=closeMoreNav;$("closeMoreNavTop").onclick=closeMoreNav;
 document.querySelectorAll("[data-open-tab]").forEach(b=>b.onclick=()=>openTab(b.dataset.openTab));

@@ -8,21 +8,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="style.css?v=9.0-stable"><link rel="stylesheet" href="refresh.css?v=10"></head>
-<body>
+<link rel="stylesheet" href="style.css?v=9.0-stable"><link rel="stylesheet" href="refresh.css?v=10"><link rel="stylesheet" href="finish.css?v=12.1"></head>
+<body class="login-finish">
 <button id="themeBtn" class="theme-fab" type="button" title="Switch theme">🌙</button>
 <div class="wrap">
 <section class="hero"><div class="brand-line"><span class="brand-dot"></span> Arpan Learning Suite</div><h1>Student Learning Hub</h1><p>Class V থেকে Class XII — নোটস, লাইভ টেস্ট এবং রেজাল্ট, সব এক জায়গায়, একদম প্রাইভেট ও পার্সোনালাইজড।</p></section>
 <div class="grid">
   <section class="card login-card"><div class="section-kicker">🔑 Student Access</div><h2>Welcome back</h2>
-    <input id="lemail" type="email" placeholder="Email">
-    <input id="lpass" type="password" placeholder="Password">
+    <input id="lemail" aria-label="Login email" autocomplete="username" type="email" placeholder="Email">
+    <input id="lpass" aria-label="Login password" autocomplete="current-password" type="password" placeholder="Password">
     <button id="login">Enter Learning Hub</button><p id="lmsg" class="muted"></p>
   </section>
   <section class="card login-card"><div class="section-kicker">✨ First Time Setup</div><h2>Create Student Account</h2>
     <p class="muted">Teacher আগে তোমার email allow করলে তবেই account তৈরি হবে।</p>
-    <input id="semail" type="email" placeholder="Teacher-approved email">
-    <input id="spass" type="password" placeholder="Create password (6+ characters)">
+    <input id="semail" aria-label="Teacher-approved signup email" autocomplete="email" type="email" placeholder="Teacher-approved email">
+    <input id="spass" aria-label="Create password" autocomplete="new-password" type="password" placeholder="Create password (6+ characters)">
     <button id="signup">Create Account</button><p id="smsg" class="muted"></p>
   </section>
   <section class="card login-card"><div class="section-kicker">🎓 Teacher Workspace</div><h2>Admin Console</h2>
@@ -49,13 +49,15 @@ $("themeBtn").onclick=()=>{
 };
 
 $("login").onclick=async()=>{
+ if($("login").disabled)return;$("login").disabled=true;$("login").textContent="Signing in…";
  try{
    const c=await signInWithEmailAndPassword(auth,$("lemail").value.trim(),$("lpass").value);
    location.href=(c.user.email||"").toLowerCase()===TEACHER_EMAIL.toLowerCase()?"admin.html":"student.html";
- }catch(e){$("lmsg").textContent="Login failed: "+e.message;}
+ }catch(e){$("lmsg").textContent="Login failed: "+e.message;}finally{$("login").disabled=false;$("login").textContent="Enter Learning Hub";}
 };
 
 $("signup").onclick=async()=>{
+ if($("signup").disabled)return;$("signup").disabled=true;$("signup").textContent="Creating account…";
  let cred=null;
  try{
    const email=$("semail").value.trim().toLowerCase();
@@ -72,6 +74,7 @@ $("signup").onclick=async()=>{
      role:"student",createdAt:serverTimestamp()
    });
    location.href="student.html";
- }catch(e){$("smsg").textContent=e.message;}
+ }catch(e){$("smsg").textContent=e.message;}finally{$("signup").disabled=false;$("signup").textContent="Create Account";}
 };
+for(const [field,button] of [["lemail","login"],["lpass","login"],["semail","signup"],["spass","signup"]])$(field).addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$(button).click();}});
 </script><script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script></body></html>

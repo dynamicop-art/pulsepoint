@@ -1,0 +1,18 @@
+FINISHING UPDATE v12.1
+
+- Refined student dashboard surfaces, focus banner, buttons, input focus states,
+  active navigation, dark mode and responsive spacing.
+- Matching welcome/login styling with a lightweight illustration.
+- Login/signup buttons show progress and prevent duplicate submission while busy.
+- Email/password fields have accessible labels, autofill hints and Enter support.
+- Sections expose their accessible names and current navigation state; navigating
+  moves keyboard focus to the chosen section.
+- Arcade rounds have completion progress bars, an end-of-round card, and answer
+  highlighting after the student responds. Text feedback remains available.
+- Class chat bubble and status styling polished; Home still has three main panels.
+
+Upload all files, including finish.css. Firebase rules are unchanged from v12.
+If you have not installed v12 yet, follow START_HERE_v12.txt and publish its rules.
+
+Validation: script syntax, local DOM/timer/arcade/chat payload/study-desk tests pass.
+Browser rendering, live login and live Firestore permissions remain unverified.
